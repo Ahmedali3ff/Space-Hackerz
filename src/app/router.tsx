@@ -26,6 +26,9 @@ const MissionControlScreen = React.lazy(
 const MissionDebriefScreen = React.lazy(
   () => import('../features/mission-debrief/MissionDebriefScreen').then((m) => ({ default: m.MissionDebriefScreen })),
 )
+const MissionsOverviewScreen = React.lazy(
+  () => import('../features/missions/MissionsOverviewScreen').then((m) => ({ default: m.MissionsOverviewScreen })),
+)
 
 // ── Route guard components ────────────────────────────────────────────────────
 
@@ -144,6 +147,16 @@ export function AppRouter(): JSX.Element {
               </Suspense>
             </RequireMissionStarted>
           </RequireSetup>
+        }
+      />
+      <Route
+        path="/missions"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/missions">
+              <MissionsOverviewScreen />
+            </ScreenTransition>
+          </Suspense>
         }
       />
     </Routes>

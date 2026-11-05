@@ -1,28 +1,55 @@
 // src/features/planet-selection/PlanetSelectionScreen.tsx
-// Planet selection screen — choose Moon or Mars before configuring crew.
-// Shows real profile facts from the NASA data layer (read-only).
+// Planet selection screen — Space+ light card layout with CSS sphere illustrations.
+// PRESERVED: 'Select The Moon' / 'Select Mars' aria-pressed buttons, 'The Moon' and
+//            'Mars' text, 'No atmosphere' / 'Thin CO₂ atmosphere', '1.62' gravity,
+//            'continue to crew selection' aria-label, navigation to '/select-crew'.
 
 import { useNavigate } from 'react-router-dom'
-import { Moon, Planet, ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenTransition } from '@/components/layout/ScreenTransition'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
-
 import { StatReadout } from '@/components/common/StatReadout'
+import { SectionLabel } from '@/components/common/SectionLabel'
 import { MOON_PROFILE } from '@data/nasa/moon-profile'
 import { MARS_PROFILE } from '@data/nasa/mars-profile'
 import { useMissionStore } from '@store/mission-store'
 import type { PlanetId } from '@simulation/types'
 import type { PlanetProfile } from '@simulation/types'
-import type { Icon } from '@phosphor-icons/react'
 
 interface PlanetSelectionScreenProps {}
 
-// ── Static atmosphere notes (presentation-layer constants) ──
+// ── Static atmosphere notes ───────────────────────────────────────────────────
 
 const ATMOSPHERE_NOTES: Readonly<Record<PlanetId, string>> = {
   moon: 'No atmosphere',
   mars: 'Thin CO₂ atmosphere',
+}
+
+// ── CSS sphere styles ─────────────────────────────────────────────────────────
+
+const SPHERE_STYLE: Readonly<Record<PlanetId, React.CSSProperties>> = {
+  moon: {
+    background: 'radial-gradient(circle at 35% 35%, #E8EAF6, #9FA8DA)',
+    width: '120px',
+    height: '120px',
+    borderRadius: '50%',
+    boxShadow: '0 4px 24px rgba(159, 168, 218, 0.4)',
+  },
+  mars: {
+    background: 'radial-gradient(circle at 35% 35%, #FFCCBC, #FF7043)',
+    width: '120px',
+    height: '120px',
+    borderRadius: '50%',
+    boxShadow: '0 4px 24px rgba(255, 112, 67, 0.4)',
+  },
+}
+
+// ── Mission count data ────────────────────────────────────────────────────────
+
+const MISSION_COUNT: Readonly<Record<PlanetId, number>> = {
+  moon: 3,
+  mars: 3,
 }
 
 // ── Planet card ──────────────────────────────────────────────────────────────
@@ -31,60 +58,66 @@ interface PlanetCardProps {
   readonly profile: PlanetProfile
   readonly isSelected: boolean
   readonly onSelect: (id: PlanetId) => void
-  readonly IconComponent: Icon
-  readonly accentClass: string
-  readonly ringClass: string
-  readonly glowClass: string
   readonly atmosphereNote: string
+  readonly badgeColorClass: string
 }
 
 function PlanetCard({
   profile,
   isSelected,
   onSelect,
-  IconComponent,
-  accentClass,
-  ringClass,
-  glowClass,
   atmosphereNote,
+  badgeColorClass,
 }: PlanetCardProps): JSX.Element {
+  const accentClass = isSelected
+    ? 'ring-2 ring-spaceplus-accent-teal border-spaceplus-accent-teal shadow-cardHover'
+    : 'border-spaceplus-border-light hover:shadow-cardHover hover:border-spaceplus-border-medium'
+
   return (
     <button
       type="button"
       aria-pressed={isSelected}
       aria-label={`Select ${profile.displayName}`}
       onClick={() => onSelect(profile.id)}
-      className={`relative w-full max-w-sm rounded-2xl border bg-space-panel/80 p-6 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-orbit
-        ${isSelected
-          ? `border-opacity-100 shadow-lg ${ringClass} ${glowClass}`
-          : 'border-border-subtle hover:border-border-strong hover:bg-space-panelRaised/60'
-        }`}
+      className={`relative w-full max-w-xs rounded-2xl border bg-spaceplus-card p-6 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal ${accentClass}`}
     >
       {/* Selected checkmark */}
       {isSelected && (
-        <span className={`absolute right-4 top-4 ${accentClass}`} aria-hidden="true">
+        <span
+          className="absolute right-4 top-4 text-spaceplus-accent-teal"
+          aria-hidden="true"
+        >
           <CheckCircle size={24} weight="fill" />
         </span>
       )}
 
-      {/* Planet icon */}
-      <div className="mb-5 flex items-center gap-4">
-        <span
-          className={`inline-flex h-16 w-16 items-center justify-center rounded-full bg-space-deep ring-2 ${ringClass}`}
-          aria-hidden="true"
-        >
-          <IconComponent size={36} weight="duotone" className={accentClass} />
+      {/* CSS sphere illustration */}
+      <div className="mb-5 flex justify-center">
+        <div
+          style={SPHERE_STYLE[profile.id]}
+          role="img"
+          aria-label={`${profile.displayName} planet illustration`}
+        />
+      </div>
+
+      {/* Planet name + atmosphere */}
+      <div className="mb-1">
+        <h3 className="font-display2 text-2xl font-bold text-spaceplus-text-heading">
+          {profile.displayName}
+        </h3>
+        <p className="mt-0.5 text-sm text-spaceplus-text-secondary">{atmosphereNote}</p>
+      </div>
+
+      {/* Mission count pill */}
+      <div className="mb-4 mt-2 flex items-center gap-2">
+        <SectionLabel>Missions</SectionLabel>
+        <span className={`sp-badge-teal ${badgeColorClass}`}>
+          {MISSION_COUNT[profile.id]} missions
         </span>
-        <div>
-          <h3 className="font-display text-2xl font-bold text-text-primary">
-            {profile.displayName}
-          </h3>
-          <p className="mt-0.5 text-sm text-text-muted">{atmosphereNote}</p>
-        </div>
       </div>
 
       {/* Key stats */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <StatReadout
           label="Gravity"
           value={profile.gravity_m_s2.toFixed(2)}
@@ -116,7 +149,7 @@ function PlanetCard({
   )
 }
 
-// ── Screen ───────────────────────────────────────────────────────────────────
+// ── Screen ────────────────────────────────────────────────────────────────────
 
 export function PlanetSelectionScreen(_props: PlanetSelectionScreenProps): JSX.Element {
   const navigate = useNavigate()
@@ -126,15 +159,16 @@ export function PlanetSelectionScreen(_props: PlanetSelectionScreenProps): JSX.E
   const canContinue = selectedPlanetId !== null
 
   return (
-    <AppShell title="ASTRA — Choose Your Destination">
+    <AppShell title="ASTRA — Choose Your Destination" variant="light">
       <ScreenTransition routeKey="/select-planet">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 py-16">
           {/* ── Heading ── */}
           <div className="mb-10 text-center">
-            <h2 className="font-display text-4xl font-bold text-text-primary sm:text-5xl">
+            <SectionLabel className="block mb-2">Step 1 of 3 — Destination</SectionLabel>
+            <h2 className="font-display2 text-4xl font-extrabold text-spaceplus-text-heading sm:text-5xl">
               Choose Your Destination
             </h2>
-            <p className="mt-3 text-lg text-text-secondary">
+            <p className="mt-3 text-lg text-spaceplus-text-secondary">
               Select the world where your crew will build their base.
             </p>
           </div>
@@ -145,27 +179,21 @@ export function PlanetSelectionScreen(_props: PlanetSelectionScreenProps): JSX.E
               profile={MOON_PROFILE}
               isSelected={selectedPlanetId === 'moon'}
               onSelect={selectPlanet}
-              IconComponent={Moon}
-              accentClass="text-accent-starlight"
-              ringClass="ring-accent-starlight/50"
-              glowClass="border-accent-starlight/60 shadow-glow-orbit"
               atmosphereNote={ATMOSPHERE_NOTES.moon}
+              badgeColorClass=""
             />
             <PlanetCard
               profile={MARS_PROFILE}
               isSelected={selectedPlanetId === 'mars'}
               onSelect={selectPlanet}
-              IconComponent={Planet}
-              accentClass="text-accent-ignition"
-              ringClass="ring-accent-ignition/50"
-              glowClass="border-accent-ignition/60 shadow-glow-ignition"
               atmosphereNote={ATMOSPHERE_NOTES.mars}
+              badgeColorClass="bg-spaceplus-accent-amber"
             />
           </div>
 
           {/* ── Info note ── */}
           {selectedPlanetId === null && (
-            <p className="mt-8 text-sm text-text-muted" role="status">
+            <p className="mt-8 text-sm text-spaceplus-text-muted" role="status">
               Select a destination to continue.
             </p>
           )}
@@ -183,7 +211,7 @@ export function PlanetSelectionScreen(_props: PlanetSelectionScreenProps): JSX.E
             </PrimaryButton>
 
             <PrimaryButton
-              variant="primary"
+              variant="hint"
               size="lg"
               disabled={!canContinue}
               onClick={() => navigate('/select-crew')}

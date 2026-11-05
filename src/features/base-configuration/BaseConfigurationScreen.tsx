@@ -1,7 +1,9 @@
 // src/features/base-configuration/BaseConfigurationScreen.tsx
-// Configure the habitat systems before launching the mission.
-// Uses local draft state for the BaseConfig; commits only on "Start Mission".
-// Does NOT import from src/simulation/ — defaults are defined locally.
+// Configure habitat systems before launching — Space+ Card layout.
+// Cards: Power Systems, Life Support & Agriculture, Mission Readiness sidebar.
+// Duration selector (UI-only, not passed to sim engine yet).
+// PRESERVED: all slider aria-labels, shielding buttons, 'Start Mission' button,
+//            initializeMission call, navigation logic, Back button.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -9,14 +11,15 @@ import { Sun, BatteryHigh, Leaf, ShieldCheck, ArrowLeft, Rocket, Warning } from 
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenTransition } from '@/components/layout/ScreenTransition'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
-import { Panel } from '@/components/common/Panel'
+import { Card } from '@/components/common/Card'
+import { SectionLabel } from '@/components/common/SectionLabel'
 import { useMissionStore } from '@store/mission-store'
 import { useMissionControl } from '@/hooks/useMissionControl'
 import type { BaseConfig, ShieldingLevel } from '@simulation/types'
 
 interface BaseConfigurationScreenProps {}
 
-// ── Local default factory (mirrors simulation defaults; no simulation import) ──
+// ── Local default factory ──────────────────────────────────────────────────────
 
 function getDefaultConfig(_crewSize: number): BaseConfig {
   return {
@@ -28,7 +31,7 @@ function getDefaultConfig(_crewSize: number): BaseConfig {
   }
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Range slider ───────────────────────────────────────────────────────────────
 
 interface RangeSliderProps {
   readonly id: string
@@ -60,13 +63,13 @@ function RangeSlider({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <label htmlFor={id} className="flex items-center gap-2 font-semibold text-text-primary">
+        <label htmlFor={id} className="flex items-center gap-2 text-sm font-semibold text-spaceplus-text-heading">
           {icon}
           {label}
         </label>
-        <span className="hud-mono text-lg font-bold text-accent-orbit">
+        <span className="text-base font-bold text-spaceplus-accent-teal tabular-nums">
           {value}
-          <span className="ml-1 text-sm font-normal text-text-muted">{unit}</span>
+          <span className="ml-1 text-xs font-normal text-spaceplus-text-muted">{unit}</span>
         </span>
       </div>
       <input
@@ -81,17 +84,17 @@ function RangeSlider({
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
-        className="w-full cursor-pointer accent-accent-orbit"
+        className="w-full cursor-pointer accent-spaceplus-accent-teal"
         style={{
-          background: `linear-gradient(to right, var(--accent-orbit, #29E6F3) ${pct}%, var(--border-subtle, #243456) ${pct}%)`,
+          background: `linear-gradient(to right, #00BCD4 ${pct}%, #DCE4F7 ${pct}%)`,
         }}
       />
-      <p className="text-xs text-text-muted">{microCopy}</p>
+      <p className="text-xs text-spaceplus-text-muted">{microCopy}</p>
     </div>
   )
 }
 
-// ── Shielding segmented control ──────────────────────────────────────────────
+// ── Shielding segmented control ────────────────────────────────────────────────
 
 const SHIELDING_LEVELS: ReadonlyArray<{ id: ShieldingLevel; label: string }> = [
   { id: 'low', label: 'Low' },
@@ -107,8 +110,8 @@ interface ShieldingControlProps {
 function ShieldingControl({ value, onChange }: ShieldingControlProps): JSX.Element {
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 font-semibold text-text-primary">
-        <ShieldCheck size={20} weight="duotone" aria-hidden="true" className="text-accent-orbit" />
+      <div className="flex items-center gap-2 text-sm font-semibold text-spaceplus-text-heading">
+        <ShieldCheck size={18} weight="duotone" aria-hidden="true" className="text-spaceplus-accent-teal" />
         Radiation Shielding
       </div>
       <div
@@ -122,24 +125,64 @@ function ShieldingControl({ value, onChange }: ShieldingControlProps): JSX.Eleme
             type="button"
             aria-pressed={value === level.id}
             onClick={() => onChange(level.id)}
-            className={`flex-1 rounded-lg border px-4 py-3 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-orbit
+            className={`flex-1 rounded-xl border px-4 py-3 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal
               ${value === level.id
-                ? 'border-accent-orbit/70 bg-accent-orbit/10 text-accent-orbit shadow-glow-orbit'
-                : 'border-border-subtle bg-space-panel text-text-secondary hover:border-border-strong hover:text-text-primary'
+                ? 'border-spaceplus-accent-teal bg-spaceplus-accent-tealLight text-spaceplus-accent-tealDark'
+                : 'border-spaceplus-border-light bg-spaceplus-surface text-spaceplus-text-secondary hover:border-spaceplus-border-medium hover:text-spaceplus-text-heading'
               }`}
           >
             {level.label}
           </button>
         ))}
       </div>
-      <p className="text-xs text-text-muted">
+      <p className="text-xs text-spaceplus-text-muted">
         Better shielding keeps your crew safer from radiation — but uses more mass and power.
       </p>
     </div>
   )
 }
 
-// ── Screen ───────────────────────────────────────────────────────────────────
+// ── Duration selector ──────────────────────────────────────────────────────────
+
+type MissionDuration = 30 | 60 | 90
+
+const DURATION_OPTIONS: ReadonlyArray<{ value: MissionDuration; label: string }> = [
+  { value: 30, label: '30 days' },
+  { value: 60, label: '60 days' },
+  { value: 90, label: '90 days' },
+]
+
+interface DurationSelectorProps {
+  readonly value: MissionDuration
+  readonly onChange: (d: MissionDuration) => void
+}
+
+function DurationSelector({ value, onChange }: DurationSelectorProps): JSX.Element {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-semibold text-spaceplus-text-heading">Mission Duration</p>
+      <div className="flex gap-2" role="group" aria-label="Mission duration">
+        {DURATION_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            aria-pressed={value === opt.value}
+            onClick={() => onChange(opt.value)}
+            className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal
+              ${value === opt.value
+                ? 'border-spaceplus-accent-teal bg-spaceplus-accent-tealLight text-spaceplus-accent-tealDark'
+                : 'border-spaceplus-border-light bg-spaceplus-surface text-spaceplus-text-secondary hover:border-spaceplus-border-medium'
+              }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Screen ─────────────────────────────────────────────────────────────────────
 
 export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): JSX.Element {
   const navigate = useNavigate()
@@ -149,8 +192,12 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
   const { initializeMission } = useMissionControl()
 
   const [draft, setDraft] = useState<BaseConfig>(() => getDefaultConfig(crewSize))
+  // UI-only duration — not passed to sim engine
+  const [missionDuration, setMissionDuration] = useState<MissionDuration>(30)
 
   const isSetupValid = selectedPlanetId !== null && crewSize >= 1
+
+  const planetLabel = selectedPlanetId === 'moon' ? 'The Moon' : selectedPlanetId === 'mars' ? 'Mars' : '—'
 
   function patchDraft(patch: Partial<BaseConfig>): void {
     setDraft((prev) => ({ ...prev, ...patch }))
@@ -164,15 +211,16 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
   }
 
   return (
-    <AppShell title="ASTRA — Configure Your Base">
+    <AppShell title="ASTRA — Configure Your Base" variant="light">
       <ScreenTransition routeKey="/configure-base">
-        <div className="mx-auto flex min-h-[calc(100vh-65px)] max-w-3xl flex-col items-stretch px-6 py-16">
+        <div className="mx-auto flex min-h-[calc(100vh-65px)] max-w-4xl flex-col items-stretch px-6 py-16">
           {/* ── Heading ── */}
           <div className="mb-10 text-center">
-            <h2 className="font-display text-4xl font-bold text-text-primary sm:text-5xl">
+            <SectionLabel className="block mb-2">Step 3 of 3 — Base Setup</SectionLabel>
+            <h2 className="font-display2 text-4xl font-extrabold text-spaceplus-text-heading sm:text-5xl">
               Configure Your Base
             </h2>
-            <p className="mt-3 text-lg text-text-secondary">
+            <p className="mt-3 text-lg text-spaceplus-text-secondary">
               Set up your habitat systems before launch. Every choice is a trade-off.
             </p>
           </div>
@@ -181,84 +229,124 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
           {!isSetupValid && (
             <div
               role="alert"
-              className="mb-6 flex items-center gap-3 rounded-xl border border-status-warn/50 bg-status-warn/10 px-4 py-3 text-sm text-status-warn"
+              className="mb-6 flex items-center gap-3 rounded-xl border border-spaceplus-status-warning/50 bg-spaceplus-status-warningBg px-4 py-3 text-sm text-spaceplus-status-warning"
             >
               <Warning size={20} weight="fill" aria-hidden="true" />
               Please select a planet and crew size first before configuring your base.
             </div>
           )}
 
-          <div className="space-y-6">
-            {/* ── Power systems ── */}
-            <Panel title="Power Systems" accent="orbit">
-              <div className="space-y-6">
-                <RangeSlider
-                  id="solar-panels"
-                  label="Solar Panels"
-                  microCopy="More panels = more power. Great for sunny days! On Mars, panels generate less due to distance from the Sun."
-                  value={draft.solarPanelArea_m2}
-                  min={0}
-                  max={200}
-                  step={10}
-                  unit="m²"
-                  icon={<Sun size={20} weight="duotone" aria-hidden="true" className="text-accent-orbit" />}
-                  onChange={(v) => patchDraft({ solarPanelArea_m2: v })}
-                />
-                <RangeSlider
-                  id="battery-storage"
-                  label="Battery Storage"
-                  microCopy="Stores energy for lunar night or Martian dust storms. More capacity = more survival time without sunlight."
-                  value={draft.batteryCapacity_kWh}
-                  min={0}
-                  max={500}
-                  step={10}
-                  unit="kWh"
-                  icon={<BatteryHigh size={20} weight="duotone" aria-hidden="true" className="text-accent-orbit" />}
-                  onChange={(v) => patchDraft({ batteryCapacity_kWh: v })}
-                />
-              </div>
-            </Panel>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* ── Main config — 2 columns on lg ── */}
+            <div className="space-y-6 lg:col-span-2">
+              {/* Power systems */}
+              <Card accent="teal">
+                <SectionLabel className="block mb-4">Power Systems</SectionLabel>
+                <div className="space-y-6">
+                  <RangeSlider
+                    id="solar-panels"
+                    label="Solar Panels"
+                    microCopy="More panels = more power. On Mars, panels generate less due to distance from the Sun."
+                    value={draft.solarPanelArea_m2}
+                    min={0}
+                    max={200}
+                    step={10}
+                    unit="m²"
+                    icon={<Sun size={18} weight="duotone" aria-hidden="true" className="text-spaceplus-accent-teal" />}
+                    onChange={(v) => patchDraft({ solarPanelArea_m2: v })}
+                  />
+                  <RangeSlider
+                    id="battery-storage"
+                    label="Battery Storage"
+                    microCopy="Stores energy for lunar night or Martian dust storms. More capacity = more survival time without sunlight."
+                    value={draft.batteryCapacity_kWh}
+                    min={0}
+                    max={500}
+                    step={10}
+                    unit="kWh"
+                    icon={<BatteryHigh size={18} weight="duotone" aria-hidden="true" className="text-spaceplus-accent-teal" />}
+                    onChange={(v) => patchDraft({ batteryCapacity_kWh: v })}
+                  />
+                </div>
+              </Card>
 
-            {/* ── Life support ── */}
-            <Panel title="Life Support &amp; Agriculture" accent="none">
-              <div className="space-y-6">
-                <RangeSlider
-                  id="agriculture-area"
-                  label="Agriculture Area"
-                  microCopy="Grow your own food to stay self-sufficient. More area = more food grown daily, but needs water and power."
-                  value={draft.agricultureArea_m2}
-                  min={0}
-                  max={50}
-                  step={1}
-                  unit="m²"
-                  icon={<Leaf size={20} weight="duotone" aria-hidden="true" className="text-accent-orbit" />}
-                  onChange={(v) => patchDraft({ agricultureArea_m2: v })}
-                />
-                <RangeSlider
-                  id="life-support-efficiency"
-                  label="Life Support Efficiency"
-                  microCopy="Higher efficiency means less waste of oxygen and water — your crew recycles more and needs less resupply."
-                  value={draft.lifeSupportEfficiency}
-                  min={0.5}
-                  max={1.0}
-                  step={0.05}
-                  unit=""
-                  icon={<ShieldCheck size={20} weight="duotone" aria-hidden="true" className="text-accent-orbit" />}
-                  onChange={(v) => patchDraft({ lifeSupportEfficiency: v })}
-                />
-              </div>
-            </Panel>
+              {/* Life support */}
+              <Card>
+                <SectionLabel className="block mb-4">Life Support &amp; Agriculture</SectionLabel>
+                <div className="space-y-6">
+                  <RangeSlider
+                    id="agriculture-area"
+                    label="Agriculture Area"
+                    microCopy="Grow your own food to stay self-sufficient. More area = more food grown daily, but needs water and power."
+                    value={draft.agricultureArea_m2}
+                    min={0}
+                    max={50}
+                    step={1}
+                    unit="m²"
+                    icon={<Leaf size={18} weight="duotone" aria-hidden="true" className="text-spaceplus-accent-teal" />}
+                    onChange={(v) => patchDraft({ agricultureArea_m2: v })}
+                  />
+                  <RangeSlider
+                    id="life-support-efficiency"
+                    label="Life Support Efficiency"
+                    microCopy="Higher efficiency means less waste — your crew recycles more and needs less resupply."
+                    value={draft.lifeSupportEfficiency}
+                    min={0.5}
+                    max={1.0}
+                    step={0.05}
+                    unit=""
+                    icon={<ShieldCheck size={18} weight="duotone" aria-hidden="true" className="text-spaceplus-accent-teal" />}
+                    onChange={(v) => patchDraft({ lifeSupportEfficiency: v })}
+                  />
+                </div>
+              </Card>
 
-            {/* ── Radiation shielding ── */}
-            <Panel accent="none">
-              <ShieldingControl
-                value={draft.shieldingLevel}
-                onChange={(level) => patchDraft({ shieldingLevel: level })}
-              />
-            </Panel>
+              {/* Radiation shielding */}
+              <Card>
+                <ShieldingControl
+                  value={draft.shieldingLevel}
+                  onChange={(level) => patchDraft({ shieldingLevel: level })}
+                />
+              </Card>
+            </div>
+
+            {/* ── Mission readiness sidebar ── */}
+            <div className="flex flex-col gap-4">
+              <Card accent="teal" className="flex flex-col gap-4">
+                <SectionLabel className="block">Mission Readiness</SectionLabel>
+
+                <div className="flex flex-col gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-spaceplus-text-secondary">Planet</span>
+                    <span className="font-semibold text-spaceplus-text-heading">{planetLabel}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-spaceplus-text-secondary">Crew</span>
+                    <span className="font-semibold text-spaceplus-text-heading">{crewSize}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-spaceplus-text-secondary">Solar Panels</span>
+                    <span className="font-semibold text-spaceplus-text-heading">{draft.solarPanelArea_m2} m²</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-spaceplus-text-secondary">Battery</span>
+                    <span className="font-semibold text-spaceplus-text-heading">{draft.batteryCapacity_kWh} kWh</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-spaceplus-text-secondary">Shielding</span>
+                    <span className="font-semibold text-spaceplus-text-heading capitalize">{draft.shieldingLevel}</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-spaceplus-border-light pt-4">
+                  <DurationSelector value={missionDuration} onChange={setMissionDuration} />
+                </div>
+              </Card>
+
+            </div>
           </div>
 
-          {/* ── Navigation ── */}
+          {/* ── Navigation ── always visible ── */}
           <div className="mt-10 flex items-center gap-4">
             <PrimaryButton
               variant="ghost"
@@ -270,20 +358,22 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
               Back
             </PrimaryButton>
 
-            <PrimaryButton
-              variant="primary"
-              size="lg"
-              disabled={!isSetupValid}
-              onClick={handleStartMission}
-              ariaLabel={
-                isSetupValid
-                  ? 'Start the mission'
-                  : 'Select a planet and crew size first'
-              }
-            >
-              <Rocket size={22} aria-hidden="true" />
-              Start Mission
-            </PrimaryButton>
+            <div className="lg:hidden">
+              <PrimaryButton
+                variant="hint"
+                size="lg"
+                disabled={!isSetupValid}
+                onClick={handleStartMission}
+                ariaLabel={
+                  isSetupValid
+                    ? 'Start the mission'
+                    : 'Select a planet and crew size first'
+                }
+              >
+                <Rocket size={22} aria-hidden="true" />
+                Start Mission
+              </PrimaryButton>
+            </div>
           </div>
         </div>
       </ScreenTransition>

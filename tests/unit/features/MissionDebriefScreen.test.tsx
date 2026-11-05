@@ -71,8 +71,8 @@ describe('MissionDebriefScreen', () => {
     missionStore.setState({ ...INITIAL_MISSION_STATE, missionScore: mockScore })
     renderDebrief()
     expect(screen.getByText('Base Score')).toBeTruthy()
-    // finalScore is 435 — should appear as text
-    expect(screen.getByText('435')).toBeTruthy()
+    // finalScore is 435 — should appear as text (may appear multiple times in UI)
+    expect(screen.getAllByText('435').length).toBeGreaterThan(0)
   })
 
   it('shows no mission data message when resourceHistory is empty', () => {
