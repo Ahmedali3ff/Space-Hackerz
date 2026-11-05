@@ -1,6 +1,6 @@
 # ASTRA — Implementation Workflow State
 
-**Last Updated:** 2026-11-04
+**Last Updated:** 2026-11-05
 
 ## Current Phase
 
@@ -13,19 +13,21 @@ PHASE 5 — Application Foundation ✅ COMPLETE
 PHASE 6/7 — Playable 2D/Glass Vertical Slice ✅ COMPLETE (FEAT-001 through FEAT-005)
 PHASE 8 (partial) — Astro-AI knowledge base + service ✅ COMPLETE (integrated into Mission Control + Debrief)
 PHASE 9 — Mission Debrief ✅ COMPLETE
+PHASE 10 (Space+ Redesign + Mission Progression) ✅ COMPLETE (FEAT-A through FEAT-G)
 
 ## Current Task
 
-**Space+ Visual Redesign + Missions System** (workflow `wf_5f779f90a9db1164`) — IN PROGRESS.
+**Space+ Visual Redesign + Missions System** (workflow `wf_5f779f90a9db1164`) — COMPLETE. ✅
+219 tests passing, production build verified (18s, ~29 chunks).
 
-User provided Space+ design reference image. Full visual redesign to match exactly:
-- Light #F4F7FA bg, teal #1FC8C0 primary, white cards, Nunito font
-- 6-mission progression system (3 Moon + 3 Mars) with tasks + star ratings  
+Space+ redesign fully delivered (FEAT-A through FEAT-G):
+- Light #F4F7FA bg, teal #1FC8C0 primary, white cards, Nunito font — all screens
+- 6-mission progression system (3 Moon + 3 Mars) with task checklists + star ratings
 - All screens: top nav + sidebar + white card layout
 - CSS/SVG planet illustrations (NOT WebGL — matches Space+ illustrated style)
-- Previous dark NASA direction SUPERSEDED by this user-approved reference.
+- MissionProgressStore + MissionTaskEvaluator + 219 passing tests
 
-**Next up after redesign:** Location Selection + Mission Duration (R8), then QA (R9-R10).
+**Next up:** Location Selection + Mission Duration (R8), then QA (R9-R10).
 
 R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Location Selection, F10 Mission Duration, F11 3D World; `requirements.md` added FR-09/FR-10/FR-11.
 
@@ -103,6 +105,13 @@ R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Locat
 | FEAT-003 | Setup screens (Onboarding/Planet/Crew/Config) + router wiring | 2026-11-04 |
 | FEAT-004 | Mission Control hero + sub-panels + Astro-AI + event-registry | 2026-11-04 |
 | FEAT-005 | Debrief re-skin + code-split + v7 flags + final verification + docs | 2026-11-04 |
+| FEAT-A   | Space+ design tokens + AppShell (top nav + sidebar + light bg)      | 2026-11-05 |
+| FEAT-B   | MissionsOverviewScreen — 6-mission progression cards (3 Moon+3 Mars)| 2026-11-05 |
+| FEAT-C   | OnboardingScreen redesign — Space+ style, hero planet illustration   | 2026-11-05 |
+| FEAT-D   | PlanetSelectionScreen — CSS gradient spheres, Space+ card layout     | 2026-11-05 |
+| FEAT-E   | Crew + BaseConfiguration screens — Space+ form/stepper style         | 2026-11-05 |
+| FEAT-F   | MissionControlScreen — teal HUD, white panels, Astro-AI integration  | 2026-11-05 |
+| FEAT-G   | MissionProgressStore + MissionTaskEvaluator + star ratings + tests   | 2026-11-05 |
 
 ## Pending Tasks (ordered)
 
@@ -153,13 +162,11 @@ R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Locat
 
 | ID      | Description                              | Blocking Tasks |
 |---------|------------------------------------------|----------------|
-| BLK-001 | Visual design not yet supplied by user   | VIS-001 through VIS-005, all Phase 6+ UI tasks |
+| ~~BLK-001~~ | ~~Visual design not yet supplied by user~~ | RESOLVED — Space+ redesign complete |
 
 ## Next Recommended Action
 
-**In progress:** playable vertical slice (R1–R3 + setup screens). After it lands and the user tries it:
-- **R4–R5:** 3D stack (React Three Fiber + drei + three, React-18 pins) + 3D Mission Control scene. Blocked on 3D assets (user to supply GLB/Figma or approve sourcing free/public-domain; start with low-poly placeholders).
-- **R8:** Location Selection modifier overlay + Configurable Mission Duration engine field + scoring tie-in (touches `src/simulation/` minimally + additively; re-validate vs `docs/simulation-model.md`).
-- **R9–R10:** QA + accessibility (manual AT testing, 4-state fallback matrix), delivery, remove Phaser.
+**R8:** Location Selection modifier overlay + Configurable Mission Duration engine field + scoring tie-in (touches `src/simulation/` minimally + additively; re-validate vs `docs/simulation-model.md`).
+- **R9–R10:** QA + accessibility (manual AT testing, 4-state fallback matrix), delivery.
 
-Known technical risk: production bundle ~653 KB — route-level lazy loading + manualChunks being added in this slice.
+Build: ✅ passing (18s, ~29 chunks, 219 tests).
