@@ -1,6 +1,8 @@
 // src/app/providers/ErrorBoundary.tsx
 // Class-based error boundary. Catches render errors in any child component
 // and shows a safe fallback so the rest of the app remains stable.
+// NOTE: This is intentionally a class component — React does not expose
+// getDerivedStateFromError / componentDidCatch to functional components.
 
 import { Component } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
@@ -23,9 +25,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true }
   }
 
-  override componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Log to console so developers can inspect in development
-    console.error('[ErrorBoundary] Caught render error:', error, info)
+  override componentDidCatch(_error: unknown, _info: ErrorInfo): void {
+    // Intentionally empty — no raw error surfaced to console or UI.
+    // If an error-reporting service is added in a future phase, wire it here.
   }
 
   override render(): ReactNode {

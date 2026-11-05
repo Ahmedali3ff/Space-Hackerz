@@ -3,7 +3,7 @@
 // Simulation state lives in the SimulationEngine — this store holds
 // a snapshot of the most recent step result plus setup choices.
 
-import { createStore, useStore } from 'zustand'
+import { create } from 'zustand'
 import type {
   PlanetId,
   BaseConfig,
@@ -63,9 +63,9 @@ export const INITIAL_MISSION_STATE: MissionState = {
   missionScore: null,
 }
 
-// ── Raw store (for tests and external resets) ────────────────────────────────
+// ── Store (React hook with .getState() / .setState() / .subscribe() attached) ─
 
-export const missionStore = createStore<MissionStore>()((set) => ({
+export const useMissionStore = create<MissionStore>()((set) => ({
   ...INITIAL_MISSION_STATE,
 
   selectPlanet: (planetId: PlanetId): void => {
@@ -106,8 +106,8 @@ export const missionStore = createStore<MissionStore>()((set) => ({
   },
 }))
 
-// ── Bound hook ───────────────────────────────────────────────────────────────
+// ── Named alias for direct test access (same reference) ──────────────────────
+// Tests can call `missionStore.getState()` / `missionStore.setState()` directly
+// because create() attaches those methods to the hook.
 
-export function useMissionStore<T>(selector: (state: MissionStore) => T): T {
-  return useStore(missionStore, selector)
-}
+export const missionStore = useMissionStore

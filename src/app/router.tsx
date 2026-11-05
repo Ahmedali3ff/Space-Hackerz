@@ -1,4 +1,5 @@
 import { Routes, Route, Link, Navigate } from 'react-router-dom'
+import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
 
 // ── Route guard components ────────────────────────────────────────────────────
@@ -7,27 +8,27 @@ import { useMissionStore } from '@store/mission-store'
  * Guards routes that require planet + crew to be selected.
  * Redirects to "/" if setup is incomplete.
  */
-function RequireSetup({ children }: { readonly children: JSX.Element }): JSX.Element {
+function RequireSetup({ children }: { readonly children: ReactNode }): JSX.Element {
   const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
   const crewSize = useMissionStore((s) => s.crewSize)
 
   if (selectedPlanetId === null || crewSize === 0) {
     return <Navigate to="/" replace />
   }
-  return children
+  return <>{children}</>
 }
 
 /**
  * Guards routes that require an active mission.
  * Redirects to "/select-planet" if no mission is active.
  */
-function RequireMission({ children }: { readonly children: JSX.Element }): JSX.Element {
+function RequireMission({ children }: { readonly children: ReactNode }): JSX.Element {
   const missionActive = useMissionStore((s) => s.missionActive)
 
   if (!missionActive) {
     return <Navigate to="/select-planet" replace />
   }
-  return children
+  return <>{children}</>
 }
 
 // ── Placeholder screens ───────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 // tests/unit/hooks/useMissionControl.test.ts
-// Unit tests for the useMissionControl hook.
+// Unit tests for the useMissionControl hook (real SimulationEngine).
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
