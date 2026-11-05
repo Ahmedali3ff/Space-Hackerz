@@ -6,7 +6,7 @@
 import { Drop, Leaf, Wind, Lightning, Biohazard, Users } from '@phosphor-icons/react'
 import { useMissionControl } from '@/hooks/useMissionControl'
 import { useMissionStore } from '@store/mission-store'
-import { Panel } from '@/components/common/Panel'
+import { Card } from '@/components/common/Card'
 import { ResourceBar } from '@/components/charts/ResourceBar'
 import { StatReadout } from '@/components/common/StatReadout'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -125,7 +125,10 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
   const energyHistory = hasHistory ? extractSeries(resourceHistory, 'energy_kWh') : []
 
   return (
-    <Panel title="Resources" accent="none" className="flex flex-col gap-4">
+    <Card className="flex flex-col gap-4">
+      <header className="mb-1">
+        <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Resources</h2>
+      </header>
       {/* Oxygen */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
@@ -187,7 +190,7 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
       </div>
 
       {/* Radiation */}
-      <div className="flex items-center justify-between gap-2 border-t border-border-subtle pt-3">
+      <div className="flex items-center justify-between gap-2 border-t border-spaceplus-border-light pt-3">
         <StatReadout
           label="Radiation Dose"
           value={(res?.cumulativeRadiation_mSv ?? 0).toFixed(1)}
@@ -208,11 +211,11 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
       </div>
 
       {/* Crew */}
-      <div className="flex items-center gap-2 border-t border-border-subtle pt-3">
-        <Users size={18} weight="fill" className="text-text-secondary" aria-hidden="true" />
-        <span className="text-sm text-text-secondary">Crew aboard:</span>
-        <span className="hud-mono text-text-primary">{crewSize}</span>
+      <div className="flex items-center gap-2 border-t border-spaceplus-border-light pt-3">
+        <Users size={18} weight="fill" className="text-spaceplus-accent-teal" aria-hidden="true" />
+        <span className="text-sm text-spaceplus-text-secondary">Crew aboard:</span>
+        <span className="font-mono font-semibold text-spaceplus-text-heading tabular-nums">{crewSize}</span>
       </div>
-    </Panel>
+    </Card>
   )
 }

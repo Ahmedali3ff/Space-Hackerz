@@ -1,16 +1,16 @@
 // src/components/charts/chart-colors.ts
-// Shared chart color constants that match the ASTRA design token palette.
+// Shared chart color constants that match the ASTRA Space+ design token palette.
 // Use these for Recharts stroke/fill and axis/grid/tooltip styling.
 
 export const CHART_COLORS = {
-  oxygen: '#29E6F3',  // accent.orbit — matches status.info
-  water: '#46E6A0',   // status.good
-  food: '#FFC93C',    // status.warn
-  energy: '#FF5A5F',  // status.crit
+  oxygen: '#1FC8C0',  // Space+ primary teal
+  water: '#4DD0E1',   // light teal-blue for differentiation
+  food: '#66BB6A',    // green — food/plant semantic
+  energy: '#F59E0B',  // amber — energy/power semantic
 } as const
 
-export const CHART_AXIS_COLOR = '#A9B8D4'    // text.secondary
-export const CHART_GRID_COLOR = '#243456'    // border.subtle
-export const CHART_TOOLTIP_BG = '#121C33'   // space.panel
-export const CHART_TOOLTIP_BORDER = '#3A5180' // border.strong
-export const CHART_TOOLTIP_TEXT = '#EAF1FA' // text.primary
+export const CHART_AXIS_COLOR = '#6B7280'      // Space+ text.body
+export const CHART_GRID_COLOR = '#E5E7EB'      // Space+ border
+export const CHART_TOOLTIP_BG = '#FFFFFF'      // white card
+export const CHART_TOOLTIP_BORDER = '#E5E7EB'  // light border
+export const CHART_TOOLTIP_TEXT = '#1A1D2E'    // heading text

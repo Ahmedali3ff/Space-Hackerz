@@ -1,6 +1,6 @@
 // src/features/mission-control/MissionControlScreen.tsx
 // Mission Control — 2-column layout with journey map (left) + task checklist (right).
-// Dark AppShell for immersion. Floating resource bar at bottom.
+// Space+ light theme AppShell. Floating resource bar at bottom.
 // Event overlay card in top-right when events are active.
 // PRESERVED: all aria-labels, outcome text, button labels, AstroAI 'Explain Situation',
 //            'All systems nominal', event card choices.
@@ -18,7 +18,7 @@ import { useAppStore } from '@store/app-store'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenTransition } from '@/components/layout/ScreenTransition'
-import { Panel } from '@/components/common/Panel'
+import { Card } from '@/components/common/Card'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
 import { TaskChecklistItem } from '@/components/common/TaskChecklistItem'
 import { StarScore } from '@/components/common/StarScore'
@@ -51,7 +51,7 @@ function JourneyMap({ currentDay, totalDays = 30 }: JourneyMapProps): JSX.Elemen
           ? 'bg-spaceplus-accent-teal border-spaceplus-accent-teal'
           : isCurrent
           ? 'bg-spaceplus-accent-teal border-spaceplus-accent-teal animate-pulse'
-          : 'bg-transparent border-text-muted'
+          : 'bg-transparent border-spaceplus-border-light'
 
         return (
           <div key={idx} className="flex items-center gap-3">
@@ -61,7 +61,7 @@ function JourneyMap({ currentDay, totalDays = 30 }: JourneyMapProps): JSX.Elemen
               />
               {idx < waypoints.length - 1 && (
                 <div
-                  className={`w-0.5 h-8 ${isComplete ? 'bg-spaceplus-accent-teal' : 'bg-border-subtle'}`}
+                  className={`w-0.5 h-8 ${isComplete ? 'bg-spaceplus-accent-teal' : 'bg-spaceplus-border-light'}`}
                 />
               )}
             </div>
@@ -69,8 +69,8 @@ function JourneyMap({ currentDay, totalDays = 30 }: JourneyMapProps): JSX.Elemen
               isComplete
                 ? 'text-spaceplus-accent-teal'
                 : isCurrent
-                ? 'text-text-primary font-bold'
-                : 'text-text-muted'
+                ? 'text-spaceplus-text-heading font-bold'
+                : 'text-spaceplus-text-muted'
             }`}>
               Day {wayDay}
             </span>
@@ -82,8 +82,8 @@ function JourneyMap({ currentDay, totalDays = 30 }: JourneyMapProps): JSX.Elemen
       <div
         className="mt-4 h-8 w-full rounded-full"
         style={{
-          background: 'linear-gradient(to right, #00BCD4, #7C4DFF)',
-          opacity: 0.3,
+          background: 'linear-gradient(to right, #1FC8C0, #7C4DFF)',
+          opacity: 0.25,
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -124,14 +124,14 @@ function HudSlot({
 }: HudSlotProps): JSX.Element {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <span className="hud-mono text-sm text-text-secondary">
-        <span className="text-text-muted">{timeUnitLabel} </span>
-        <span className="text-lg font-bold text-text-primary">{currentMissionDay}</span>
+      <span className="font-mono text-sm text-spaceplus-text-secondary">
+        <span className="text-spaceplus-text-muted">{timeUnitLabel} </span>
+        <span className="text-lg font-bold text-spaceplus-text-heading">{currentMissionDay}</span>
       </span>
-      <span className="text-xs text-text-muted">{planetName}</span>
-      <span className="hud-mono text-xs text-text-secondary">{crewSize} Crew</span>
+      <span className="text-xs text-spaceplus-text-muted">{planetName}</span>
+      <span className="font-mono text-xs text-spaceplus-text-secondary tabular-nums">{crewSize} Crew</span>
       <PrimaryButton
-        variant="primary"
+        variant="hint"
         size="md"
         onClick={onAdvanceDay}
         disabled={!missionActive}
@@ -176,18 +176,18 @@ function FloatingResourceBar({
 }: FloatingResourceBarProps): JSX.Element {
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-40 bg-space-panel/95 backdrop-blur-sm border-t border-border-subtle px-4 py-3"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-spaceplus-border-light px-4 py-3"
       aria-label="Resource status bar"
     >
       <div className="mx-auto max-w-5xl flex items-center gap-4">
-        <span className="hud-mono text-xs text-text-muted shrink-0">
+        <span className="font-mono text-xs text-spaceplus-text-muted shrink-0 tabular-nums">
           {timeUnit} {currentDay}
         </span>
         <div className="flex-1 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <MiniProgressBar label="Oxygen" value={oxygen} max={maxOxygen} unit="kg" color="#29E6F3" />
-          <MiniProgressBar label="Water" value={water} max={maxWater} unit="kg" color="#4FC3F7" />
+          <MiniProgressBar label="Oxygen" value={oxygen} max={maxOxygen} unit="kg" color="#1FC8C0" />
+          <MiniProgressBar label="Water" value={water} max={maxWater} unit="kg" color="#4DD0E1" />
           <MiniProgressBar label="Food" value={food} max={maxFood} unit="kg" color="#66BB6A" />
-          <MiniProgressBar label="Energy" value={energy} max={maxEnergy} unit="kWh" color="#FFA726" />
+          <MiniProgressBar label="Energy" value={energy} max={maxEnergy} unit="kWh" color="#F59E0B" />
         </div>
       </div>
     </div>
@@ -244,6 +244,7 @@ export function MissionControlScreen(
   return (
     <ScreenTransition routeKey="/mission">
       <AppShell
+        variant="light"
         title="Mission Control"
         hudSlot={
           <HudSlot
@@ -260,31 +261,31 @@ export function MissionControlScreen(
         <div className="flex min-h-screen flex-col gap-4 p-4 pb-24 md:p-6 md:pb-24">
           {/* Global error banner */}
           {globalError !== null ? (
-            <Panel accent="ignition" className="flex items-center justify-between gap-3">
+            <Card accent="coral" className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <XCircle
                   size={20}
                   weight="fill"
-                  className="shrink-0 text-status-crit"
+                  className="shrink-0 text-spaceplus-status-error"
                   aria-hidden="true"
                 />
-                <p className="text-sm text-text-primary">{globalError}</p>
+                <p className="text-sm text-spaceplus-text-body">{globalError}</p>
               </div>
               <button
                 type="button"
                 onClick={clearError}
                 aria-label="Dismiss error"
-                className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center rounded-xl text-text-secondary hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-orbit"
+                className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center rounded-xl text-spaceplus-text-secondary hover:text-spaceplus-text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal"
               >
                 <XCircle size={20} aria-hidden="true" />
               </button>
-            </Panel>
+            </Card>
           ) : null}
 
           {/* Mission outcome banner */}
           {missionOutcome !== 'ongoing' ? (
-            <Panel
-              accent={missionOutcome === 'success' ? 'orbit' : 'ignition'}
+            <Card
+              accent={missionOutcome === 'success' ? 'teal' : 'coral'}
               className="flex items-center justify-between gap-3"
             >
               <div className="flex items-center gap-2">
@@ -293,14 +294,14 @@ export function MissionControlScreen(
                   weight="fill"
                   className={
                     missionOutcome === 'success'
-                      ? 'text-status-good'
+                      ? 'text-spaceplus-status-success'
                       : missionOutcome === 'partial'
-                      ? 'text-status-warn'
-                      : 'text-status-crit'
+                      ? 'text-spaceplus-status-warning'
+                      : 'text-spaceplus-status-error'
                   }
                   aria-hidden="true"
                 />
-                <p className="text-sm font-semibold text-text-primary">
+                <p className="text-sm font-semibold text-spaceplus-text-heading">
                   {missionOutcome === 'success'
                     ? 'Mission Successful!'
                     : missionOutcome === 'partial'
@@ -309,7 +310,7 @@ export function MissionControlScreen(
                 </p>
               </div>
               <PrimaryButton
-                variant="primary"
+                variant="hint"
                 size="md"
                 onClick={() => { navigate('/debrief') }}
                 ariaLabel="View mission debrief"
@@ -317,7 +318,7 @@ export function MissionControlScreen(
                 <ArrowRight size={16} aria-hidden="true" />
                 View Debrief
               </PrimaryButton>
-            </Panel>
+            </Card>
           ) : null}
 
           {/* ── 2-column main content ── */}
@@ -325,9 +326,12 @@ export function MissionControlScreen(
             {/* ── Left column (60%): journey map + resources + environment ── */}
             <div className="lg:col-span-3 flex flex-col gap-4">
               {/* Journey map card */}
-              <Panel title="Mission Journey" accent="orbit" className="p-4">
+              <Card className="p-4">
+                <header className="mb-3">
+                  <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Mission Journey</h2>
+                </header>
                 <JourneyMap currentDay={currentMissionDay} totalDays={30} />
-              </Panel>
+              </Card>
 
               {/* Resource + environment in row */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -342,10 +346,13 @@ export function MissionControlScreen(
             {/* ── Right column (40%): task checklist + stars + AstroAI ── */}
             <div className="lg:col-span-2 flex flex-col gap-4">
               {/* Task checklist */}
-              <Panel title="Mission Tasks" accent="none">
+              <Card>
+                <header className="mb-3">
+                  <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Mission Tasks</h2>
+                </header>
                 {currentMission !== null ? (
                   <div className="flex flex-col gap-1">
-                    <p className="mb-2 text-xs text-text-muted">{currentMission.title}</p>
+                    <p className="mb-2 text-xs text-spaceplus-text-muted">{currentMission.title}</p>
                     {currentMission.tasks.map((task) => (
                       <TaskChecklistItem
                         key={task.id}
@@ -356,23 +363,23 @@ export function MissionControlScreen(
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-text-muted">No active mission selected.</p>
+                  <p className="text-sm text-spaceplus-text-muted">No active mission selected.</p>
                 )}
-              </Panel>
+              </Card>
 
               {/* Star reward display */}
-              <Panel accent="none" className="flex items-center justify-between gap-3">
+              <Card className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs text-text-muted mb-1">Total Stars Earned</p>
+                  <p className="text-xs text-spaceplus-text-muted mb-1">Total Stars Earned</p>
                   <StarScore score={totalStars} size="lg" />
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-text-muted mb-1">Mission</p>
-                  <p className="text-sm font-semibold text-text-primary">
+                  <p className="text-xs text-spaceplus-text-muted mb-1">Mission</p>
+                  <p className="text-sm font-semibold text-spaceplus-text-heading">
                     {currentMission?.title ?? 'Free Play'}
                   </p>
                 </div>
-              </Panel>
+              </Card>
 
               {/* Astro-AI — collapsed by default via AstroAIPanel */}
               <AstroAIPanel />

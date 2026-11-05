@@ -54,7 +54,7 @@ export function AppShell({ children, hudSlot, title, variant = 'dark' }: AppShel
     : 'bg-space-void animate-[drift_120s_linear_infinite]'
 
   // Light: plain surface background — no starfield
-  const lightClass = 'bg-spaceplus-surface'
+  const lightClass = 'bg-[#F4F7FA]'
 
   const wrapperClass = `relative min-h-screen w-full ${isLight ? lightClass : darkClass}`
 

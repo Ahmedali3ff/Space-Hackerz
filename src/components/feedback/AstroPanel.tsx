@@ -1,12 +1,13 @@
 // src/components/feedback/AstroPanel.tsx
-// Floating glass communications panel for the Astro-AI assistant.
+// Floating communications panel for the Astro-AI assistant.
+// Space+ light theme — white card with teal accent.
 // Exposes a role=log / aria-live=polite container for screen readers.
 // Word-by-word reveal animates each new message; collapses to instant display
 // when reducedMotion is true.  Five contextual ask buttons are provided.
 
 import { useState, useEffect, useRef } from 'react'
 import type { AstroResponse } from '@ai/schemas/astro-response.schema'
-import { Panel } from '@/components/common/Panel'
+import { Card } from '@/components/common/Card'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
 
 export type AstroAskKind = 'situation' | 'oxygen' | 'water' | 'food' | 'energy'
@@ -98,7 +99,11 @@ export function AstroPanel({
   }, [revealed, reducedMotion])
 
   return (
-    <Panel accent="orbit" className="flex flex-col gap-4" title="Astro-AI">
+    <Card accent="teal" className="flex flex-col gap-4">
+      <header className="mb-1">
+        <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Astro-AI</h2>
+      </header>
+
       {/* Messages */}
       <div
         role="log"
@@ -107,7 +112,7 @@ export function AstroPanel({
         className="flex max-h-64 flex-col gap-3 overflow-y-auto"
       >
         {messages.length === 0 && !isLoading ? (
-          <p className="text-sm text-text-muted">Ask me anything about your mission!</p>
+          <p className="text-sm text-spaceplus-text-muted">Ask me anything about your mission!</p>
         ) : null}
 
         {messages.map((msg, i) => {
@@ -118,13 +123,13 @@ export function AstroPanel({
           return (
             <div
               key={i}
-              className="flex flex-col gap-1.5 rounded-lg bg-space-deep p-3"
+              className="flex flex-col gap-1.5 rounded-xl bg-spaceplus-accent-tealLight border border-spaceplus-border-light p-3"
             >
-              <p className="text-sm leading-relaxed text-text-primary">{text}</p>
+              <p className="text-sm leading-relaxed text-spaceplus-text-heading">{text}</p>
 
               {msg.scienceFact !== undefined ? (
-                <div className="rounded border border-accent-orbit/30 bg-accent-orbit/5 p-2">
-                  <p className="text-xs text-accent-orbit">
+                <div className="rounded border border-spaceplus-accent-teal/30 bg-spaceplus-accent-tealLight p-2">
+                  <p className="text-xs text-spaceplus-accent-tealDark">
                     <span className="font-semibold uppercase tracking-wide">Science fact: </span>
                     {msg.scienceFact}
                   </p>
@@ -132,7 +137,7 @@ export function AstroPanel({
               ) : null}
 
               {msg.suggestion !== undefined ? (
-                <p className="text-xs italic text-text-secondary">💡 {msg.suggestion}</p>
+                <p className="text-xs italic text-spaceplus-text-secondary">💡 {msg.suggestion}</p>
               ) : null}
             </div>
           )
@@ -140,7 +145,7 @@ export function AstroPanel({
 
         {isLoading ? (
           <div
-            className="flex items-center gap-1.5 text-sm text-accent-orbit"
+            className="flex items-center gap-1.5 text-sm text-spaceplus-accent-teal"
             aria-label="Astro-AI is thinking"
           >
             <span className="animate-pulse font-mono">Astro-AI is thinking</span>
@@ -165,6 +170,6 @@ export function AstroPanel({
           </PrimaryButton>
         ))}
       </div>
-    </Panel>
+    </Card>
   )
 }

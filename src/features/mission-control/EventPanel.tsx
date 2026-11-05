@@ -5,7 +5,7 @@
 
 import { CheckCircle } from '@phosphor-icons/react'
 import { useMissionControl } from '@/hooks/useMissionControl'
-import { Panel } from '@/components/common/Panel'
+import { Card } from '@/components/common/Card'
 import { EventCard } from '@/components/feedback/EventCard'
 import { getEventDefinition } from '../events/event-registry'
 
@@ -23,15 +23,15 @@ export function EventPanel(_props: EventPanelProps): JSX.Element {
 
   return (
     <section aria-label="Active Events">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-spaceplus-text-muted">
         Active Events
       </h2>
 
       {resolvedEvents.length === 0 ? (
-        <Panel accent="none" className="flex items-center gap-3">
-          <CheckCircle size={24} weight="fill" className="text-status-good" aria-hidden="true" />
-          <p className="text-sm text-text-secondary">All systems nominal ✓</p>
-        </Panel>
+        <Card className="flex items-center gap-3">
+          <CheckCircle size={24} weight="fill" className="text-spaceplus-status-success" aria-hidden="true" />
+          <p className="text-sm text-spaceplus-text-secondary">All systems nominal ✓</p>
+        </Card>
       ) : (
         <div className="flex flex-col gap-4">
           {resolvedEvents.map(({ id, def }) => (

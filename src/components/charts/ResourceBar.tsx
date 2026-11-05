@@ -23,9 +23,9 @@ interface ResourceBarProps {
 }
 
 const BAR_FILL: Readonly<Record<BarStatus, string>> = {
-  good: 'bg-status-good',
-  warn: 'bg-status-warn',
-  crit: 'bg-status-crit',
+  good: 'bg-spaceplus-status-success',
+  warn: 'bg-spaceplus-status-warning',
+  crit: 'bg-spaceplus-status-error',
 }
 
 export function ResourceBar({
@@ -46,23 +46,23 @@ export function ResourceBar({
   let iconNode: ReactNode = null
   if (icon !== undefined) {
     const IconComp = icon
-    iconNode = <IconComp size={18} weight="fill" className="text-text-secondary" aria-hidden="true" />
+    iconNode = <IconComp size={18} weight="fill" className="text-spaceplus-accent-teal" aria-hidden="true" />
   }
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5 text-sm text-text-secondary">
+        <span className="flex items-center gap-1.5 text-sm text-spaceplus-text-secondary">
           {iconNode}
           {label}
         </span>
-        <span className="hud-mono text-sm text-text-primary">
+        <span className="font-mono text-sm font-semibold text-spaceplus-text-heading tabular-nums">
           {display}
           {unit !== undefined ? ' ' + unit : ''}
         </span>
       </div>
       <div
-        className="h-3 w-full overflow-hidden rounded-full border border-border-subtle bg-space-deep"
+        className="h-2 w-full overflow-hidden rounded-full bg-[#F3F4F6]"
         role="progressbar"
         aria-valuenow={Math.round(value)}
         aria-valuemin={0}

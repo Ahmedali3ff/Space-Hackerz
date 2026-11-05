@@ -26,10 +26,10 @@ interface PrimaryButtonProps {
 }
 
 const VARIANT_CLASSES: Readonly<Record<ButtonVariant, string>> = {
-  primary: 'bg-accent-ignition text-space-void hover:shadow-glow-ignition',
+  primary: 'bg-spaceplus-accent-teal text-white hover:bg-spaceplus-accent-tealDark',
   secondary:
-    'bg-space-panelRaised text-text-primary border border-border-strong hover:border-accent-orbit/60',
-  ghost: 'bg-transparent text-text-secondary hover:bg-space-panel hover:text-text-primary',
+    'bg-white text-spaceplus-text-heading border border-spaceplus-border-light hover:border-spaceplus-accent-teal hover:shadow-card',
+  ghost: 'bg-transparent text-spaceplus-text-secondary hover:bg-spaceplus-surface hover:text-spaceplus-text-heading',
   hint: 'bg-spaceplus-accent-teal text-white hover:bg-spaceplus-accent-tealDark',
 }
 

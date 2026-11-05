@@ -6,7 +6,7 @@ import { Sun, Moon, ThermometerCold, ThermometerHot, Warning } from '@phosphor-i
 import { useMissionControl } from '@/hooks/useMissionControl'
 import { MOON_PROFILE } from '@data/nasa/moon-profile'
 import { MARS_PROFILE } from '@data/nasa/mars-profile'
-import { Panel } from '@/components/common/Panel'
+import { Card } from '@/components/common/Card'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { StatReadout } from '@/components/common/StatReadout'
 import type { PlanetProfile } from '@simulation/types'
@@ -46,9 +46,12 @@ export function EnvironmentPanel(_props: EnvironmentPanelProps): JSX.Element {
 
   if (profile === null) {
     return (
-      <Panel title="Environment" accent="none">
-        <p className="text-sm text-text-muted">No planet selected.</p>
-      </Panel>
+      <Card>
+        <header className="mb-3">
+          <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Environment</h2>
+        </header>
+        <p className="text-sm text-spaceplus-text-muted">No planet selected.</p>
+      </Card>
     )
   }
 
@@ -56,7 +59,11 @@ export function EnvironmentPanel(_props: EnvironmentPanelProps): JSX.Element {
   const SolarIcon = solarInfo.status === 'warn' ? Moon : Sun
 
   return (
-    <Panel title="Environment" accent="none" className="flex flex-col gap-4">
+    <Card className="flex flex-col gap-4">
+      <header className="mb-1">
+        <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Environment</h2>
+      </header>
+
       {/* Planet + day counter */}
       <div className="flex items-start justify-between gap-2">
         <StatReadout
@@ -71,7 +78,7 @@ export function EnvironmentPanel(_props: EnvironmentPanelProps): JSX.Element {
 
       {/* Solar status */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-wide text-text-muted">Solar Status</span>
+        <span className="text-xs uppercase tracking-wide text-spaceplus-text-muted">Solar Status</span>
         <StatusBadge
           status={solarInfo.status}
           label={solarInfo.label}
@@ -81,15 +88,15 @@ export function EnvironmentPanel(_props: EnvironmentPanelProps): JSX.Element {
 
       {/* Temperature range */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+        <div className="flex items-center gap-1.5 text-sm text-spaceplus-text-secondary">
           <ThermometerCold size={18} aria-hidden="true" />
           <span>Min</span>
-          <span className="hud-mono text-text-primary">{profile.temperatureRange.min}°C</span>
+          <span className="font-mono font-semibold text-spaceplus-text-heading tabular-nums">{profile.temperatureRange.min}°C</span>
         </div>
-        <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+        <div className="flex items-center gap-1.5 text-sm text-spaceplus-text-secondary">
           <ThermometerHot size={18} aria-hidden="true" />
           <span>Max</span>
-          <span className="hud-mono text-text-primary">{profile.temperatureRange.max}°C</span>
+          <span className="font-mono font-semibold text-spaceplus-text-heading tabular-nums">{profile.temperatureRange.max}°C</span>
         </div>
       </div>
 
@@ -102,8 +109,8 @@ export function EnvironmentPanel(_props: EnvironmentPanelProps): JSX.Element {
 
       {/* Active fault states */}
       {activeFaultStates.length > 0 ? (
-        <div className="flex flex-col gap-2 border-t border-border-subtle pt-3">
-          <span className="text-xs uppercase tracking-wide text-text-muted">Active Alerts</span>
+        <div className="flex flex-col gap-2 border-t border-spaceplus-border-light pt-3">
+          <span className="text-xs uppercase tracking-wide text-spaceplus-text-muted">Active Alerts</span>
           <div className="flex flex-wrap gap-2">
             {activeFaultStates.map((fault) => (
               <StatusBadge
@@ -116,10 +123,10 @@ export function EnvironmentPanel(_props: EnvironmentPanelProps): JSX.Element {
           </div>
         </div>
       ) : (
-        <div className="border-t border-border-subtle pt-3">
+        <div className="border-t border-spaceplus-border-light pt-3">
           <StatusBadge status="good" label="All systems nominal" />
         </div>
       )}
-    </Panel>
+    </Card>
   )
 }

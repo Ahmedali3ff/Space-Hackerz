@@ -41,17 +41,32 @@
 
   /* ── Space+ light-theme tokens (additive — never override dark vars) ── */
   --sp-white: #FFFFFF;
-  --sp-surface: #EEF2FB;
+  --sp-surface: #F4F7FA;
   --sp-card: #FFFFFF;
-  --sp-teal: #00BCD4;
-  --sp-teal-dark: #0097A7;
-  --sp-amber: #FFB300;
+  --sp-teal: #1FC8C0;
+  --sp-teal-dark: #17A89F;
+  --sp-teal-light: #E8FAF9;
+  --sp-amber: #F5A623;
+  --sp-amber-light: #FFF8F0;
   --sp-coral: #FF6F61;
   --sp-purple: #7C4DFF;
-  --sp-text-heading: #0D1B4B;
-  --sp-text-body: #1E2D5A;
-  --sp-text-secondary: #5C6B9A;
-  --sp-border-light: #DCE4F7;
+  --sp-text-heading: #1A1D2E;
+  --sp-text-body: #6B7280;
+  --sp-text-secondary: #6B7280;
+  --sp-text-muted: #9CA3AF;
+  --sp-border-light: #E5E7EB;
+
+  /* Direct aliases for easier usage */
+  --primary: #1FC8C0;
+  --bg-app: #F4F7FA;
+  --bg-card: #FFFFFF;
+  --text-heading: #1A1D2E;
+  --text-body: #6B7280;
+  --text-muted: #9CA3AF;
+  --border: #E5E7EB;
+  --amber: #F5A623;
+  --amber-light: #FFF8F0;
+  --teal-light: #E8FAF9;
 }
 
 @layer base {
@@ -61,19 +76,18 @@
   }
 
   body {
-    font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-    background-color: var(--space-void);
-    color: var(--text-primary);
-    font-size: 18px;
+    font-family: 'Nunito', 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-body);
+    font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* Visible focus ring — never removed. Uses the orbit-cyan accent so focus is
-     distinguishable from the ignition-orange CTA state. */
+  /* Visible focus ring — never removed. Uses the teal primary accent. */
   *:focus-visible {
-    outline: 2px solid var(--accent-orbit);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -161,20 +175,20 @@ html[data-reduce-motion='true'] *::after {
 
   /* White card with subtle border and shadow — Space+ card language */
   .sp-card {
-    background: var(--sp-card);
-    border: 1px solid var(--sp-border-light);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(13, 27, 75, 0.10);
+    box-shadow: 0 4px 24px rgba(26, 29, 46, 0.08);
   }
 
   /* Light tinted surface for page backgrounds and secondary panels */
   .sp-surface {
-    background: var(--sp-surface);
+    background: var(--bg-app);
   }
 
   /* Teal pill badge */
   .sp-badge-teal {
-    background: var(--sp-teal);
+    background: var(--primary);
     color: #fff;
     border-radius: 999px;
     padding: 2px 12px;
@@ -184,7 +198,7 @@ html[data-reduce-motion='true'] *::after {
 
   /* Amber pill badge — used for scores, stars, rewards */
   .sp-badge-amber {
-    background: var(--sp-amber);
+    background: var(--amber);
     color: #fff;
     border-radius: 999px;
     padding: 2px 12px;
@@ -198,7 +212,7 @@ html[data-reduce-motion='true'] *::after {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--sp-teal-dark);
+    color: var(--primary);
   }
 
   /* Star score row — inline amber star + number */
@@ -207,8 +221,13 @@ html[data-reduce-motion='true'] *::after {
     align-items: center;
     gap: 4px;
     font-weight: 700;
-    color: #FFB300;
+    color: var(--amber);
   }
+
+  /* Mission card states */
+  .mission-card-complete { background: var(--teal-light); border: 1px solid var(--primary); border-radius: 16px; padding: 1rem; }
+  .mission-card-active { background: white; border: 2px solid var(--primary); border-radius: 16px; padding: 1rem; }
+  .mission-card-locked { background: #F9FAFB; border: 1px solid var(--border); border-radius: 16px; padding: 1rem; opacity: 0.7; }
 }
 
 @keyframes astra-drift {
