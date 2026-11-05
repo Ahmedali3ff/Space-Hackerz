@@ -1,10 +1,11 @@
-import { Routes, Route, Link, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
 import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen'
 import { PlanetSelectionScreen } from '@/features/planet-selection/PlanetSelectionScreen'
 import { CrewSelectionScreen } from '@/features/crew-selection/CrewSelectionScreen'
 import { BaseConfigurationScreen } from '@/features/base-configuration/BaseConfigurationScreen'
+import { MissionControlScreen } from '@/features/mission-control/MissionControlScreen'
 import { MissionDebriefScreen } from '@/features/mission-debrief/MissionDebriefScreen'
 
 // ── Route guard components ────────────────────────────────────────────────────
@@ -51,28 +52,6 @@ function RequireMissionStarted({ children }: { readonly children: ReactNode }): 
   return <>{children}</>
 }
 
-// ── Placeholder screen (mission control only — replaced in FEAT-004) ─────────
-
-interface PlaceholderScreenProps {
-  readonly name: string
-  readonly nextPath: string
-  readonly nextLabel: string
-}
-
-function PlaceholderScreen({ name, nextPath, nextLabel }: PlaceholderScreenProps): JSX.Element {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-      <h1 className="text-2xl font-bold">{name}</h1>
-      <p className="text-sm text-gray-500 border border-dashed px-2 py-1">
-        PLACEHOLDER — not yet implemented
-      </p>
-      <Link to={nextPath} className="text-blue-500 underline">
-        {nextLabel} →
-      </Link>
-    </div>
-  )
-}
-
 // ── Router ────────────────────────────────────────────────────────────────────
 
 export function AppRouter(): JSX.Element {
@@ -103,11 +82,7 @@ export function AppRouter(): JSX.Element {
         element={
           <RequireSetup>
             <RequireMission>
-              <PlaceholderScreen
-                name="Mission Control"
-                nextPath="/debrief"
-                nextLabel="End Mission"
-              />
+              <MissionControlScreen />
             </RequireMission>
           </RequireSetup>
         }
