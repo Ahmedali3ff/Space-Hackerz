@@ -35,6 +35,15 @@ export interface ScoringInput {
  *   finalScore < 400 → failure
  *
  * Reference: docs/simulation-model.md — "Mission Scoring"
+ *
+ * V1 SIMPLIFICATIONS:
+ * (1) eventsSuccessfullyResolved counts any RESOLVE_EVENT action where a
+ *     matching choice was found, not specifically the optimal choice. Optimal
+ *     vs. suboptimal distinction is captured in decisionQualityBonus instead.
+ * (2) criticalFailureEvents counts POWER_CRITICAL fault triggers only — other
+ *     critical faults (OXYGEN_DEPLETED, WATER_DEPLETED, RADIATION_CRITICAL)
+ *     cause outcome=failure directly before scoring runs, so they are not
+ *     counted here as penalty events.
  */
 export function calculateMissionScore(input: ScoringInput): MissionScore {
   const baseScore = input.missionDuration * 10

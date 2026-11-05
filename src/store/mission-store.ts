@@ -13,6 +13,7 @@ import type {
   DecisionLogEntry,
   MissionScore,
   SimulationResult,
+  ResourceHistoryPoint,
 } from '@simulation/types'
 
 // ── State shape ──────────────────────────────────────────────────────────────
@@ -30,6 +31,7 @@ export interface MissionState {
   readonly missionOutcome: MissionOutcome
   readonly decisionLog: readonly DecisionLogEntry[]
   readonly missionScore: MissionScore | null
+  readonly resourceHistory: readonly ResourceHistoryPoint[]
 }
 
 // ── Actions shape ────────────────────────────────────────────────────────────
@@ -40,7 +42,7 @@ export interface MissionActions {
   setBaseConfig: (config: BaseConfig) => void
   startMission: () => void
   updateFromSimResult: (result: SimulationResult) => void
-  endMission: (score: MissionScore) => void
+  endMission: (score: MissionScore, log?: readonly DecisionLogEntry[]) => void
   resetMission: () => void
 }
 
@@ -61,6 +63,7 @@ export const INITIAL_MISSION_STATE: MissionState = {
   missionOutcome: 'ongoing',
   decisionLog: [],
   missionScore: null,
+  resourceHistory: [],
 }
 
 // ── Store (React hook with .getState() / .setState() / .subscribe() attached) ─
@@ -85,20 +88,31 @@ export const useMissionStore = create<MissionStore>()((set) => ({
   },
 
   updateFromSimResult: (result: SimulationResult): void => {
-    set({
+    set((state) => ({
       currentResources: result.nextState.resources,
       currentMissionDay: result.nextState.missionDay,
       activeFaultStates: result.nextState.faultStates,
       activeEventIds: result.nextState.activeEventIds,
       missionOutcome: result.nextState.outcome,
-      // The engine owns the decision log; the store snapshot is updated by
-      // endMission when the hook calls it with the full log.
-      decisionLog: [],
-    })
+      resourceHistory: [
+        ...state.resourceHistory,
+        {
+          missionDay: result.nextState.missionDay,
+          oxygen_kg: result.nextState.resources.oxygen_kg,
+          water_kg: result.nextState.resources.water_kg,
+          food_kg: result.nextState.resources.food_kg,
+          energy_kWh: result.nextState.resources.energy_kWh,
+          cumulativeRadiation_mSv: result.nextState.resources.cumulativeRadiation_mSv,
+        },
+      ],
+      // decisionLog is passed in via the result so the store always reflects
+      // the engine's accumulated log. The hook reads engine.getDecisionLog()
+      // and injects it here on every step.
+    }))
   },
 
-  endMission: (score: MissionScore): void => {
-    set({ missionActive: false, missionScore: score })
+  endMission: (score: MissionScore, log?: readonly DecisionLogEntry[]): void => {
+    set({ missionActive: false, missionScore: score, decisionLog: log ?? [] })
   },
 
   resetMission: (): void => {

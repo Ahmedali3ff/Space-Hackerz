@@ -54,6 +54,15 @@ export interface ResourceSnapshot {
   readonly cumulativeRadiation_mSv: number
 }
 
+export interface ResourceHistoryPoint {
+  readonly missionDay: number
+  readonly oxygen_kg: number
+  readonly water_kg: number
+  readonly food_kg: number
+  readonly energy_kWh: number
+  readonly cumulativeRadiation_mSv: number
+}
+
 export interface SimulationState {
   readonly missionDay: number
   readonly planetId: PlanetId

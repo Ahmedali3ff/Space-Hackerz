@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Add ResourceHistoryPoint type, resourceHistory field to mission store, update updateFromSimResult to append snapshots, make endMission log param optional, expose resourceHistory in useMissionControl hook, and add V1 simplification comment to mission-scoring.ts. This is pure data-model work — no UI. Independent of FEAT-002 except that FEAT-002 depends on it.",
+  "status": "completed",
+  "steps": [
+    "1. In src/simulation/types/index.ts, add ResourceHistoryPoint interface after ResourceSnapshot: { readonly missionDay: number; readonly oxygen_kg: number; readonly water_kg: number; readonly food_kg: number; readonly energy_kWh: number; readonly cumulativeRadiation_mSv: number }",
+    "2. In src/store/mission-store.ts — (a) import ResourceHistoryPoint from @simulation/types; (b) add resourceHistory: readonly ResourceHistoryPoint[] to MissionState interface; (c) add resourceHistory: [] to INITIAL_MISSION_STATE; (d) change updateFromSimResult to use set((state) => ({ ... })) callback form and append to state.resourceHistory: [...state.resourceHistory, { missionDay: result.nextState.missionDay, ...result.nextState.resources }]; (e) make log param optional in MissionActions.endMission signature (log?: readonly DecisionLogEntry[]) and in the implementation default to [] with log ?? []",
+    "3. In src/hooks/useMissionControl.ts — (a) import ResourceHistoryPoint from @simulation/types; (b) add resourceHistory: readonly ResourceHistoryPoint[] to UseMissionControlReturn interface; (c) add const resourceHistory = useMissionStore((s) => s.resourceHistory) in hook body; (d) include resourceHistory in the return object",
+    "4. In src/simulation/core/mission-scoring.ts, add a JSDoc comment block above calculateMissionScore documenting two V1 simplifications: (1) eventsSuccessfullyResolved counts any RESOLVE_EVENT action where a matching choice was found, not specifically the optimal choice; (2) criticalFailureEvents counts POWER_CRITICAL fault triggers only — other critical faults (OXYGEN_DEPLETED, WATER_DEPLETED, RADIATION_CRITICAL) cause outcome=failure directly before scoring"
+  ],
+  "acceptance_criteria": [
+    "ResourceHistoryPoint interface exported from src/simulation/types/index.ts with all 6 readonly fields",
+    "missionStore.getState().resourceHistory starts as [] in INITIAL_MISSION_STATE",
+    "After 3 calls to updateFromSimResult, missionStore.getState().resourceHistory.length === 3",
+    "Each history entry's missionDay and resource values match the SimulationResult.nextState passed in",
+    "After resetMission(), resourceHistory is []",
+    "endMission(score) with no log argument does not throw; decisionLog is set to []",
+    "endMission(score, [someEntry]) sets decisionLog to [someEntry]",
+    "useMissionControl() return type includes resourceHistory: readonly ResourceHistoryPoint[]",
+    "npm run build exits 0 — zero TypeScript errors"
+  ],
+  "verification": [
+    "npm run build — must exit 0 with zero TS and zero Vite errors",
+    "npm run test -- --run — all 75 baseline tests must still pass (no regressions from changing the store)"
+  ],
+  "blocked_reason": null,
+  "findings": "ResourceHistoryPoint added to simulation types after ResourceSnapshot. resourceHistory field added to MissionState, INITIAL_MISSION_STATE, and the Zustand store. updateFromSimResult now uses set() callback form to append a new ResourceHistoryPoint entry on each step. endMission log param is now optional (defaults to []). useMissionControl hook exposes resourceHistory. V1 simplification JSDoc added to calculateMissionScore. All 75 baseline tests pass; build exits 0."
+}

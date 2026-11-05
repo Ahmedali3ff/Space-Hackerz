@@ -14,6 +14,7 @@ import type {
   MissionOutcome,
   DecisionLogEntry,
   MissionScore,
+  ResourceHistoryPoint,
 } from '@simulation/types'
 
 // ── Return type ───────────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ export interface UseMissionControlReturn {
   readonly missionOutcome: MissionOutcome
   readonly decisionLog: readonly DecisionLogEntry[]
   readonly missionScore: MissionScore | null
+  readonly resourceHistory: readonly ResourceHistoryPoint[]
   readonly isLoading: boolean
   readonly globalError: string | null
 
@@ -61,6 +63,7 @@ export function useMissionControl(): UseMissionControlReturn {
   const missionOutcome = useMissionStore((s) => s.missionOutcome)
   const decisionLog = useMissionStore((s) => s.decisionLog)
   const missionScore = useMissionStore((s) => s.missionScore)
+  const resourceHistory = useMissionStore((s) => s.resourceHistory)
 
   const isLoading = useAppStore((s) => s.isLoading)
   const globalError = useAppStore((s) => s.globalError)
@@ -163,7 +166,8 @@ export function useMissionControl(): UseMissionControlReturn {
   }
 
   /**
-   * Ends the mission, calculates the final score, and updates the store.
+   * Ends the mission, calculates the final score, and updates the store
+   * with both the score and the full accumulated decision log.
    */
   function endMission(): void {
     if (engineRef.current === null) {
@@ -172,7 +176,8 @@ export function useMissionControl(): UseMissionControlReturn {
     }
 
     const score = engineRef.current.getMissionScore()
-    missionStore.getState().endMission(score)
+    const log = engineRef.current.getDecisionLog()
+    missionStore.getState().endMission(score, log)
   }
 
   return {
@@ -188,6 +193,7 @@ export function useMissionControl(): UseMissionControlReturn {
     missionOutcome,
     decisionLog,
     missionScore,
+    resourceHistory,
     isLoading,
     globalError,
     initializeMission,
