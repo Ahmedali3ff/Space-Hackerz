@@ -62,7 +62,7 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
   return (
     <div className="flex flex-col gap-2">
       {isOffline ? (
-        <p className="text-xs text-text-muted">
+        <p className="text-xs text-spaceplus-text-muted">
           Astro-AI — Offline mode (knowledge base only)
         </p>
       ) : null}
@@ -73,7 +73,7 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
         reducedMotion={reducedMotion}
       />
       {context === null ? (
-        <p className="text-xs text-text-muted text-center">
+        <p className="text-xs text-spaceplus-text-muted text-center">
           Start your mission to consult Astro-AI.
         </p>
       ) : null}

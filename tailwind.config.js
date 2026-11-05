@@ -43,7 +43,7 @@ export default {
         spaceplus: {
           white: '#FFFFFF',
           offwhite: '#F8FAFF',
-          surface: '#EEF2FB',
+          surface: '#F4F7FA',
           card: '#FFFFFF',
           accent: {
             teal: '#1FC8C0',

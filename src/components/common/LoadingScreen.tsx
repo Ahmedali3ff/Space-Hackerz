@@ -1,5 +1,6 @@
 // src/components/common/LoadingScreen.tsx
 // Branded Suspense fallback — shown while lazy-loaded routes are loading.
+// Migrated to Space+ light theme: #F4F7FA background, teal #1FC8C0.
 // Respects prefers-reduced-motion: spinner is static when reduced motion is on.
 
 import { useEffect, useState } from 'react'
@@ -27,12 +28,12 @@ export function LoadingScreen(): JSX.Element {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center bg-space-void"
+      className="fixed inset-0 flex flex-col items-center justify-center bg-[#F4F7FA]"
       role="status"
     >
       {/* ASTRA wordmark */}
       <span
-        className="font-display text-5xl font-bold tracking-widest text-accent-orbit"
+        className="font-display2 text-5xl font-bold tracking-widest text-spaceplus-accent-teal"
         aria-hidden="true"
       >
         ASTRA
@@ -41,9 +42,9 @@ export function LoadingScreen(): JSX.Element {
       {/* Animated ring — static when reducedMotion */}
       <div className="mt-8" aria-hidden="true">
         {reducedMotion ? (
-          <div className="h-10 w-10 rounded-full border-2 border-accent-orbit opacity-60" />
+          <div className="h-10 w-10 rounded-full border-2 border-spaceplus-accent-teal opacity-60" />
         ) : (
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-border-subtle border-t-accent-orbit" />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-spaceplus-border-light border-t-spaceplus-accent-teal" />
         )}
       </div>
 

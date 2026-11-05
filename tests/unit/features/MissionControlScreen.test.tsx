@@ -34,12 +34,13 @@ vi.mock('@/hooks/useAstroContext', () => ({
 // Mock useMissionProgressStore so the screen doesn't attempt localStorage access
 vi.mock('@store/mission-progress-store', () => ({
   useMissionProgressStore: Object.assign(
-    (selector: (s: { commanderName: string; currentMissionId: string | null; totalStars: number; getCurrentMission: () => null; missions: Record<string, unknown> }) => unknown) =>
+    (selector: (s: { commanderName: string; currentMissionId: string | null; totalStars: number; getCurrentMission: () => null; getMissionStatus: (id: string) => 'active' | 'completed' | 'locked'; missions: Record<string, unknown> }) => unknown) =>
       selector({
         commanderName: '',
         currentMissionId: 'm01',
         totalStars: 0,
         getCurrentMission: () => null,
+        getMissionStatus: (_id: string) => 'locked' as const,
         missions: {},
       }),
     {
@@ -48,6 +49,7 @@ vi.mock('@store/mission-progress-store', () => ({
         currentMissionId: 'm01',
         totalStars: 0,
         getCurrentMission: () => null,
+        getMissionStatus: (_id: string) => 'locked' as const,
         missions: {},
       }),
     },

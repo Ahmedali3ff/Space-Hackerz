@@ -1,5 +1,6 @@
 // src/components/common/StatReadout.tsx
-// Telemetry-style numeric readout (Space Mono) with optional trend arrow.
+// Telemetry-style numeric readout with optional trend arrow.
+// Migrated to Space+ tokens — light theme, Nunito font, teal/status palette.
 // The trend uses an icon + aria-label so direction is never conveyed by
 // color alone. Status optionally tints the value text.
 
@@ -17,11 +18,12 @@ interface StatReadoutProps {
   readonly trend?: Trend
 }
 
+// Space+ status token classes (light-theme palette)
 const STATUS_TEXT: Readonly<Record<ReadoutStatus, string>> = {
-  good: 'text-status-good',
-  warn: 'text-status-warn',
-  crit: 'text-status-crit',
-  info: 'text-status-info',
+  good: 'text-spaceplus-status-success',
+  warn: 'text-spaceplus-status-warning',
+  crit: 'text-spaceplus-status-error',
+  info: 'text-spaceplus-status-info',
 }
 
 const TREND: Readonly<Record<Trend, { readonly Icon: Icon; readonly label: string }>> = {
@@ -31,7 +33,7 @@ const TREND: Readonly<Record<Trend, { readonly Icon: Icon; readonly label: strin
 }
 
 export function StatReadout({ label, value, unit, status, trend }: StatReadoutProps): JSX.Element {
-  const valueColor = status !== undefined ? STATUS_TEXT[status] : 'text-text-primary'
+  const valueColor = status !== undefined ? STATUS_TEXT[status] : 'text-spaceplus-text-heading'
 
   let trendNode: JSX.Element | null = null
   if (trend !== undefined) {
@@ -43,11 +45,11 @@ export function StatReadout({ label, value, unit, status, trend }: StatReadoutPr
 
   return (
     <div className="flex flex-col">
-      <span className="text-xs uppercase tracking-wide text-text-muted">{label}</span>
-      <span className="hud-mono flex items-baseline gap-1 text-2xl font-semibold">
+      <span className="text-xs uppercase tracking-wide text-spaceplus-text-muted">{label}</span>
+      <span className="font-mono tabular-nums flex items-baseline gap-1 text-2xl font-semibold">
         <span className={valueColor}>{value}</span>
         {unit !== undefined ? (
-          <span className="text-sm font-normal text-text-secondary">{unit}</span>
+          <span className="text-sm font-normal text-spaceplus-text-secondary">{unit}</span>
         ) : null}
         {trendNode !== null ? <span className="ml-1 inline-flex self-center">{trendNode}</span> : null}
       </span>

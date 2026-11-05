@@ -1,0 +1,52 @@
+# Space+ Visual Cleanup — Build Log (Review Findings Fix)
+# Workflow: wf_e33c10bae5e172be
+# Date: 2026-11-05
+
+## Review Findings Fixed (from spaceplus-review.json)
+
+### Finding 1 & 6: StatReadout.tsx — old dark tokens (hud-mono, text-text-primary/secondary/muted, text-status-*)
+- File: src/components/common/StatReadout.tsx
+- Changed: hud-mono → font-mono tabular-nums; text-text-primary → text-spaceplus-text-heading;
+  text-text-muted → text-spaceplus-text-muted; text-text-secondary → text-spaceplus-text-secondary;
+  text-status-good/warn/crit/info → text-spaceplus-status-success/warning/error/info
+
+### Finding 2: AstroAIPanel.tsx — 2 residual text-text-muted tokens
+- File: src/features/mission-control/AstroAIPanel.tsx
+- Changed: both text-text-muted → text-spaceplus-text-muted (offline message + start hint)
+
+### Finding 3: LoadingScreen.tsx — dark theme causing flash on initial load
+- File: src/components/common/LoadingScreen.tsx
+- Changed: bg-space-void → bg-[#F4F7FA]; font-display → font-display2; text-accent-orbit → text-spaceplus-accent-teal;
+  border-accent-orbit → border-spaceplus-accent-teal; border-border-subtle → border-spaceplus-border-light
+
+### Finding 4: MissionControlScreen — reference layout not implemented
+- File: src/features/mission-control/MissionControlScreen.tsx (complete rewrite)
+- Added: "SOLAR SYSTEM ADVENTURE" teal uppercase label
+- Added: "Ready for your mission, {name}?" heading row
+- Added: HorizontalJourneyMap with Earth/Rocket/Planet waypoints + SVG dashed line + pulsing ring
+- Added: CosmicJourneyStrip with 3 mission cards (prev/current/next) + "1 of 6 missions complete"
+- Added: MissionDetailPanel (320px right column) with progress bar, reward card, task checklist
+- Preserved: All aria-labels, event handling, AstroAI, resource panels, floating resource bar
+
+### Finding 5: tailwind.config.js spaceplus.surface token value
+- File: tailwind.config.js
+- Changed: spaceplus.surface '#EEF2FB' → '#F4F7FA' (matches product.md bg.app)
+
+### Test fix: MissionControlScreen.test.tsx mock missing getMissionStatus
+- File: tests/unit/features/MissionControlScreen.test.tsx
+- Added: getMissionStatus: (_id: string) => 'locked' to the mock state object
+  (CosmicJourneyStrip calls useMissionProgressStore((s) => s.getMissionStatus))
+- Fixed duplicate aria-label: detail panel "End Mission" button aria-label changed to
+  "Stop mission and view debrief" to avoid collision with HUD "End mission and view debrief"
+  (tests use getByRole with /end mission/i regex expecting exactly one match)
+
+## Build Results
+
+### npm run test -- --run
+Result: ALL 219 TESTS PASSED (26 test files)
+Duration: ~29s
+
+### npm run build
+Result: BUILD SUCCESS — exit code 0
+Output: dist/ with ~29 chunks, built in ~18s
+TypeScript errors: 0
