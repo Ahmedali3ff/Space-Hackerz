@@ -2,7 +2,7 @@
   "id": "FEAT-F",
   "type": "feat",
   "description": "useMissionControl Integration — wire evaluateMissionTasks into advanceDay, wire commanderName and currentMissionId through the app. Additive changes to hooks only. Depends on FEAT-C (evaluator + store) and FEAT-D (screens use the data). No simulation engine changes.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "1. Read src/hooks/useMissionControl.ts in full. Read src/services/mission-task-evaluator.ts (created in FEAT-C). Read src/store/mission-progress-store.ts (created in FEAT-C).",
 
@@ -28,5 +28,5 @@
     "npx vitest run"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Completed. useMissionControl.ts: added imports for useMissionProgressStore and evaluateMissionTasks; added commanderName/currentMissionId selectors via useMissionProgressStore; extracted checkAndCompleteTasks() helper that reads missionStore state, calls evaluateMissionTasks, and calls progressStore.completeTask for any newly-satisfied task IDs; wired checkAndCompleteTasks() after successful updateFromSimResult in both advanceDay() and resolveEvent(); added commanderName and currentMissionId to UseMissionControlReturn interface and return object. MissionControlScreen.test.tsx: added vi.mock for @store/mission-progress-store returning a callable selector function with getState, added commanderName: '' and currentMissionId: 'm01' to makeControlHook factory. Build: ✓ 5620 modules. Tests: 177/177 passed."
 }

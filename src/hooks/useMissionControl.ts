@@ -6,6 +6,8 @@ import { useRef } from 'react'
 import { SimulationEngine } from '@simulation/core/simulation-engine'
 import { missionStore, useMissionStore } from '@store/mission-store'
 import { useAppStore } from '@store/app-store'
+import { useMissionProgressStore } from '@store/mission-progress-store'
+import { evaluateMissionTasks } from '@/services/mission-task-evaluator'
 import type {
   PlanetId,
   BaseConfig,
@@ -36,6 +38,8 @@ export interface UseMissionControlReturn {
   readonly resourceHistory: readonly ResourceHistoryPoint[]
   readonly isLoading: boolean
   readonly globalError: string | null
+  readonly commanderName: string
+  readonly currentMissionId: string | null
 
   // Actions
   initializeMission: () => void
@@ -67,6 +71,39 @@ export function useMissionControl(): UseMissionControlReturn {
 
   const isLoading = useAppStore((s) => s.isLoading)
   const globalError = useAppStore((s) => s.globalError)
+
+  const commanderName = useMissionProgressStore((s) => s.commanderName)
+  const currentMissionId = useMissionProgressStore((s) => s.currentMissionId)
+
+  // ── Internal helper ────────────────────────────────────────────────────────
+
+  /**
+   * Checks which mission tasks have become newly satisfied and records them
+   * in useMissionProgressStore. Called after every simulation step.
+   */
+  function checkAndCompleteTasks(): void {
+    const progressStore = useMissionProgressStore.getState()
+    const currentMission = progressStore.getCurrentMission()
+    if (currentMission === null) return
+
+    const currentState = missionStore.getState()
+    const satisfiedTaskIds = evaluateMissionTasks(currentMission, {
+      currentMissionDay: currentState.currentMissionDay,
+      resourceHistory: currentState.resourceHistory,
+      decisionLog: currentState.decisionLog,
+      missionScore: currentState.missionScore,
+      selectedPlanetId: currentState.selectedPlanetId,
+    })
+
+    const alreadyCompleted =
+      progressStore.missions[currentMission.id]?.completedTaskIds ?? []
+
+    for (const taskId of satisfiedTaskIds) {
+      if (!alreadyCompleted.includes(taskId)) {
+        progressStore.completeTask(currentMission.id, taskId)
+      }
+    }
+  }
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -126,6 +163,7 @@ export function useMissionControl(): UseMissionControlReturn {
     if (result.success) {
       // Non-null: we just null-checked engineRef.current above
       missionStore.getState().updateFromSimResult(result.value, engineRef.current!.getDecisionLog())
+      checkAndCompleteTasks()
     } else {
       useAppStore.getState().setGlobalError(result.error.message)
     }
@@ -145,6 +183,7 @@ export function useMissionControl(): UseMissionControlReturn {
     if (result.success) {
       // Non-null: we just null-checked engineRef.current above
       missionStore.getState().updateFromSimResult(result.value, engineRef.current!.getDecisionLog())
+      checkAndCompleteTasks()
     } else {
       useAppStore.getState().setGlobalError(result.error.message)
     }
@@ -200,6 +239,8 @@ export function useMissionControl(): UseMissionControlReturn {
     resourceHistory,
     isLoading,
     globalError,
+    commanderName,
+    currentMissionId,
     initializeMission,
     advanceDay,
     resolveEvent,

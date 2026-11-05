@@ -31,6 +31,29 @@ vi.mock('@/hooks/useAstroContext', () => ({
   useAstroContext: () => null,
 }))
 
+// Mock useMissionProgressStore so the screen doesn't attempt localStorage access
+vi.mock('@store/mission-progress-store', () => ({
+  useMissionProgressStore: Object.assign(
+    (selector: (s: { commanderName: string; currentMissionId: string | null; totalStars: number; getCurrentMission: () => null; missions: Record<string, unknown> }) => unknown) =>
+      selector({
+        commanderName: '',
+        currentMissionId: 'm01',
+        totalStars: 0,
+        getCurrentMission: () => null,
+        missions: {},
+      }),
+    {
+      getState: () => ({
+        commanderName: '',
+        currentMissionId: 'm01',
+        totalStars: 0,
+        getCurrentMission: () => null,
+        missions: {},
+      }),
+    },
+  ),
+}))
+
 // Track advanceDay calls so we can assert day increments via the mock
 const makeControlHook = (overrides: Partial<ReturnType<typeof import('@/hooks/useMissionControl').useMissionControl>> = {}): ReturnType<typeof import('@/hooks/useMissionControl').useMissionControl> => ({
   selectedPlanetId: 'moon',
@@ -60,6 +83,8 @@ const makeControlHook = (overrides: Partial<ReturnType<typeof import('@/hooks/us
   resourceHistory: [] as ResourceHistoryPoint[],
   isLoading: false,
   globalError: null,
+  commanderName: '',
+  currentMissionId: 'm01',
   initializeMission: vi.fn(),
   advanceDay: mockAdvanceDay,
   resolveEvent: mockResolveEvent,
