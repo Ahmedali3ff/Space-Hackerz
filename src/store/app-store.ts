@@ -10,6 +10,9 @@ interface AppState {
   readonly isLoading: boolean
   readonly globalError: string | null
   readonly astroAIPanelOpen: boolean
+  // Manual reduce-motion override (OS preference detected in useReducedMotion
+  // on mount; this flag is the single source of truth for the UI/3D layer).
+  readonly reducedMotion: boolean
 }
 
 // ── Actions shape ────────────────────────────────────────────────────────────
@@ -21,6 +24,7 @@ interface AppActions {
   toggleAstroAIPanel: () => void
   openAstroAIPanel: () => void
   closeAstroAIPanel: () => void
+  setReducedMotion: (value: boolean) => void
 }
 
 type AppStore = AppState & AppActions
@@ -31,6 +35,7 @@ export const useAppStore = create<AppStore>()((set, get) => ({
   isLoading: false,
   globalError: null,
   astroAIPanelOpen: false,
+  reducedMotion: false,
 
   setLoading: (loading: boolean): void => {
     set({ isLoading: loading })
@@ -54,5 +59,9 @@ export const useAppStore = create<AppStore>()((set, get) => ({
 
   closeAstroAIPanel: (): void => {
     set({ astroAIPanelOpen: false })
+  },
+
+  setReducedMotion: (value: boolean): void => {
+    set({ reducedMotion: value })
   },
 }))

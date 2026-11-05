@@ -1,3 +1,169 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────────────────────
+   ASTRA design tokens mirrored as CSS custom properties.
+   Source of truth: docs/astra-redesign-report.md §7.1.
+   Tailwind theme.extend is the primary token surface; these :root vars let
+   raw CSS (glass-panel, focus rings, starfield) reference the same values.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Deep-space backgrounds */
+  --space-void: #060912;
+  --space-deep: #0b1224;
+  --space-panel: #121c33;
+  --space-panel-raised: #1b2a4a;
+
+  /* Borders */
+  --border-subtle: #243456;
+  --border-strong: #3a5180;
+
+  /* Accents */
+  --accent-ignition: #ff6b35;
+  --accent-orbit: #29e6f3;
+  --accent-starlight: #eaf1fa;
+
+  /* Status semantics */
+  --status-good: #46e6a0;
+  --status-warn: #ffc93c;
+  --status-crit: #ff5a5f;
+  --status-info: #29e6f3;
+
+  /* Text ramp */
+  --text-primary: #eaf1fa;
+  --text-secondary: #a9b8d4;
+  --text-muted: #7e8dab;
+
+  /* Glass surface (mirrors .glass-panel) */
+  --glass-bg: rgba(18, 28, 51, 0.72);
+  --glass-blur: 12px;
+}
+
+@layer base {
+  html {
+    /* Keep content visible regardless of motion preference. */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: var(--space-void);
+    color: var(--text-primary);
+    font-size: 18px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible focus ring — never removed. Uses the orbit-cyan accent so focus is
+     distinguishable from the ignition-orange CTA state. */
+  *:focus-visible {
+    outline: 2px solid var(--accent-orbit);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove default outline only when the visible ring above is rendered, so
+     mouse users don't see a stray ring but keyboard users always do. */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Reduced motion — respects prefers-reduced-motion globally.
+   Never hides informative content; only collapses durations and disables
+   non-essential transforms. Framer Motion animations are also made instant via
+   the useReducedMotion hook / data-reduce-motion dataset attribute.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Manual reduce-motion toggle (useReducedMotion sets data-reduce-motion on
+   the document element). Mirrors the media-query behaviour without depending
+   on the OS setting. */
+html[data-reduce-motion='true'] *,
+html[data-reduce-motion='true'] *::before,
+html[data-reduce-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@layer components {
+  /* Glassmorphism HUD panel — translucent fill + backdrop blur over the
+     live scene. Connects the UI to the world instead of floating opaque
+     cards. (§7.3) */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+  }
+
+  /* Space Mono telemetry readouts for resource numbers, counters, coordinates. */
+  .hud-mono {
+    font-family: 'Space Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* CSS starfield — layered radial-gradient stars over the deep-space void,
+     drifting seamlessly (one full tile per loop). The reduced-motion block
+     above collapses the animation to ~0ms; because the end frame is exactly
+     one tile width away the frozen frame is visually identical to the start,
+     so no content jumps and nothing is hidden. (AppShell §7.3) */
+  .astra-starfield {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--space-void);
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(234, 241, 250, 0.9), transparent 60%),
+      radial-gradient(1px 1px at 70% 60%, rgba(234, 241, 250, 0.7), transparent 60%),
+      radial-gradient(1.5px 1.5px at 40% 80%, rgba(41, 230, 243, 0.55), transparent 60%),
+      radial-gradient(1px 1px at 85% 25%, rgba(234, 241, 250, 0.6), transparent 60%),
+      radial-gradient(1px 1px at 55% 15%, rgba(255, 107, 53, 0.5), transparent 60%),
+      radial-gradient(1px 1px at 10% 70%, rgba(234, 241, 250, 0.5), transparent 60%),
+      radial-gradient(1px 1px at 90% 90%, rgba(234, 241, 250, 0.4), transparent 60%),
+      radial-gradient(1.5px 1.5px at 30% 45%, rgba(234, 241, 250, 0.7), transparent 60%);
+    background-repeat: repeat;
+    background-size: 600px 600px;
+    animation: astra-drift 140s linear infinite;
+  }
+}
+
+@keyframes astra-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -600px 0;
+  }
+}
+
+@layer utilities {
+  /* Screen-reader-only text (used for chart/bar sr-only nodes, skip links). */
+  .sr-only-astra {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

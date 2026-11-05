@@ -93,6 +93,33 @@
 | FR-08-7 | The scoring system must be documented and transparent                                | P1       |
 | FR-08-8 | The player must be able to start a new mission from the debrief screen               | P1       |
 
+### FR-09: Location Selection (NEW — approved 2026-11-04)
+| ID      | Requirement                                                                                  | Priority |
+|---------|----------------------------------------------------------------------------------------------|----------|
+| FR-09-1 | After planet selection, the player must choose a landing location on that planet             | P1       |
+| FR-09-2 | Each location must modify environmental parameters (solar, thermal, dust) via a documented overlay | P1 |
+| FR-09-3 | Moon must offer at least equatorial and polar sites with distinct tradeoffs                  | P1       |
+| FR-09-4 | Mars must offer at least Gale Crater and Jezero Crater (plus a third) with distinct tradeoffs | P1       |
+| FR-09-5 | Each location modifier must be classified OBSERVED_DATA / DERIVED_PARAMETER / EDUCATIONAL_ASSUMPTION and documented in docs/scientific-assumptions.md | P0 |
+| FR-09-6 | Location selection must apply the overlay to a copy of the PlanetProfile before the engine is constructed (simulation engine untouched) | P0 |
+
+### FR-10: Configurable Mission Duration (NEW — approved 2026-11-04)
+| ID       | Requirement                                                                                  | Priority |
+|----------|----------------------------------------------------------------------------------------------|----------|
+| FR-10-1 | During mission configuration the player must set a target mission length of 30, 60, or 90 days/sols | P1       |
+| FR-10-2 | The chosen duration must be passed to the SimulationEngine at mission start (additive config field) | P0       |
+| FR-10-3 | Mission success must be measured against the chosen duration (completion ratio)             | P1       |
+| FR-10-4 | The scoring change must be re-validated against docs/simulation-model.md                     | P0       |
+
+### FR-11: Immersive 3D World (approved 2026-11-04)
+| ID       | Requirement                                                                                  | Priority |
+|----------|----------------------------------------------------------------------------------------------|----------|
+| FR-11-1 | Mission Control must render an immersive 3D habitat via React Three Fiber (where WebGL available) | P0 |
+| FR-11-2 | A 2D/CSS fallback must render when WebGL is unavailable; the simulation must work identically | P0       |
+| FR-11-3 | Reduced-motion must be honored in the 3D layer and all animations                            | P0       |
+| FR-11-4 | Clicking a HUD subsystem must focus the 3D camera on the corresponding module; critical data must also exist in accessible DOM | P1 |
+| FR-11-5 | The 3D layer must never import the simulation engine directly (decoupled via typed event bus + read-only view) | P0 |
+
 ---
 
 ## Non-Functional Requirements

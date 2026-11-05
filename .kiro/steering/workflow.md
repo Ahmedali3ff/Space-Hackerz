@@ -10,10 +10,14 @@ PHASE 2 — Project Scaffold ✅ COMPLETE
 PHASE 3 — Scientific Foundation ✅ COMPLETE
 PHASE 4 — Simulation Core ✅ COMPLETE
 PHASE 5 — Application Foundation ✅ COMPLETE
+PHASE 8 (partial) — Astro-AI knowledge base + service ✅ COMPLETE (UI integration pending design)
+PHASE 9 — Mission Debrief ✅ COMPLETE
 
 ## Current Task
 
-Phase 6 — Visual Design Integration (BLOCKED on design) / Phase 8 — Astro-AI (can begin)
+**Building the playable 2D/glass vertical slice** (R1 design system + R2 components + all setup screens + 3D Mission Control hero + debrief re-skin + decisionLog bug fix). Workflow `wf_ca2c9d52439ca363` running. **3D (React Three Fiber) is a later phase — this slice is 2D/glass.**
+
+R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Location Selection, F10 Mission Duration, F11 3D World; `requirements.md` added FR-09/FR-10/FR-11.
 
 ## Completed Tasks
 
@@ -74,6 +78,15 @@ Phase 6 — Visual Design Integration (BLOCKED on design) / Phase 8 — Astro-AI
 | APP-005  | Implemented GlobalProviders (Zustand + ErrorBoundary)    | 2026-11-04 |
 | APP-006  | Wired stores and hook into app entry point               | 2026-11-04 |
 | APP-007  | Verified build and tests pass for Phase 5                | 2026-11-04 |
+| AI-001   | SimulationContext type + builder                        | 2026-11-04 |
+| AI-002   | Zod AstroResponse schema                                | 2026-11-04 |
+| AI-003   | 18-entry offline knowledge base (NASA-sourced)         | 2026-11-04 |
+| AI-004   | Prompt templates (event/resource/decision)             | 2026-11-04 |
+| AI-005   | AstroAssistant service + graceful offline fallback     | 2026-11-04 |
+| DEB-001  | Decision log recording (endMission pulls engine log)    | 2026-11-04 |
+| DEB-002  | Mission scoring algorithm (verified vs sim-model doc)  | 2026-11-04 |
+| DEB-003  | ResourceHistoryPoint type + store tracking + tests     | 2026-11-04 |
+| DEB-004  | MissionDebriefScreen (6 sections, Recharts) + tests    | 2026-11-04 |
 
 ## Pending Tasks (ordered)
 
@@ -94,18 +107,18 @@ Phase 6 — Visual Design Integration (BLOCKED on design) / Phase 8 — Astro-AI
 - [ ] GAME-007: Integrate Phaser scene into MissionControlScreen
 
 ### Phase 8 — Astro-AI
-- [ ] AI-001: Define knowledge base structure
-- [ ] AI-002: Implement prompt templates
-- [ ] AI-003: Implement Zod response schemas
-- [ ] AI-004: Implement AstroAssistant service
-- [ ] AI-005: Implement graceful offline fallback
-- [ ] AI-006: Integrate into MissionControlScreen
+- [x] AI-001: Define knowledge base structure ✅
+- [x] AI-002: Implement prompt templates ✅
+- [x] AI-003: Implement Zod response schemas ✅
+- [x] AI-004: Implement AstroAssistant service ✅
+- [x] AI-005: Implement graceful offline fallback ✅
+- [ ] AI-006: Integrate into MissionControlScreen (BLOCKED on Phase 6 design)
 
-### Phase 9 — Mission Debrief
-- [ ] DEB-001: Implement decision log recording
-- [ ] DEB-002: Implement mission scoring algorithm
-- [ ] DEB-003: Implement MissionDebriefScreen
-- [ ] DEB-004: Implement resource history charts
+### Phase 9 — Mission Debrief ✅ COMPLETE
+- [x] DEB-001: Implement decision log recording ✅
+- [x] DEB-002: Implement mission scoring algorithm ✅
+- [x] DEB-003: Implement MissionDebriefScreen ✅
+- [x] DEB-004: Implement resource history charts ✅
 
 ### Phase 10 — QA
 - [ ] QA-001: Full Moon mission end-to-end test
@@ -128,4 +141,9 @@ Phase 6 — Visual Design Integration (BLOCKED on design) / Phase 8 — Astro-AI
 
 ## Next Recommended Action
 
-Phase 6 is blocked on visual design from user. Phase 8 (Astro-AI) can begin now: AI-001 knowledge base structure, AI-002 prompt templates, AI-003 Zod response schemas.
+**In progress:** playable vertical slice (R1–R3 + setup screens). After it lands and the user tries it:
+- **R4–R5:** 3D stack (React Three Fiber + drei + three, React-18 pins) + 3D Mission Control scene. Blocked on 3D assets (user to supply GLB/Figma or approve sourcing free/public-domain; start with low-poly placeholders).
+- **R8:** Location Selection modifier overlay + Configurable Mission Duration engine field + scoring tie-in (touches `src/simulation/` minimally + additively; re-validate vs `docs/simulation-model.md`).
+- **R9–R10:** QA + accessibility (manual AT testing, 4-state fallback matrix), delivery, remove Phaser.
+
+Known technical risk: production bundle ~653 KB — route-level lazy loading + manualChunks being added in this slice.
