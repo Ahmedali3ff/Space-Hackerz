@@ -45,6 +45,29 @@ const ExplorersScreen = React.lazy(
   () => import('../features/explorers/ExplorersScreen').then((m) => ({ default: m.ExplorersScreen })),
 )
 
+// ── Game screens (dark campaign layer) ────────────────────────────────────────
+const CampaignMapScreen = React.lazy(
+  () => import('../features/game/CampaignMapScreen').then((m) => ({ default: m.CampaignMapScreen })),
+)
+const CinematicIntroScreen = React.lazy(
+  () => import('../features/game/CinematicIntroScreen').then((m) => ({ default: m.CinematicIntroScreen })),
+)
+const GameplayScreen = React.lazy(
+  () => import('../features/game/GameplayScreen').then((m) => ({ default: m.GameplayScreen })),
+)
+const GameEventModal = React.lazy(
+  () => import('../features/game/GameEventModal').then((m) => ({ default: m.GameEventModal })),
+)
+const PauseMenuOverlay = React.lazy(
+  () => import('../features/game/PauseMenuOverlay').then((m) => ({ default: m.PauseMenuOverlay })),
+)
+const LevelCompleteScreen = React.lazy(
+  () => import('../features/game/LevelCompleteScreen').then((m) => ({ default: m.LevelCompleteScreen })),
+)
+const GameOverScreen = React.lazy(
+  () => import('../features/game/GameOverScreen').then((m) => ({ default: m.GameOverScreen })),
+)
+
 // ── Route guard components ────────────────────────────────────────────────────
 
 /**
@@ -221,6 +244,64 @@ export function AppRouter(): JSX.Element {
             <ScreenTransition routeKey="/explorers">
               <ExplorersScreen />
             </ScreenTransition>
+          </Suspense>
+        }
+      />
+
+      {/* ── Game campaign routes (dark theme) ──────────────────────────────── */}
+      <Route
+        path="/game/campaign"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <CampaignMapScreen />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/game/cinematic/:missionId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <CinematicIntroScreen />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/game/play/:missionId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <GameplayScreen />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/game/event/:missionId/:eventId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <GameEventModal />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/game/pause/:missionId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <PauseMenuOverlay />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/game/level-complete/:missionId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <LevelCompleteScreen />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/game/game-over"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <GameOverScreen />
           </Suspense>
         }
       />
