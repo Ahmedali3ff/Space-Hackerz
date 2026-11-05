@@ -58,15 +58,15 @@ describe('PlanetSelectionScreen', () => {
   it('Continue button is enabled after selecting a planet', () => {
     missionStore.setState({ ...INITIAL_MISSION_STATE, selectedPlanetId: 'moon' })
     renderScreen()
-    const continueBtn = screen.getByRole('button', { name: /continue to crew selection/i })
+    const continueBtn = screen.getByRole('button', { name: /continue to location selection/i })
     expect(continueBtn).not.toBeDisabled()
   })
 
-  it('Continue button navigates to /select-crew when clicked after selection', () => {
+  it('Continue button navigates to /select-location when clicked after selection', () => {
     missionStore.setState({ ...INITIAL_MISSION_STATE, selectedPlanetId: 'moon' })
     renderScreen()
-    fireEvent.click(screen.getByRole('button', { name: /continue to crew selection/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/select-crew')
+    fireEvent.click(screen.getByRole('button', { name: /continue to location selection/i }))
+    expect(mockNavigate).toHaveBeenCalledWith('/select-location')
   })
 
   it('Back button navigates to /', () => {

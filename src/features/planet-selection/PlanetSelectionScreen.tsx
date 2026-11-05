@@ -2,7 +2,7 @@
 // Planet selection screen — Space+ light card layout with CSS sphere illustrations.
 // PRESERVED: 'Select The Moon' / 'Select Mars' aria-pressed buttons, 'The Moon' and
 //            'Mars' text, 'No atmosphere' / 'Thin CO₂ atmosphere', '1.62' gravity,
-//            'continue to crew selection' aria-label, navigation to '/select-crew'.
+//            'continue to location selection' aria-label, navigation to '/select-location'.
 
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react'
@@ -214,10 +214,10 @@ export function PlanetSelectionScreen(_props: PlanetSelectionScreenProps): JSX.E
               variant="hint"
               size="lg"
               disabled={!canContinue}
-              onClick={() => navigate('/select-crew')}
+              onClick={() => navigate('/select-location')}
               ariaLabel={
                 canContinue
-                  ? 'Continue to crew selection'
+                  ? 'Continue to location selection'
                   : 'Select a planet to continue'
               }
             >

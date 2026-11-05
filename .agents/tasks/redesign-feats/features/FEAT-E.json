@@ -2,7 +2,7 @@
   "id": "FEAT-E",
   "type": "feat",
   "description": "Router Updates — add /missions and /select-location routes, update PlanetSelection navigation to go through /select-location, keep all existing guards. Depends on FEAT-D (MissionsOverviewScreen and LocationSelectionScreen needed). Small change — just router.tsx + a placeholder LocationSelectionScreen.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "1. Read src/app/router.tsx in full.",
 
@@ -28,5 +28,5 @@
     "npx vitest run"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Router already had /missions route from a prior step; only /select-location was missing. LocationSelectionScreen created with 3 Moon + 3 Mars placeholder locations (clickable cards, navigates to /select-crew). PlanetSelectionScreen navigate call updated from /select-crew to /select-location and aria-label updated to 'continue to location selection'. Two PlanetSelectionScreen tests updated to match new route and aria-label. Build: 0 TypeScript errors. Tests: 177/177 passed."
 }
