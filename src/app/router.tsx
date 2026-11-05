@@ -1,4 +1,36 @@
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link, Navigate } from 'react-router-dom'
+import { useMissionStore } from '@store/mission-store'
+
+// ── Route guard components ────────────────────────────────────────────────────
+
+/**
+ * Guards routes that require planet + crew to be selected.
+ * Redirects to "/" if setup is incomplete.
+ */
+function RequireSetup({ children }: { readonly children: JSX.Element }): JSX.Element {
+  const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
+  const crewSize = useMissionStore((s) => s.crewSize)
+
+  if (selectedPlanetId === null || crewSize === 0) {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
+/**
+ * Guards routes that require an active mission.
+ * Redirects to "/select-planet" if no mission is active.
+ */
+function RequireMission({ children }: { readonly children: JSX.Element }): JSX.Element {
+  const missionActive = useMissionStore((s) => s.missionActive)
+
+  if (!missionActive) {
+    return <Navigate to="/select-planet" replace />
+  }
+  return children
+}
+
+// ── Placeholder screens ───────────────────────────────────────────────────────
 
 interface PlaceholderScreenProps {
   readonly name: string
@@ -20,6 +52,8 @@ function PlaceholderScreen({ name, nextPath, nextLabel }: PlaceholderScreenProps
   )
 }
 
+// ── Router ────────────────────────────────────────────────────────────────────
+
 export function AppRouter(): JSX.Element {
   return (
     <Routes>
@@ -32,7 +66,11 @@ export function AppRouter(): JSX.Element {
       <Route
         path="/select-planet"
         element={
-          <PlaceholderScreen name="Planet Selection" nextPath="/select-crew" nextLabel="Select Crew" />
+          <PlaceholderScreen
+            name="Planet Selection"
+            nextPath="/select-crew"
+            nextLabel="Select Crew"
+          />
         }
       />
       <Route
@@ -48,23 +86,35 @@ export function AppRouter(): JSX.Element {
       <Route
         path="/configure-base"
         element={
-          <PlaceholderScreen
-            name="Base Configuration"
-            nextPath="/mission"
-            nextLabel="Start Mission"
-          />
+          <RequireSetup>
+            <PlaceholderScreen
+              name="Base Configuration"
+              nextPath="/mission"
+              nextLabel="Start Mission"
+            />
+          </RequireSetup>
         }
       />
       <Route
         path="/mission"
         element={
-          <PlaceholderScreen name="Mission Control" nextPath="/debrief" nextLabel="End Mission" />
+          <RequireSetup>
+            <RequireMission>
+              <PlaceholderScreen
+                name="Mission Control"
+                nextPath="/debrief"
+                nextLabel="End Mission"
+              />
+            </RequireMission>
+          </RequireSetup>
         }
       />
       <Route
         path="/debrief"
         element={
-          <PlaceholderScreen name="Mission Debrief" nextPath="/" nextLabel="Play Again" />
+          <RequireSetup>
+            <PlaceholderScreen name="Mission Debrief" nextPath="/" nextLabel="Play Again" />
+          </RequireSetup>
         }
       />
     </Routes>
