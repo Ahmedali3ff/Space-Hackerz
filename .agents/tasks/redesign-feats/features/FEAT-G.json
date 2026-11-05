@@ -2,7 +2,7 @@
   "id": "FEAT-G",
   "type": "feat",
   "description": "Tests — add new unit tests for missions data, task evaluator, and progress store. Update existing test selectors broken by FEAT-D/E screen redesigns. Goal: ≥177 passing tests total (new tests bring the count above 177). Depends on all previous FEATs.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "1. Run `npx vitest run` first to see the current state — identify any failing tests from prior FEATs that were not yet fixed. Fix those first.",
 
@@ -32,5 +32,5 @@
     "npx vite build"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Final test count: 219 passing tests across 26 test files (was 177 across 23 files). New files: tests/unit/data/missions.test.ts (9 tests), tests/unit/services/mission-task-evaluator.test.ts (18 tests), tests/unit/store/mission-progress-store.test.ts (15 tests). Added INITIAL_PROGRESS_STATE export to src/store/mission-progress-store.ts to support test resets. Build: npx vite build succeeded with no TypeScript errors."
 }

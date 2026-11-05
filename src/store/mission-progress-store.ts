@@ -55,6 +55,9 @@ const INITIAL_STATE: MissionProgressState = {
   commanderName: '',
 }
 
+/** Exported for test resets — use useMissionProgressStore.setState({ ...INITIAL_PROGRESS_STATE }) in beforeEach */
+export const INITIAL_PROGRESS_STATE: MissionProgressState = INITIAL_STATE
+
 // ── Store ─────────────────────────────────────────────────────────────────────
 
 export const useMissionProgressStore = create<MissionProgressStore>()(
