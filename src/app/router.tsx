@@ -1,6 +1,10 @@
 import { Routes, Route, Link, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
+import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen'
+import { PlanetSelectionScreen } from '@/features/planet-selection/PlanetSelectionScreen'
+import { CrewSelectionScreen } from '@/features/crew-selection/CrewSelectionScreen'
+import { BaseConfigurationScreen } from '@/features/base-configuration/BaseConfigurationScreen'
 import { MissionDebriefScreen } from '@/features/mission-debrief/MissionDebriefScreen'
 
 // ── Route guard components ────────────────────────────────────────────────────
@@ -47,7 +51,7 @@ function RequireMissionStarted({ children }: { readonly children: ReactNode }): 
   return <>{children}</>
 }
 
-// ── Placeholder screens ───────────────────────────────────────────────────────
+// ── Placeholder screen (mission control only — replaced in FEAT-004) ─────────
 
 interface PlaceholderScreenProps {
   readonly name: string
@@ -76,39 +80,21 @@ export function AppRouter(): JSX.Element {
     <Routes>
       <Route
         path="/"
-        element={
-          <PlaceholderScreen name="Onboarding" nextPath="/select-planet" nextLabel="Select Planet" />
-        }
+        element={<OnboardingScreen />}
       />
       <Route
         path="/select-planet"
-        element={
-          <PlaceholderScreen
-            name="Planet Selection"
-            nextPath="/select-crew"
-            nextLabel="Select Crew"
-          />
-        }
+        element={<PlanetSelectionScreen />}
       />
       <Route
         path="/select-crew"
-        element={
-          <PlaceholderScreen
-            name="Crew Selection"
-            nextPath="/configure-base"
-            nextLabel="Configure Base"
-          />
-        }
+        element={<CrewSelectionScreen />}
       />
       <Route
         path="/configure-base"
         element={
           <RequireSetup>
-            <PlaceholderScreen
-              name="Base Configuration"
-              nextPath="/mission"
-              nextLabel="Start Mission"
-            />
+            <BaseConfigurationScreen />
           </RequireSetup>
         }
       />
