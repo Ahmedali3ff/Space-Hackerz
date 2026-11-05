@@ -224,5 +224,29 @@ describe('useMissionControl', () => {
 
       expect(result.current.globalError).not.toBeNull()
     })
+
+    it('resourceHistory accumulates entries after advanceDay calls', () => {
+      setupValidMissionState()
+
+      const { result } = renderHook(() => useMissionControl())
+
+      act(() => {
+        result.current.initializeMission()
+      })
+
+      expect(result.current.resourceHistory.length).toBe(0)
+
+      act(() => {
+        result.current.advanceDay()
+      })
+
+      expect(result.current.resourceHistory.length).toBe(1)
+
+      act(() => {
+        result.current.advanceDay()
+      })
+
+      expect(result.current.resourceHistory.length).toBe(2)
+    })
   })
 })

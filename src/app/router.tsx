@@ -1,6 +1,7 @@
 import { Routes, Route, Link, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
+import { MissionDebriefScreen } from '@/features/mission-debrief/MissionDebriefScreen'
 
 // ── Route guard components ────────────────────────────────────────────────────
 
@@ -27,6 +28,21 @@ function RequireMission({ children }: { readonly children: ReactNode }): JSX.Ele
 
   if (!missionActive) {
     return <Navigate to="/select-planet" replace />
+  }
+  return <>{children}</>
+}
+
+/**
+ * Guards routes that require a mission to have been started.
+ * Uses missionStarted (not missionActive) so the debrief screen remains
+ * accessible after endMission() sets missionActive to false.
+ * Redirects to "/" if the mission was never started.
+ */
+function RequireMissionStarted({ children }: { readonly children: ReactNode }): JSX.Element {
+  const missionStarted = useMissionStore((s) => s.missionStarted)
+
+  if (!missionStarted) {
+    return <Navigate to="/" replace />
   }
   return <>{children}</>
 }
@@ -114,7 +130,9 @@ export function AppRouter(): JSX.Element {
         path="/debrief"
         element={
           <RequireSetup>
-            <PlaceholderScreen name="Mission Debrief" nextPath="/" nextLabel="Play Again" />
+            <RequireMissionStarted>
+              <MissionDebriefScreen />
+            </RequireMissionStarted>
           </RequireSetup>
         }
       />

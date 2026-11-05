@@ -90,6 +90,7 @@ describe('missionStore', () => {
     missionStore.getState().setCrewSize(6)
     missionStore.getState().setBaseConfig(mockBaseConfig)
     missionStore.getState().startMission()
+    missionStore.getState().updateFromSimResult(buildMockSimResult())
 
     // Reset
     missionStore.getState().resetMission()
@@ -107,6 +108,7 @@ describe('missionStore', () => {
     expect(state.missionOutcome).toBe('ongoing')
     expect(state.decisionLog).toEqual([])
     expect(state.missionScore).toBeNull()
+    expect(state.resourceHistory).toEqual([])
   })
 
   it('updateFromSimResult updates currentResources', () => {
@@ -150,8 +152,24 @@ describe('missionStore', () => {
       finalScore: 725,
       outcome: 'success' as const,
     }
-    missionStore.getState().endMission(score)
+    missionStore.getState().endMission(score, [])
     expect(missionStore.getState().missionActive).toBe(false)
     expect(missionStore.getState().missionScore).toEqual(score)
+    expect(missionStore.getState().decisionLog).toEqual([])
+  })
+
+  it('INITIAL_MISSION_STATE has empty resourceHistory array', () => {
+    expect(INITIAL_MISSION_STATE.resourceHistory).toEqual([])
+  })
+
+  it('updateFromSimResult appends to resourceHistory', () => {
+    const result1 = buildMockSimResult({ missionDay: 1 })
+    const result2 = buildMockSimResult({ missionDay: 2 })
+    missionStore.getState().updateFromSimResult(result1)
+    missionStore.getState().updateFromSimResult(result2)
+    const { resourceHistory } = missionStore.getState()
+    expect(resourceHistory.length).toBe(2)
+    expect(resourceHistory[0].missionDay).toBe(1)
+    expect(resourceHistory[1].missionDay).toBe(2)
   })
 })
