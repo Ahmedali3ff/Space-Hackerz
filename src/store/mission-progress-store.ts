@@ -9,6 +9,7 @@ import { MISSIONS, getMissionById } from '@data/missions/mission-definitions'
 import type { MissionDefinition } from '@data/missions/mission-definitions'
 import type { MissionProgress, MissionStatus } from '@data/missions/mission-progress'
 import { getLevelForXP, getXPForMission } from '@data/levels/level-definitions'
+import { apiClient } from '@/services/api-client'
 
 // ── State shape ───────────────────────────────────────────────────────────────
 
@@ -75,6 +76,8 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
 
       setCommanderName: (name: string): void => {
         set({ commanderName: name })
+        // Fire-and-forget: sync name to backend (app works without server)
+        apiClient.upsertPlayer(name).then(() => {}).catch(() => {})
       },
 
       startMission: (missionId: string): void => {
@@ -163,6 +166,26 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
             currentMissionId: newCurrentId,
           }
         })
+
+        // Fire-and-forget: sync progress and XP to backend (app works without server)
+        const completedAt = new Date().toISOString()
+        const missionDef = MISSIONS.find((m) => m.id === missionId)
+        const missionNumber = missionDef?.number ?? 1
+        const xpEarned = getXPForMission(earnedStars, missionNumber)
+
+        apiClient
+          .saveMissionProgress({
+            playerId: 'player-1',
+            missionId,
+            status: 'completed',
+            tasksComplete: [],
+            starsEarned: earnedStars,
+            completedAt,
+          })
+          .then(() => {})
+          .catch(() => {})
+
+        apiClient.addXP(xpEarned).then(() => {}).catch(() => {})
       },
 
       awardXP: (amount: number): void => {

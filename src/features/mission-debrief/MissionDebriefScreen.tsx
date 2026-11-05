@@ -30,6 +30,7 @@ import { SectionLabel } from '@/components/common/SectionLabel'
 import { StarScore } from '@/components/common/StarScore'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
 import { getMissionById } from '@data/missions/mission-definitions'
+import { apiClient } from '@/services/api-client'
 import {
   CHART_COLORS,
   CHART_AXIS_COLOR,
@@ -217,6 +218,9 @@ export function MissionDebriefScreen(): JSX.Element {
     resourceHistory,
     decisionLog,
     selectedPlanetId,
+    crewSize,
+    missionDurationDays,
+    currentMissionId: currentMissionIdFromControl,
   } = useMissionControl()
   const resetMission = useMissionStore((s) => s.resetMission)
   const currentMissionId = useMissionProgressStore((s) => s.currentMissionId)
@@ -237,6 +241,36 @@ export function MissionDebriefScreen(): JSX.Element {
 
   const [aiSummary, setAiSummary] = useState<AstroResponse | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
+
+  // ── Persist mission run to backend (fire-and-forget, once per mount) ────────
+  const runSavedRef = useRef(false)
+  useEffect(() => {
+    if (runSavedRef.current) return
+    if (missionScore === null) return
+    runSavedRef.current = true
+
+    const earnedStars = getOutcomeStars(missionScore)
+    const eventsCount = countEventsResolved(decisionLog)
+
+    apiClient
+      .saveMissionRun({
+        id: crypto.randomUUID(),
+        playerId: 'player-1',
+        missionId: currentMissionIdFromControl ?? currentMissionId ?? 'unknown',
+        planetId: selectedPlanetId ?? 'unknown',
+        crewSize: crewSize ?? 1,
+        missionDurationDays: missionDurationDays ?? 30,
+        daysSurvived: currentMissionDay ?? 0,
+        finalScore: missionScore.finalScore,
+        starsEarned: earnedStars,
+        outcome: missionOutcome ?? 'unknown',
+        eventsResolved: eventsCount,
+      })
+      .then(() => {})
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionScore])
+  // ──────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (astroContext === null) return
