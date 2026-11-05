@@ -29,7 +29,6 @@ import { ScreenTransition } from '@/components/layout/ScreenTransition'
 import { Card } from '@/components/common/Card'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
 import { TaskChecklistItem } from '@/components/common/TaskChecklistItem'
-import { StarScore } from '@/components/common/StarScore'
 import { MiniProgressBar } from '@/components/charts/MiniProgressBar'
 import { ResourcePanel } from './ResourcePanel'
 import { EnvironmentPanel } from './EnvironmentPanel'
@@ -203,6 +202,7 @@ interface HorizontalJourneyMapProps {
   readonly missionDescription: string
   readonly onAdvanceDay: () => void
   readonly missionActive: boolean
+  readonly starsEarned: number
 }
 
 function HorizontalJourneyMap({
@@ -214,6 +214,7 @@ function HorizontalJourneyMap({
   missionDescription,
   onAdvanceDay,
   missionActive,
+  starsEarned,
 }: HorizontalJourneyMapProps): JSX.Element {
   const isMars = planetId === 'mars'
 
@@ -223,6 +224,15 @@ function HorizontalJourneyMap({
     : 'bg-gradient-to-br from-[#B0BEC5] to-[#546E7A]'
   const destLabel = isMars ? 'Mars' : 'Moon'
   const destAriaLabel = isMars ? 'Mars destination' : 'Moon destination'
+
+  // 5c: YOU ARE HERE position — which waypoint (1, 2, or 3) is active
+  const progress = Math.min(currentDay / (totalDays > 0 ? totalDays : 30), 1.0)
+  const activeWaypoint: 1 | 2 | 3 = progress < 0.33 ? 1 : progress < 0.66 ? 2 : 3
+
+  // Waypoint labels
+  const waypointLabels = isMars
+    ? ['Launch', 'Mid-route', 'Arrival']
+    : ['Launch', 'Transit', 'Orbit']
 
   return (
     <div className="flex flex-col gap-4">
@@ -255,15 +265,15 @@ function HorizontalJourneyMap({
         <p className="mt-1 text-sm text-[#6B7280] leading-relaxed">{missionDescription}</p>
       </div>
 
-      {/* Horizontal waypoint map */}
+      {/* Horizontal waypoint map — Earth + 3 waypoints + Destination */}
       <div
-        className="relative flex items-center justify-between py-8"
+        className="relative flex items-start justify-between py-4"
         aria-label="Mission journey map"
         role="img"
       >
-        {/* SVG dashed line connecting waypoints */}
+        {/* SVG dashed line connecting all nodes */}
         <svg
-          className="absolute left-[56px] right-[56px] top-1/2 -translate-y-1/2 h-0.5 w-[calc(100%-112px)]"
+          className="absolute left-[28px] right-[28px] top-[28px] -translate-y-1/2 h-0.5 w-[calc(100%-56px)]"
           aria-hidden="true"
           preserveAspectRatio="none"
         >
@@ -278,8 +288,8 @@ function HorizontalJourneyMap({
           />
         </svg>
 
-        {/* Earth waypoint */}
-        <div className="relative z-10 flex flex-col items-center gap-2">
+        {/* Earth */}
+        <div className="relative z-10 flex flex-col items-center gap-1">
           <div
             className="w-14 h-14 rounded-full bg-gradient-to-br from-[#4FC3F7] to-[#1565C0] shadow-card flex items-center justify-center"
             aria-label="Earth — mission start"
@@ -289,30 +299,49 @@ function HorizontalJourneyMap({
           <span className="text-xs font-semibold text-[#1A1D2E]">Earth</span>
         </div>
 
-        {/* Rocket / YOU ARE HERE waypoint */}
-        <div className="relative z-10 flex flex-col items-center gap-2">
-          {/* Pulsing ring */}
-          <div className="relative">
-            <div
-              className="absolute inset-0 rounded-full bg-[#1FC8C0]/20 animate-ping"
-              style={{ margin: '-8px' }}
-              aria-hidden="true"
-            />
-            <div
-              className="w-12 h-12 rounded-full bg-[#E8FAF9] border-2 border-[#1FC8C0] flex items-center justify-center shadow-card"
-              aria-label="Current position — you are here"
-            >
-              <Rocket size={24} weight="fill" className="text-[#1FC8C0]" aria-hidden="true" />
+        {/* Waypoints 1, 2, 3 */}
+        {([1, 2, 3] as const).map((wp) => {
+          const isHere = activeWaypoint === wp
+          return (
+            <div key={wp} className="relative z-10 flex flex-col items-center gap-1">
+              {isHere ? (
+                <>
+                  {/* Pulsing ring */}
+                  <div className="relative">
+                    <div
+                      className="absolute inset-0 rounded-full bg-[#1FC8C0]/20 animate-ping"
+                      style={{ margin: '-8px' }}
+                      aria-hidden="true"
+                    />
+                    <div
+                      className="w-12 h-12 rounded-full bg-[#E8FAF9] border-2 border-[#1FC8C0] flex items-center justify-center shadow-card"
+                      aria-label="Current position — you are here"
+                    >
+                      <Rocket size={24} weight="fill" className="text-[#1FC8C0]" aria-hidden="true" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#1FC8C0]">YOU&apos;RE HERE</span>
+                    <span className="text-[10px] text-[#6B7280] tabular-nums">Day {currentDay}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    className="w-10 h-10 rounded-full bg-[#F4F7FA] border border-[#E5E7EB] flex items-center justify-center"
+                    aria-label={waypointLabels[wp - 1]}
+                  >
+                    <span className="text-sm font-bold text-[#9CA3AF]">{wp}</span>
+                  </div>
+                  <span className="text-[10px] text-[#9CA3AF]">{waypointLabels[wp - 1]}</span>
+                </>
+              )}
             </div>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#1FC8C0]">YOU&apos;RE HERE</span>
-            <span className="text-xs text-[#6B7280] tabular-nums">Day {currentDay}</span>
-          </div>
-        </div>
+          )
+        })}
 
-        {/* Destination waypoint */}
-        <div className="relative z-10 flex flex-col items-center gap-2">
+        {/* Destination */}
+        <div className="relative z-10 flex flex-col items-center gap-1">
           <div
             className={`w-14 h-14 rounded-full ${destGradient} shadow-card flex items-center justify-center`}
             aria-label={destAriaLabel}
@@ -323,9 +352,20 @@ function HorizontalJourneyMap({
         </div>
       </div>
 
-      {/* Bottom row: star rating + advance day button */}
+      {/* Bottom row: star rating (from store) + advance day button */}
       <div className="flex items-center justify-between">
-        <StarScore score={Math.min(Math.floor((currentDay / totalDays) * 5), 5)} size="md" />
+        {/* 5d: starsEarned from progress store — show filled amber stars (max 5) */}
+        <div className="flex items-center gap-1" aria-label={`${starsEarned} stars earned`}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <Star
+              key={n}
+              size={18}
+              weight={n <= starsEarned ? 'fill' : 'regular'}
+              className={n <= starsEarned ? 'text-[#F5A623]' : 'text-[#E5E7EB]'}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
         <PrimaryButton
           variant="hint"
           size="md"
@@ -670,6 +710,11 @@ export function MissionControlScreen(
   const commanderName = useMissionProgressStore((s) => s.commanderName)
   const currentMissionId = useMissionProgressStore((s) => s.currentMissionId)
   const completeMission = useMissionProgressStore((s) => s.completeMission)
+  // 5d: Read starsEarned for current mission from store (for journey map display)
+  const progressMissions = useMissionProgressStore((s) => s.missions)
+  const journeyMapStars = currentMissionId
+    ? (progressMissions[currentMissionId]?.earnedStars ?? 0)
+    : 0
 
   const currentMission = getCurrentMission()
 
@@ -836,7 +881,17 @@ export function MissionControlScreen(
                 SOLAR SYSTEM ADVENTURE
               </p>
               <h1 className="text-2xl font-bold text-[#1A1D2E]">
-                Ready for your mission{commanderName ? `, ${commanderName}` : ''}?
+                {selectedPlanetId === 'moon'
+                  ? commanderName
+                    ? `Ready for a little moon magic, ${commanderName}?`
+                    : 'Ready for your mission, Commander?'
+                  : selectedPlanetId === 'mars'
+                  ? commanderName
+                    ? `Ready for a Mars adventure, ${commanderName}?`
+                    : 'Ready for your mission, Commander?'
+                  : commanderName
+                  ? `Ready for your mission, ${commanderName}?`
+                  : 'Ready for your mission, Commander?'}
               </h1>
             </div>
             <div className="flex items-center gap-2" aria-label={`Mission status: ${missionActive ? 'in progress' : 'not started'}`}>
@@ -866,6 +921,7 @@ export function MissionControlScreen(
                 missionDescription={currentMission?.description ?? 'Manage your base and keep your crew alive!'}
                 onAdvanceDay={handleAdvanceDay}
                 missionActive={missionActive}
+                starsEarned={journeyMapStars}
               />
             </Card>
 

@@ -190,9 +190,10 @@ describe('MissionControlScreen', () => {
     expect(mockResolveEvent).toHaveBeenCalledWith('lunar-dust-contamination', 'deploy-dust-mitigation')
   })
 
-  it('renders AstroAIPanel with an "Explain Situation" button', () => {
+  it('renders AstroAIPanel with a hint button', () => {
     renderScreen()
-    expect(screen.getByRole('button', { name: /explain situation/i })).toBeInTheDocument()
+    // Context is null in this mock setup, so the button is present but disabled
+    expect(screen.getByRole('button', { name: /a little hint, astro\?/i })).toBeInTheDocument()
   })
 
   it('shows mission day counter in HUD', () => {

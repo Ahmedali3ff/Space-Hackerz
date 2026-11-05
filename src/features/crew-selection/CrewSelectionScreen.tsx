@@ -157,7 +157,7 @@ export function CrewSelectionScreen(_props: CrewSelectionScreenProps): JSX.Eleme
                     value={dailyOxygen}
                     max={MAX_OXYGEN}
                     unit="kg/day"
-                    color="#00BCD4"
+                    color="#1FC8C0"
                   />
                   <MiniProgressBar
                     label="Water"

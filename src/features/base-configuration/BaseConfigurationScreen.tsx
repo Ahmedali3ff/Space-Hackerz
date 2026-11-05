@@ -86,7 +86,7 @@ function RangeSlider({
         aria-valuenow={value}
         className="w-full cursor-pointer accent-spaceplus-accent-teal"
         style={{
-          background: `linear-gradient(to right, #00BCD4 ${pct}%, #DCE4F7 ${pct}%)`,
+          background: `linear-gradient(to right, #1FC8C0 ${pct}%, #DCE4F7 ${pct}%)`,
         }}
       />
       <p className="text-xs text-spaceplus-text-muted">{microCopy}</p>

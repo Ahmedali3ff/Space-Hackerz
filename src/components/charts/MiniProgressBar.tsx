@@ -15,7 +15,7 @@ export function MiniProgressBar({
   value,
   max,
   unit,
-  color = '#00BCD4',
+  color = '#1FC8C0',
 }: MiniProgressBarProps): JSX.Element {
   const safeMax = max > 0 ? max : 1
   const pct = Math.max(0, Math.min(100, (value / safeMax) * 100))
