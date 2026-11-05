@@ -17,19 +17,7 @@ PHASE 10 (Space+ Redesign + Mission Progression) ✅ COMPLETE (FEAT-A through FE
 
 ## Current Task
 
-**Space+ Visual Redesign + Missions System** (workflow `wf_5f779f90a9db1164`) — COMPLETE. ✅
-219 tests passing, production build verified (18s, ~29 chunks).
-
-Space+ redesign fully delivered (FEAT-A through FEAT-G):
-- Light #F4F7FA bg, teal #1FC8C0 primary, white cards, Nunito font — all screens
-- 6-mission progression system (3 Moon + 3 Mars) with task checklists + star ratings
-- All screens: top nav + sidebar + white card layout
-- CSS/SVG planet illustrations (NOT WebGL — matches Space+ illustrated style)
-- MissionProgressStore + MissionTaskEvaluator + 219 passing tests
-
-**Next up:** Location Selection + Mission Duration (R8), then QA (R9-R10).
-
-R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Location Selection, F10 Mission Duration, F11 3D World; `requirements.md` added FR-09/FR-10/FR-11.
+Space+ visual cleanup complete — all screens match reference. Next: R8 Location Selection + Mission Duration, then QA.
 
 ## Completed Tasks
 
@@ -112,6 +100,7 @@ R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Locat
 | FEAT-E   | Crew + BaseConfiguration screens — Space+ form/stepper style         | 2026-11-05 |
 | FEAT-F   | MissionControlScreen — teal HUD, white panels, Astro-AI integration  | 2026-11-05 |
 | FEAT-G   | MissionProgressStore + MissionTaskEvaluator + star ratings + tests   | 2026-11-05 |
+| CLEANUP-001 | Space+ visual cleanup — exact reference match                     | 2026-11-05 |
 
 ## Pending Tasks (ordered)
 
