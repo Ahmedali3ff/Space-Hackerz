@@ -1,0 +1,7 @@
+{
+  "task_id": "task-redesign-space-plus",
+  "task_description": "Full visual system replacement (dark NASA → Space+ light/vibrant style) + 6-mission progression system. All UI files change; simulation engine is untouched. 177 passing tests must stay green.",
+  "status": "pending",
+  "feature_order": ["FEAT-A", "FEAT-B", "FEAT-C", "FEAT-D", "FEAT-E", "FEAT-F", "FEAT-G"],
+  "blocked_reason": null
+}

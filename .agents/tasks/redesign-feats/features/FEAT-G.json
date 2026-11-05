@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-G",
+  "type": "feat",
+  "description": "Tests — add new unit tests for missions data, task evaluator, and progress store. Update existing test selectors broken by FEAT-D/E screen redesigns. Goal: ≥177 passing tests total (new tests bring the count above 177). Depends on all previous FEATs.",
+  "status": "pending",
+  "steps": [
+    "1. Run `npx vitest run` first to see the current state — identify any failing tests from prior FEATs that were not yet fixed. Fix those first.",
+
+    "2. AUDIT existing test files for broken selectors — read each of these and check whether their selectors still match the redesigned screens:\n   - tests/unit/features/OnboardingScreen.test.tsx\n   - tests/unit/features/PlanetSelectionScreen.test.tsx\n   - tests/unit/features/CrewSelectionScreen.test.tsx\n   - tests/unit/features/BaseConfigurationScreen.test.tsx\n   - tests/unit/features/MissionControlScreen.test.tsx\n   - tests/unit/features/MissionDebriefScreen.test.tsx\n   For each failing test: if it tests an aria-label or text that was PRESERVED (see FEAT-D steps), the screen was incorrectly implemented — fix the screen. If the selector matched old markup that was intentionally changed, update the selector to match the new markup. Do NOT change what buttons do, only what you select them by.",
+
+    "3. UPDATE tests/unit/features/MissionControlScreen.test.tsx — the makeControlHook() factory must include commanderName: '' and currentMissionId: 'm01' in its return object (added in FEAT-F). Also mock useMissionProgressStore: add vi.mock('@store/mission-progress-store', () => ({ useMissionProgressStore: vi.fn(() => ({ getCurrentMission: () => null, missions: {}, completeTask: vi.fn() })) })) at the top of the test file.",
+
+    "4. CREATE tests/unit/data/missions.test.ts — tests for mission-definitions.ts:\n   - 'MISSIONS array has 6 entries'\n   - 'mission m01 has planet moon'\n   - 'mission m04 has planet mars'\n   - 'getMissionById(m01) returns the first mission'\n   - 'getMissionById(unknown) returns undefined'\n   - 'all missions have at least 2 tasks'\n   - 'mission m06 has difficulty advanced'\n   - 'mission m01 unlockRequirement is undefined (no prerequisite)'\n   - 'mission m02 unlockRequirement is m01'",
+
+    "5. CREATE tests/unit/services/mission-task-evaluator.test.ts — tests for evaluateMissionTasks:\n   - 'returns empty array when no rules are satisfied'\n   - 'survive_10_days: satisfied when currentMissionDay >= 10'\n   - 'survive_10_days: not satisfied when currentMissionDay < 10'\n   - 'survive_30_days: satisfied at day 30'\n   - 'survive_lunar_night: satisfied at day 28'\n   - 'keep_oxygen_50pct: satisfied when all history points have oxygen >= 50pct of first'\n   - 'keep_oxygen_50pct: not satisfied when a point drops below 50pct'\n   - 'resolve_1_event: satisfied when decisionLog has 1 RESOLVE_EVENT entry'\n   - 'resolve_2_events: not satisfied with 1 RESOLVE_EVENT'\n   - 'resolve_3_events: satisfied with 3 RESOLVE_EVENT entries'\n   - 'use_emergency_ration: satisfied when decisionLog has EMERGENCY_RATION'\n   - 'configure_life_support: always returns true'\n   - 'select_mars: satisfied when selectedPlanetId is mars'\n   - 'select_mars: not satisfied when selectedPlanetId is moon'\n   - 'keep_resources_above_critical: satisfied when all resources > 0'\n   - 'keep_resources_above_critical: not satisfied when food_kg hits 0'\n   - 'score_500: satisfied when missionScore.finalScore >= 500'\n   - 'score_500: not satisfied when missionScore is null'",
+
+    "6. CREATE tests/unit/store/mission-progress-store.test.ts — tests for useMissionProgressStore:\n   - 'initial state has m01 active'\n   - 'initial state has m02-m06 locked'\n   - 'setCommanderName updates commanderName'\n   - 'completeTask adds taskId to completedTaskIds for a mission'\n   - 'completeMission sets status to completed'\n   - 'completeMission updates totalStars'\n   - 'completeMission unlocks next mission based on unlockRequirement'\n   - 'getMissionStatus returns locked for m06 initially'\n   - 'getMissionStatus returns active for m01 initially'\n   - 'getCurrentMission returns m01 definition initially'\n   - 'resetProgress restores initial state'\n   NOTE: Because this store uses persist middleware, reset state manually in beforeEach using useMissionProgressStore.setState({ ...INITIAL_PROGRESS_STATE }) — export INITIAL_PROGRESS_STATE from the store file.",
+
+    "7. Run `npx vitest run` — must report ≥ 177 passing tests (new tests add at least 35+). Zero failures allowed. Fix any remaining failures.",
+    "8. Run `npx vite build` — final verification of clean build."
+  ],
+  "acceptance_criteria": [
+    "npx vitest run reports ≥ 177 passing tests (no failures)",
+    "tests/unit/data/missions.test.ts exists with ≥ 9 passing tests",
+    "tests/unit/services/mission-task-evaluator.test.ts exists with ≥ 18 passing tests",
+    "tests/unit/store/mission-progress-store.test.ts exists with ≥ 11 passing tests",
+    "All previously passing tests that tested preserved aria-labels still pass",
+    "npx vite build succeeds with no errors"
+  ],
+  "verification": [
+    "npx vitest run",
+    "npx vite build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

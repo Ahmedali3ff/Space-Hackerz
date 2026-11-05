@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-F",
+  "type": "feat",
+  "description": "useMissionControl Integration — wire evaluateMissionTasks into advanceDay, wire commanderName and currentMissionId through the app. Additive changes to hooks only. Depends on FEAT-C (evaluator + store) and FEAT-D (screens use the data). No simulation engine changes.",
+  "status": "pending",
+  "steps": [
+    "1. Read src/hooks/useMissionControl.ts in full. Read src/services/mission-task-evaluator.ts (created in FEAT-C). Read src/store/mission-progress-store.ts (created in FEAT-C).",
+
+    "2. UPDATE src/hooks/useMissionControl.ts — make ONLY these additive changes:\n   a. Import useMissionProgressStore from '@store/mission-progress-store'.\n   b. Import evaluateMissionTasks from '@/services/mission-task-evaluator'.\n   c. Inside the advanceDay() function, AFTER missionStore.getState().updateFromSimResult(...) succeeds, call: const progressStore = useMissionProgressStore.getState(); const currentMission = progressStore.getCurrentMission(); if (currentMission !== null) { const currentState = missionStore.getState(); const newlyCompleted = evaluateMissionTasks(currentMission, { currentMissionDay: currentState.currentMissionDay, resourceHistory: currentState.resourceHistory, decisionLog: currentState.decisionLog, missionScore: currentState.missionScore, selectedPlanetId: currentState.selectedPlanetId }); newlyCompleted.forEach(taskId => { if (!currentMission.tasks.find(t => t.id === taskId) || !progressStore.missions[currentMission.id]?.completedTaskIds.includes(taskId)) { progressStore.completeTask(currentMission.id, taskId); } }); }\n   NOTE: Do the same evaluation call in resolveEvent() after its updateFromSimResult call.\n   d. Add commanderName and currentMissionId to the return object: const commanderName = useMissionProgressStore((s) => s.commanderName); const currentMissionId = useMissionProgressStore((s) => s.currentMissionId); return { ...existing, commanderName, currentMissionId }.\n   e. Update the UseMissionControlReturn interface to include: commanderName: string; currentMissionId: string | null;",
+
+    "3. UPDATE src/features/onboarding/OnboardingScreen.tsx — if commanderName is now available from useMissionControl(), use it to pre-fill the commander name input. (This is optional UX polish — only do it if it does not break any test.)",
+
+    "4. UPDATE src/features/mission-control/MissionControlScreen.tsx — import currentMissionId from useMissionControl() and use it to look up the current mission definition via getMissionById(currentMissionId) for the task checklist. Pass the mission definition's tasks to the TaskChecklistItem list. The task state (complete/active/locked) comes from useMissionProgressStore().missions[currentMissionId]?.completedTaskIds.",
+
+    "5. Run `npx vite build` — fix any TypeScript errors. The useMissionControl hook's return type change will require updating its interface — ensure it is typed correctly.",
+    "6. Run `npx vitest run` — the existing MissionControlScreen test mocks useMissionControl, so commanderName/currentMissionId just need to be added to makeControlHook() in the test. Update the mock factory in tests/unit/features/MissionControlScreen.test.tsx to add commanderName: '' and currentMissionId: 'm01' to the return object. The useMissionControl.test.ts tests the hook directly — add commanderName and currentMissionId to the expected return shape assertions."
+  ],
+  "acceptance_criteria": [
+    "useMissionControl hook returns commanderName and currentMissionId",
+    "evaluateMissionTasks is called after each advanceDay and resolveEvent",
+    "Mission tasks are marked complete in useMissionProgressStore when rules are satisfied",
+    "MissionControlScreen uses currentMissionId to display correct mission's task checklist",
+    "npx vite build succeeds",
+    "npx vitest run reports 170+ tests passing"
+  ],
+  "verification": [
+    "npx vite build",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

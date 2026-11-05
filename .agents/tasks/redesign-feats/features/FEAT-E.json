@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-E",
+  "type": "feat",
+  "description": "Router Updates — add /missions and /select-location routes, update PlanetSelection navigation to go through /select-location, keep all existing guards. Depends on FEAT-D (MissionsOverviewScreen and LocationSelectionScreen needed). Small change — just router.tsx + a placeholder LocationSelectionScreen.",
+  "status": "pending",
+  "steps": [
+    "1. Read src/app/router.tsx in full.",
+
+    "2. CREATE src/features/location-selection/LocationSelectionScreen.tsx — placeholder screen. AppShell variant='light'. Shows 'Location Selection — Coming Soon' heading with a list of 3 placeholder locations per planet (e.g. for Moon: 'Shackleton Crater', 'Mare Tranquillitatis', 'Aristarchus Plateau'; for Mars: 'Jezero Crater', 'Olympus Mons', 'Valles Marineris'). Each location is a Card that is clickable. When any location is clicked, it simply navigates to '/select-crew' (location data is display-only for now — no simulation effect). Include a Back button navigating to '/select-planet'. Export LocationSelectionScreen.",
+
+    "3. UPDATE src/app/router.tsx — make these changes only:\n   a. Add lazy import for LocationSelectionScreen (same pattern as others: React.lazy(() => import('../features/location-selection/LocationSelectionScreen').then(m => ({ default: m.LocationSelectionScreen }))))\n   b. Add lazy import for MissionsOverviewScreen (src/features/missions/MissionsOverviewScreen.tsx)\n   c. Add route for '/select-location': wrap in Suspense + ScreenTransition (no guard — same as /select-crew which also has no guard in current router)\n   d. Add route for '/missions': wrap in Suspense + ScreenTransition, NO guard (public screen)\n   e. Update the '/select-planet' route: the Continue button in PlanetSelectionScreen now goes to '/select-location' — but router.tsx does not control button navigation (that is in PlanetSelectionScreen). The router update here is purely adding the new routes. Keep ALL existing routes exactly as they are.",
+
+    "4. UPDATE src/features/planet-selection/PlanetSelectionScreen.tsx — ONLY change the navigate('/select-crew') call to navigate('/select-location'). This is the only behavioral change: PlanetSelection → LocationSelection → CrewSelection. Update the Continue button aria-label from 'continue to crew selection' to 'continue to location selection'.",
+
+    "5. Run `npx vite build` — fix any TypeScript errors.",
+    "6. Run `npx vitest run` — check if the PlanetSelectionScreen test for 'Continue button navigates to /select-crew when clicked after selection' now fails. If so, update tests/unit/features/PlanetSelectionScreen.test.tsx to expect '/select-location' instead of '/select-crew' and update the aria-label selector. The test logic is the same, only the expected route and aria-label change."
+  ],
+  "acceptance_criteria": [
+    "src/features/location-selection/LocationSelectionScreen.tsx exists and exports LocationSelectionScreen",
+    "src/app/router.tsx has /select-location and /missions routes",
+    "Navigating to /missions renders MissionsOverviewScreen (no guard, accessible without login)",
+    "PlanetSelectionScreen Continue button navigates to /select-location (not /select-crew)",
+    "npx vite build succeeds",
+    "npx vitest run reports 170+ tests passing"
+  ],
+  "verification": [
+    "npx vite build",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

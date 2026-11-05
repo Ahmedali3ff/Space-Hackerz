@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-C",
+  "type": "feat",
+  "description": "Missions Data + Progress Store — define 6 mission definitions, a mission-progress Zustand store with localStorage persistence, and a pure mission-task-evaluator service. Independent of FEAT-B (no UI components needed). Can run after FEAT-A.",
+  "status": "pending",
+  "steps": [
+    "1. Read src/store/mission-store.ts and tests/unit/store/mission-store.test.ts carefully as patterns before writing.",
+
+    "2. CREATE src/data/missions/mission-definitions.ts — define the MissionDefinition interface and 6 mission objects. Interface: { id: string; number: number; title: string; subtitle: string; planet: 'moon' | 'mars'; duration: 30 | 60 | 90; difficulty: 'beginner' | 'intermediate' | 'advanced'; description: string; objectives: readonly string[]; rewards: { stars: number; badge: string }; tasks: readonly MissionTask[]; unlockRequirement?: string }. MissionTask interface: { id: string; label: string; description: string; rule: MissionTaskRule }. MissionTaskRule type = 'survive_10_days' | 'survive_30_days' | 'survive_60_days' | 'survive_90_days' | 'survive_lunar_night' | 'keep_oxygen_50pct' | 'resolve_1_event' | 'resolve_2_events' | 'resolve_3_events' | 'use_emergency_ration' | 'configure_life_support' | 'select_mars' | 'keep_resources_above_critical' | 'score_500'. The 6 missions: MISSION_01 (id:'m01', 'First Steps on the Moon', planet:'moon', duration:30, difficulty:'beginner', 3 tasks: configure_life_support + survive_10_days + resolve_1_event, rewards: 3 stars), MISSION_02 (id:'m02', 'Lunar Long-Stay', planet:'moon', duration:60, difficulty:'beginner', tasks: keep_oxygen_50pct + survive_30_days + resolve_2_events, rewards: 3 stars, unlocks after m01), MISSION_03 (id:'m03', 'Lunar Night Survival', planet:'moon', duration:30, difficulty:'intermediate', tasks: survive_lunar_night + keep_resources_above_critical + use_emergency_ration, rewards: 4 stars, unlocks after m02), MISSION_04 (id:'m04', 'First Steps on Mars', planet:'mars', duration:30, difficulty:'intermediate', tasks: select_mars + survive_10_days + resolve_1_event, rewards: 4 stars, unlocks after m02), MISSION_05 (id:'m05', 'Martian Long-Stay', planet:'mars', duration:60, difficulty:'advanced', tasks: survive_60_days + resolve_3_events + keep_resources_above_critical, rewards: 5 stars, unlocks after m04), MISSION_06 (id:'m06', 'Mars 90-Day Challenge', planet:'mars', duration:90, difficulty:'advanced', tasks: survive_90_days + score_500 + resolve_3_events, rewards: 5 stars + special badge 'Mars Pioneer', unlocks after m05). Export MISSIONS array and getMissionById(id: string): MissionDefinition | undefined.",
+
+    "3. CREATE src/data/missions/mission-progress.ts — define MissionProgress and MissionStatus types only (no store logic). MissionStatus = 'locked' | 'active' | 'completed'. MissionProgress interface: { missionId: string; status: MissionStatus; completedTaskIds: readonly string[]; earnedStars: number; completedAt?: string }. Export these types.",
+
+    "4. CREATE src/store/mission-progress-store.ts — Zustand store with persist middleware (localStorage key: 'astra-mission-progress'). State: { missions: Record<string, MissionProgress>; totalStars: number; currentMissionId: string | null; commanderName: string }. Actions: { setCommanderName: (name: string) => void; startMission: (missionId: string) => void; completeTask: (missionId: string, taskId: string) => void; completeMission: (missionId: string, earnedStars: number) => void; getMissionStatus: (missionId: string) => MissionStatus; getCurrentMission: () => MissionDefinition | null; resetProgress: () => void }. INITIAL STATE: missions = { m01: { missionId:'m01', status:'active', completedTaskIds:[], earnedStars:0 }, m02: { missionId:'m02', status:'locked', completedTaskIds:[], earnedStars:0 }, m03: ...(locked), m04: ...(locked), m05: ...(locked), m06: ...(locked) }, totalStars: 0, currentMissionId: 'm01', commanderName: ''. Logic: completeMission sets status='completed', updates totalStars, sets next mission (unlockRequirement chain from MISSIONS array) to 'active'. getMissionStatus reads from state.missions[missionId]?.status ?? 'locked'. getCurrentMission looks up state.currentMissionId in MISSIONS. Import { persist } from 'zustand/middleware'. Export useMissionProgressStore.",
+
+    "5. CREATE src/services/mission-task-evaluator.ts — pure function, NO React/Zustand imports. Function signature: evaluateMissionTasks(mission: MissionDefinition, state: { currentMissionDay: number; resourceHistory: readonly ResourceHistoryPoint[]; decisionLog: readonly DecisionLogEntry[]; missionScore: MissionScore | null; selectedPlanetId: PlanetId | null }): string[] — returns array of newly-completed task IDs. For each task in mission.tasks, check the rule: 'survive_10_days' → state.currentMissionDay >= 10; 'survive_30_days' → >= 30; 'survive_60_days' → >= 60; 'survive_90_days' → >= 90; 'survive_lunar_night' → state.currentMissionDay >= 28; 'keep_oxygen_50pct' → all resourceHistory points have oxygen_kg >= 0.5 * resourceHistory[0].oxygen_kg (if history length >= 2); 'resolve_1_event' → decisionLog.filter(e => e.action.type === 'RESOLVE_EVENT').length >= 1; 'resolve_2_events' → >= 2; 'resolve_3_events' → >= 3; 'use_emergency_ration' → decisionLog.some(e => e.action.type === 'EMERGENCY_RATION'); 'configure_life_support' → true (always satisfied); 'select_mars' → state.selectedPlanetId === 'mars'; 'keep_resources_above_critical' → all resourceHistory points have oxygen_kg > 0 AND water_kg > 0 AND food_kg > 0; 'score_500' → state.missionScore !== null && state.missionScore.finalScore >= 500. Returns ONLY the task IDs that are NOW satisfied (caller filters against already-completed set). Export evaluateMissionTasks and MissionEvalInput type.",
+
+    "6. Run `npx vite build` — fix any TypeScript errors.",
+    "7. Run `npx vitest run` — all 177 existing tests must pass."
+  ],
+  "acceptance_criteria": [
+    "src/data/missions/mission-definitions.ts exports MISSIONS array with 6 missions",
+    "getMissionById('m01') returns the First Steps mission",
+    "src/store/mission-progress-store.ts exports useMissionProgressStore with persist middleware",
+    "Initial state has m01 active and m02-m06 locked",
+    "src/services/mission-task-evaluator.ts exports evaluateMissionTasks as pure function (no React imports)",
+    "evaluateMissionTasks with currentMissionDay=10 returns 'survive_10_days' task id for m01",
+    "npx vite build succeeds",
+    "npx vitest run reports 177 passing tests"
+  ],
+  "verification": [
+    "npx vite build",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, type Transition } from 'framer-motion'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'hint'
 type ButtonSize = 'md' | 'lg'
 
 interface PrimaryButtonProps {
@@ -30,6 +30,7 @@ const VARIANT_CLASSES: Readonly<Record<ButtonVariant, string>> = {
   secondary:
     'bg-space-panelRaised text-text-primary border border-border-strong hover:border-accent-orbit/60',
   ghost: 'bg-transparent text-text-secondary hover:bg-space-panel hover:text-text-primary',
+  hint: 'bg-spaceplus-accent-teal text-white hover:bg-spaceplus-accent-tealDark',
 }
 
 const SPRING: Transition = { type: 'spring', stiffness: 400, damping: 22 }

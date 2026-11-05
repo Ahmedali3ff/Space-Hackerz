@@ -85,6 +85,44 @@ Landing Screen
 
 > **Re-scoped into V1 (approved 2026-11-04):** 3D rendering / WebGL environments (React Three Fiber + drei + three, with a 2D/CSS fallback) and a committed accessibility baseline (WCAG-AA + AAA body contrast + reduced-motion + WebGL fallback) are now IN scope. See "Immersive 3D Direction" above.
 
-## Design Source of Truth
+## Design Source of Truth — APPROVED (Space+ Style)
 
-The visual direction is now **defined and approved** (see `docs/astra-redesign-report.md`): a NASA-inspired, deep-blue space palette with a signature ignition-orange ↔ orbit-cyan accent pair, Space Grotesk + Lexend + Space Mono typography, glassmorphic HUD panels over a live 3D base. Exact tokens are in `tailwind.config.js` + `src/index.css`. The redesign report is the visual source of truth; any further user-supplied design references refine it rather than replace it.
+The visual design is now **locked and approved** based on the user-supplied "Space+" reference image (provided 2026-11-04).
+
+### Core Design Direction
+- **Background:** Light `#F4F7FA` (NOT dark space navy — this is a key decision)
+- **Primary accent:** Teal `#1FC8C0`
+- **Cards:** White `#FFFFFF` with 16px border-radius, subtle shadow, 1px border `#E5E7EB`
+- **Font:** Nunito (rounded, friendly, excellent for ages 8–12)
+- **3D elements:** CSS gradient spheres + SVG illustrations (NOT WebGL/React Three Fiber)
+- **Layout:** Top nav (logo + tabs + user chip) + left icon sidebar + main content area
+
+### Color Palette
+| Token | Hex | Use |
+|-------|-----|-----|
+| bg.app | #F4F7FA | App background |
+| bg.card | #FFFFFF | Cards/panels |
+| teal.DEFAULT | #1FC8C0 | Primary accent, CTAs, active states |
+| teal.light | #E8FAF9 | Teal tint backgrounds |
+| text.heading | #1A1D2E | Headings |
+| text.body | #6B7280 | Body text |
+| amber | #F5A623 | Stars, rewards, score |
+| status.good | #10B981 | Success/healthy |
+| status.warn | #F59E0B | Warning |
+| status.crit | #EF4444 | Critical/failure |
+
+### Typography
+- **Nunito** — the only font. 400/500/600/700/800 weights.
+- Headings: 700–800, #1A1D2E
+- Body: 400–500, #6B7280
+- Labels: uppercase, 11px, 0.08em letter-spacing, teal
+
+### Component Language
+- Cards: white, 16px radius, subtle shadow — NOT glassmorphic
+- Buttons: teal primary, white secondary, ghost variants — NOT dark
+- Progress bars: thin (8px), teal fill
+- Status: icon + label (never color alone)
+- Missions: progression system (complete/active/locked cards)
+
+### Mission Progression System
+ASTRA has a 6-mission story arc (3 Moon + 3 Mars) with task checklists, star ratings, and rewards — matching the Space+ "cosmic journey" pattern.

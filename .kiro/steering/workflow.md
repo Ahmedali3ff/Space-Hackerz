@@ -16,14 +16,16 @@ PHASE 9 — Mission Debrief ✅ COMPLETE
 
 ## Current Task
 
-**Playable 2D/glass vertical slice — COMPLETE** ✅
+**Space+ Visual Redesign + Missions System** (workflow `wf_5f779f90a9db1164`) — IN PROGRESS.
 
-All five features (FEAT-001 through FEAT-005) are done. The game is playable end-to-end:
-Onboarding → Planet Selection → Crew → Base Config → Mission Control → Debrief.
+User provided Space+ design reference image. Full visual redesign to match exactly:
+- Light #F4F7FA bg, teal #1FC8C0 primary, white cards, Nunito font
+- 6-mission progression system (3 Moon + 3 Mars) with tasks + star ratings  
+- All screens: top nav + sidebar + white card layout
+- CSS/SVG planet illustrations (NOT WebGL — matches Space+ illustrated style)
+- Previous dark NASA direction SUPERSEDED by this user-approved reference.
 
-R1 design tokens ✅ | R2 shared components ✅ | R3 decisionLog live fix ✅ | R4 setup screens ✅ | R5 Mission Control hero ✅ | Debrief re-skin ✅ | Code-split (lazy routes) ✅ | React Router v7 flags ✅
-
-**Next up:** 3D stack (React Three Fiber + drei + three) — blocked on 3D assets.
+**Next up after redesign:** Location Selection + Mission Duration (R8), then QA (R9-R10).
 
 R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Location Selection, F10 Mission Duration, F11 3D World; `requirements.md` added FR-09/FR-10/FR-11.
 

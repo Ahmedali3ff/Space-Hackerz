@@ -1,0 +1,54 @@
+{
+  "id": "FEAT-B",
+  "type": "feat",
+  "description": "Shared Components (Space+ style) — add new components and update existing ones for the Space+ visual language. Every new component gets a .test.tsx or its existing test updated. Depends on FEAT-A tokens being available.",
+  "status": "completed",
+  "steps": [
+    "1. Read all files in src/components/ (common/, layout/, feedback/, charts/) before writing anything.",
+
+    "2. UPDATE src/components/layout/AppShell.tsx: Add a secondary layout variant prop `variant?: 'dark' | 'light'` (default 'dark' keeps existing behavior). When variant='light', render a white/surface background (bg-spaceplus-surface or sp-surface) instead of the starfield. Keep all existing dark-mode behavior. The TopHUD bar in light mode uses a white bar with sp-border-light bottom border. This lets setup screens use the light shell while Mission Control keeps dark.",
+
+    "3. CREATE src/components/layout/TopNavBar.tsx — a navigation bar component used inside light-variant AppShell: renders the ASTRA rocket logo + 'ASTRA' wordmark on the left, optional `hudSlot` ReactNode in center, step indicator (current/total) + reduced-motion toggle on the right. Props: { title?: string; hudSlot?: ReactNode; stepIndicator?: { current: number; total: number }; variant?: 'dark' | 'light' }. Uses NavLink from react-router-dom for any nav links. Phosphor icons: Rocket for logo. Export named TopNavBar.",
+
+    "4. CREATE src/components/common/Card.tsx — white card with optional accent variant. Props: { children: ReactNode; className?: string; accent?: 'teal' | 'amber' | 'coral' | 'none'; clickable?: boolean; selected?: boolean; onClick?: () => void; ariaLabel?: string; ariaPressed?: boolean }. When accent='teal', add a 3px teal left border (border-l-4 border-spaceplus-accent-teal). When selected, add ring-2 ring-spaceplus-accent-teal. Use .sp-card CSS class for base styles. Export named Card.",
+
+    "5. UPDATE src/components/common/PrimaryButton.tsx — add 'hint' to ButtonVariant type (hint = teal filled: bg-spaceplus-accent-teal text-white hover:bg-spaceplus-accent-tealDark). The existing primary/secondary/ghost variants are UNCHANGED. Keep all existing motion/animation logic.",
+
+    "6. CREATE src/components/common/ProgressBar.tsx — thin 8px progress bar with teal fill. Props: { value: number; max: number; label: string; showLabel?: boolean; className?: string }. Renders: screen-reader text (sr-only) with label + percentage, a role='progressbar' div with aria-valuemin/max/now, animated teal fill using transition-all duration-500. Height: h-2 (8px). Export named ProgressBar.",
+
+    "7. CREATE src/components/common/SectionLabel.tsx — uppercase 11px teal label. Props: { children: ReactNode; className?: string }. Uses .sp-section-label CSS class + text-spaceplus-accent-tealDark. Export named SectionLabel.",
+
+    "8. CREATE src/components/common/StarScore.tsx — amber star + numeric score. Props: { score: number; maxScore?: number; size?: 'sm' | 'md' | 'lg' }. Renders a Star Phosphor icon (weight='fill', amber color) + the score number. If maxScore provided, renders 'N / M'. Uses .sp-star-score CSS class. Export named StarScore.",
+
+    "9. CREATE src/components/common/UserChip.tsx — rounded pill with initials avatar + name. Props: { name: string; role?: string; size?: 'sm' | 'md' }. Renders a colored circle with the first initial of name + full name text. Uses spaceplus-accent-teal background for avatar. Export named UserChip.",
+
+    "10. CREATE src/components/common/TaskChecklistItem.tsx — task row with complete/active/locked states. Props: { label: string; description?: string; state: 'complete' | 'active' | 'locked'; onComplete?: () => void }. Complete state: green checkmark + strikethrough label. Active state: teal pulsing dot + normal label. Locked state: lock icon + muted label + disabled. Uses Phosphor icons: CheckCircle (complete), Circle (active), Lock (locked). Export named TaskChecklistItem.",
+
+    "11. CREATE src/components/common/StatusDot.tsx — small colored dot with label. Props: { status: 'good' | 'warn' | 'crit' | 'info' | 'locked'; label: string; size?: 'sm' | 'md' }. Renders inline-flex with a rounded dot (8px) in the status color + label text. Color is NEVER the sole signal — status also maps to an aria-label on the dot. Export named StatusDot.",
+
+    "12. CREATE src/components/feedback/EventAlertCard.tsx — white card with teal left border + event info + choice buttons. Props: { eventId: string; title: string; description: string; scientificNote?: string; choices: ReadonlyArray<{ id: string; label: string; description: string; isOptimal: boolean }>; onChoose: (choiceId: string) => void }. Renders: teal left border (border-l-4 border-spaceplus-accent-teal), event title in bold heading text, description paragraph, optional science note in italic muted text, two or more choice buttons (primary/secondary variants of PrimaryButton). Export named EventAlertCard.",
+
+    "13. CREATE src/components/feedback/AstroAIHint.tsx — lightbulb hint button that expands into an Astro-AI response panel. Props: { label?: string; explanation?: string; scienceFact?: string; isLoading?: boolean; onAsk?: () => void; disabled?: boolean }. When collapsed: renders a Lightbulb Phosphor icon button with label 'Ask Astro-AI'. When expanded: renders the explanation + scienceFact in a teal-bordered card. Uses AnimatePresence from framer-motion for expand/collapse. Export named AstroAIHint.",
+
+    "14. CREATE src/components/charts/MiniProgressBar.tsx — inline label + bar + value. Props: { label: string; value: number; max: number; unit: string; color?: string }. Renders: label text left, percentage bar center (h-1.5, rounded), value+unit right, all in one flex row. This is NOT the existing ResourceBar — it is a smaller inline variant for sidebars. Export named MiniProgressBar.",
+
+    "15. Run `npx vite build` — fix any TypeScript errors before proceeding.",
+    "16. Run `npx vitest run` — all 177 existing tests must pass. New component files with no test yet are acceptable at this stage (FEAT-G adds tests)."
+  ],
+  "acceptance_criteria": [
+    "src/components/layout/TopNavBar.tsx exists and exports TopNavBar",
+    "src/components/common/Card.tsx exists with accent and selected props",
+    "PrimaryButton accepts variant='hint' without TypeScript error",
+    "src/components/common/ProgressBar.tsx exports ProgressBar with role='progressbar'",
+    "src/components/feedback/EventAlertCard.tsx exports EventAlertCard",
+    "src/components/feedback/AstroAIHint.tsx exports AstroAIHint with framer-motion expand",
+    "npx vite build succeeds with no errors",
+    "npx vitest run reports 177 passing tests"
+  ],
+  "verification": [
+    "npx vite build",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": "All 10 new components created successfully. AppShell updated with variant='light' prop (default 'dark' preserves existing behavior). PrimaryButton updated with 'hint' variant (teal fill). Build: clean (no TypeScript errors). Tests: 177/177 passing (all pre-existing tests preserved). Components created: TopNavBar, Card, ProgressBar, SectionLabel, StarScore, UserChip, TaskChecklistItem, StatusDot, EventAlertCard, AstroAIHint, MiniProgressBar."
+}
