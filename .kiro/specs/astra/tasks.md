@@ -261,31 +261,31 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 - **Description:** Implement Zustand mission store
 - **Dependencies:** TASK-SCAF-003, TASK-SIM-001
 - **Acceptance Criteria:** Store holds: selectedPlanet, crewSize, baseConfig, missionSession (current sim state snapshot), decisionLog. All actions typed. No simulation logic in the store.
-- **Status:** NOT_STARTED
+- **Status:** DONE
 
 ### TASK-APP-002
 - **Description:** Implement Zustand app store (navigation / UI state)
 - **Dependencies:** TASK-SCAF-003
 - **Acceptance Criteria:** Store holds: currentScreen, isLoading, errorMessage. Typed selectors exported.
-- **Status:** NOT_STARTED
+- **Status:** DONE
 
 ### TASK-APP-003
 - **Description:** Implement useMissionControl hook
 - **Dependencies:** TASK-APP-001, TASK-SIM-011
 - **Acceptance Criteria:** Hook initializes SimulationEngine with config from store. Exposes `advanceDay()`, `makeDecision(option)`, `currentState`, `activeEvents`. Components never import SimulationEngine directly.
-- **Status:** NOT_STARTED
+- **Status:** DONE
 
 ### TASK-APP-004
 - **Description:** Implement application router with all 6 routes
 - **Dependencies:** TASK-SCAF-008, TASK-APP-001, TASK-APP-002
 - **Acceptance Criteria:** All routes render. Route guards prevent accessing /mission without completing setup. Browser navigation works.
-- **Status:** NOT_STARTED
+- **Status:** DONE
 
 ### TASK-APP-005
 - **Description:** Implement GlobalProviders wrapper (Zustand, ErrorBoundary)
 - **Dependencies:** TASK-APP-001, TASK-APP-002
 - **Acceptance Criteria:** All providers wrap the router. ErrorBoundary catches and displays a user-friendly message for unexpected errors. Providers do not cause re-render storms.
-- **Status:** NOT_STARTED
+- **Status:** DONE
 
 ---
 
@@ -354,6 +354,6 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 | 2     | 9           | 9    | 0           | 0       | 0           |
 | 3     | 7           | 7    | 0           | 0       | 0           |
 | 4     | 15          | 15   | 0           | 0       | 0           |
-| 5     | 5           | 0    | 0           | 0       | 5           |
+| 5     | 5           | 5    | 0           | 0       | 0           |
 | 6     | 5           | 0    | 0           | 5       | 0           |
 | 7–9   | 17          | 0    | 0           | 7       | 10          |

@@ -9,11 +9,11 @@ PHASE 1 — Requirements and Architecture ✅ COMPLETE
 PHASE 2 — Project Scaffold ✅ COMPLETE
 PHASE 3 — Scientific Foundation ✅ COMPLETE
 PHASE 4 — Simulation Core ✅ COMPLETE
-PHASE 5 — Application Foundation 🔄 READY TO BEGIN
+PHASE 5 — Application Foundation ✅ COMPLETE
 
 ## Current Task
 
-Phase 5 — Application Foundation: Zustand stores + useMissionControl hook
+Phase 6 — Visual Design Integration (BLOCKED on design) / Phase 8 — Astro-AI (can begin)
 
 ## Completed Tasks
 
@@ -67,15 +67,15 @@ Phase 5 — Application Foundation: Zustand stores + useMissionControl hook
 | SIM-013  | Implemented MissionScoring (calculateMissionScore)       | 2026-11-04 |
 | SIM-014  | Unit tests: oxygen, water, food, energy, prng (26 tests) | 2026-11-04 |
 | SIM-015  | Integration tests: SimulationEngine (7 tests)            | 2026-11-04 |
+| APP-001  | Implemented Zustand mission store                        | 2026-11-04 |
+| APP-002  | Implemented Zustand app store (navigation/UI state)      | 2026-11-04 |
+| APP-003  | Implemented useMissionControl hook                       | 2026-11-04 |
+| APP-004  | Implemented application router with route guards         | 2026-11-04 |
+| APP-005  | Implemented GlobalProviders (Zustand + ErrorBoundary)    | 2026-11-04 |
+| APP-006  | Wired stores and hook into app entry point               | 2026-11-04 |
+| APP-007  | Verified build and tests pass for Phase 5                | 2026-11-04 |
 
 ## Pending Tasks (ordered)
-
-### Phase 5 — Application Foundation
-- [ ] APP-001: Configure Zustand mission store
-- [ ] APP-002: Configure Zustand app store (routing state)
-- [ ] APP-003: Implement useMissionControl hook
-- [ ] APP-004: Implement application router
-- [ ] APP-005: Implement global providers (store, error boundary)
 
 ### Phase 6 — Visual Design Integration (BLOCKED — awaiting user design)
 - [ ] VIS-001: Receive and analyze user-supplied design references
@@ -128,12 +128,4 @@ Phase 5 — Application Foundation: Zustand stores + useMissionControl hook
 
 ## Next Recommended Action
 
-**Phase 5 — Application Foundation** can begin immediately.
-
-Tasks ready to start:
-- APP-001: Zustand mission store (selectedPlanet, crewSize, baseConfig, missionSession)
-- APP-002: Zustand app store (currentScreen, isLoading, errorMessage)
-- APP-003: useMissionControl hook (wraps SimulationEngine, exposes to React)
-- APP-005: GlobalProviders wrapper (ErrorBoundary + store providers)
-
-Tasks blocked on design: Phase 6+ (all UI screens).
+Phase 6 is blocked on visual design from user. Phase 8 (Astro-AI) can begin now: AI-001 knowledge base structure, AI-002 prompt templates, AI-003 Zod response schemas.
