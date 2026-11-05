@@ -2,7 +2,7 @@
   "id": "FEAT-C",
   "type": "feat",
   "description": "Missions Data + Progress Store — define 6 mission definitions, a mission-progress Zustand store with localStorage persistence, and a pure mission-task-evaluator service. Independent of FEAT-B (no UI components needed). Can run after FEAT-A.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "1. Read src/store/mission-store.ts and tests/unit/store/mission-store.test.ts carefully as patterns before writing.",
 
@@ -32,5 +32,5 @@
     "npx vitest run"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All 4 files created successfully. src/data/missions/mission-definitions.ts exports MISSIONS (6 missions) + getMissionById. src/data/missions/mission-progress.ts exports MissionStatus + MissionProgress types. src/store/mission-progress-store.ts exports useMissionProgressStore with zustand/middleware persist (localStorage key: astra-mission-progress); initial state has m01 active and m02-m06 locked. src/services/mission-task-evaluator.ts exports evaluateMissionTasks as a pure function (no React/Zustand imports) with exhaustive rule switch. Build: vite build OK. Tests: 177/177 passing (all existing tests preserved, no new test files required by spec)."
 }

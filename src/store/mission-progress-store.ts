@@ -1,0 +1,161 @@
+// src/store/mission-progress-store.ts
+// Zustand store (with localStorage persistence) for mission progress across
+// the 6-mission ASTRA story arc. Tracks which missions are active/locked/completed
+// and which tasks within each mission have been satisfied.
+
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { MISSIONS, getMissionById } from '@data/missions/mission-definitions'
+import type { MissionDefinition } from '@data/missions/mission-definitions'
+import type { MissionProgress, MissionStatus } from '@data/missions/mission-progress'
+
+// ── State shape ───────────────────────────────────────────────────────────────
+
+export interface MissionProgressState {
+  readonly missions: Record<string, MissionProgress>
+  readonly totalStars: number
+  readonly currentMissionId: string | null
+  readonly commanderName: string
+}
+
+// ── Actions shape ─────────────────────────────────────────────────────────────
+
+export interface MissionProgressActions {
+  setCommanderName: (name: string) => void
+  startMission: (missionId: string) => void
+  completeTask: (missionId: string, taskId: string) => void
+  completeMission: (missionId: string, earnedStars: number) => void
+  getMissionStatus: (missionId: string) => MissionStatus
+  getCurrentMission: () => MissionDefinition | null
+  resetProgress: () => void
+}
+
+export type MissionProgressStore = MissionProgressState & MissionProgressActions
+
+// ── Initial state ─────────────────────────────────────────────────────────────
+
+function buildInitialMissions(): Record<string, MissionProgress> {
+  const record: Record<string, MissionProgress> = {}
+  MISSIONS.forEach((mission, index) => {
+    record[mission.id] = {
+      missionId: mission.id,
+      // m01 starts active; all others are locked
+      status: index === 0 ? 'active' : 'locked',
+      completedTaskIds: [],
+      earnedStars: 0,
+    }
+  })
+  return record
+}
+
+const INITIAL_STATE: MissionProgressState = {
+  missions: buildInitialMissions(),
+  totalStars: 0,
+  currentMissionId: 'm01',
+  commanderName: '',
+}
+
+// ── Store ─────────────────────────────────────────────────────────────────────
+
+export const useMissionProgressStore = create<MissionProgressStore>()(
+  persist(
+    (set, get) => ({
+      ...INITIAL_STATE,
+
+      setCommanderName: (name: string): void => {
+        set({ commanderName: name })
+      },
+
+      startMission: (missionId: string): void => {
+        set((state) => ({
+          currentMissionId: missionId,
+          missions: {
+            ...state.missions,
+            [missionId]: {
+              ...state.missions[missionId],
+              missionId,
+              status: 'active' as MissionStatus,
+              completedTaskIds: state.missions[missionId]?.completedTaskIds ?? [],
+              earnedStars: state.missions[missionId]?.earnedStars ?? 0,
+            },
+          },
+        }))
+      },
+
+      completeTask: (missionId: string, taskId: string): void => {
+        set((state) => {
+          const existing = state.missions[missionId]
+          if (!existing) return state
+          // Avoid duplicates
+          if (existing.completedTaskIds.includes(taskId)) return state
+          return {
+            missions: {
+              ...state.missions,
+              [missionId]: {
+                ...existing,
+                completedTaskIds: [...existing.completedTaskIds, taskId],
+              },
+            },
+          }
+        })
+      },
+
+      completeMission: (missionId: string, earnedStars: number): void => {
+        set((state) => {
+          const existing = state.missions[missionId]
+          if (!existing) return state
+
+          // Mark this mission completed
+          const updated: Record<string, MissionProgress> = {
+            ...state.missions,
+            [missionId]: {
+              ...existing,
+              status: 'completed' as MissionStatus,
+              earnedStars,
+              completedAt: new Date().toISOString(),
+            },
+          }
+
+          // Unlock the next mission in the chain (unlockRequirement === missionId)
+          const nextMission = MISSIONS.find(
+            (m) => m.unlockRequirement === missionId,
+          )
+          if (nextMission && updated[nextMission.id]?.status === 'locked') {
+            updated[nextMission.id] = {
+              ...updated[nextMission.id],
+              status: 'active' as MissionStatus,
+            }
+          }
+
+          // Recalculate totalStars
+          const totalStars = Object.values(updated).reduce(
+            (sum, p) => sum + (p.status === 'completed' ? p.earnedStars : 0),
+            0,
+          )
+
+          // Advance currentMissionId to the newly unlocked mission (or keep it)
+          const newCurrentId = nextMission?.id ?? state.currentMissionId
+
+          return { missions: updated, totalStars, currentMissionId: newCurrentId }
+        })
+      },
+
+      getMissionStatus: (missionId: string): MissionStatus => {
+        return get().missions[missionId]?.status ?? 'locked'
+      },
+
+      getCurrentMission: (): MissionDefinition | null => {
+        const { currentMissionId } = get()
+        if (!currentMissionId) return null
+        return getMissionById(currentMissionId) ?? null
+      },
+
+      resetProgress: (): void => {
+        set({ ...INITIAL_STATE, missions: buildInitialMissions() })
+      },
+    }),
+    {
+      name: 'astra-mission-progress',
+    },
+  ),
+)
