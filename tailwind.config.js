@@ -39,9 +39,47 @@ export default {
           secondary: '#A9B8D4',
           muted: '#7E8DAB',
         },
+        // ── Space+ light theme tokens (ages 8-12 friendly, complementary to dark theme) ──
+        spaceplus: {
+          white: '#FFFFFF',
+          offwhite: '#F8FAFF',
+          surface: '#EEF2FB',
+          card: '#FFFFFF',
+          accent: {
+            teal: '#00BCD4',
+            tealDark: '#0097A7',
+            tealLight: '#B2EBF2',
+            amber: '#FFB300',
+            amberLight: '#FFF8E1',
+            coral: '#FF6F61',
+            purple: '#7C4DFF',
+            green: '#43A047',
+          },
+          text: {
+            heading: '#0D1B4B',
+            body: '#1E2D5A',
+            secondary: '#5C6B9A',
+            muted: '#9BA8C9',
+          },
+          border: {
+            light: '#DCE4F7',
+            medium: '#B8C4E2',
+          },
+          status: {
+            success: '#2E7D32',
+            successBg: '#E8F5E9',
+            warning: '#E65100',
+            warningBg: '#FFF3E0',
+            error: '#C62828',
+            errorBg: '#FFEBEE',
+            info: '#0277BD',
+            infoBg: '#E1F5FE',
+          },
+        },
       },
       fontFamily: {
         display: ['"Space Grotesk"', ...fontFallback],
+        display2: ['"Nunito"', ...fontFallback],
         body: ['"Lexend"', ...fontFallback],
         mono: ['"Space Mono"', '"JetBrains Mono"', 'ui-monospace', 'monospace', ...fontFallback],
       },
@@ -49,6 +87,7 @@ export default {
       borderRadius: {
         xl: '12px',
         '2xl': '16px',
+        '3xl': '24px',
       },
       boxShadow: {
         // Soft console-panel lift — reads as "lit panel," not Material card
@@ -57,6 +96,9 @@ export default {
           ignition: '0 0 18px rgba(255, 107, 53, 0.45)',
           orbit: '0 0 18px rgba(41, 230, 243, 0.40)',
         },
+        // Space+ card shadows
+        card: '0 4px 24px rgba(13,27,75,0.10)',
+        cardHover: '0 8px 32px rgba(13,27,75,0.16)',
       },
       keyframes: {
         'fade-in': {

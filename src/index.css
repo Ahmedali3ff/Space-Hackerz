@@ -38,6 +38,20 @@
   /* Glass surface (mirrors .glass-panel) */
   --glass-bg: rgba(18, 28, 51, 0.72);
   --glass-blur: 12px;
+
+  /* ── Space+ light-theme tokens (additive — never override dark vars) ── */
+  --sp-white: #FFFFFF;
+  --sp-surface: #EEF2FB;
+  --sp-card: #FFFFFF;
+  --sp-teal: #00BCD4;
+  --sp-teal-dark: #0097A7;
+  --sp-amber: #FFB300;
+  --sp-coral: #FF6F61;
+  --sp-purple: #7C4DFF;
+  --sp-text-heading: #0D1B4B;
+  --sp-text-body: #1E2D5A;
+  --sp-text-secondary: #5C6B9A;
+  --sp-border-light: #DCE4F7;
 }
 
 @layer base {
@@ -141,6 +155,59 @@ html[data-reduce-motion='true'] *::after {
     background-repeat: repeat;
     background-size: 600px 600px;
     animation: astra-drift 140s linear infinite;
+  }
+
+  /* ── Space+ component utilities (light-theme cards, badges, labels) ── */
+
+  /* White card with subtle border and shadow — Space+ card language */
+  .sp-card {
+    background: var(--sp-card);
+    border: 1px solid var(--sp-border-light);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(13, 27, 75, 0.10);
+  }
+
+  /* Light tinted surface for page backgrounds and secondary panels */
+  .sp-surface {
+    background: var(--sp-surface);
+  }
+
+  /* Teal pill badge */
+  .sp-badge-teal {
+    background: var(--sp-teal);
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* Amber pill badge — used for scores, stars, rewards */
+  .sp-badge-amber {
+    background: var(--sp-amber);
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* Section label — small caps teal label above card sections */
+  .sp-section-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sp-teal-dark);
+  }
+
+  /* Star score row — inline amber star + number */
+  .sp-star-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    color: #FFB300;
   }
 }
 

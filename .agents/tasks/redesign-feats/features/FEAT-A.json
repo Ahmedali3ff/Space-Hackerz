@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-A",
+  "type": "feat",
+  "description": "Design System Tokens — extend the existing dark-space theme in tailwind.config.js and src/index.css with Space+ tokens (whites, teals, ambers, vibrant accents suitable for ages 8-12) while keeping all existing dark tokens intact. Add Nunito font to index.html. Add CSS variables to :root. This is a PURE ADDITIVE change — no existing class names are removed.",
+  "status": "completed",
+  "steps": [
+    "1. Read tailwind.config.js, src/index.css, index.html in full before touching anything.",
+    "2. In tailwind.config.js theme.extend, ADD these new token groups alongside existing ones (do NOT remove any existing key): colors.spaceplus = { white: '#FFFFFF', offwhite: '#F8FAFF', surface: '#EEF2FB', card: '#FFFFFF', accent: { teal: '#00BCD4', tealDark: '#0097A7', tealLight: '#B2EBF2', amber: '#FFB300', amberLight: '#FFF8E1', coral: '#FF6F61', purple: '#7C4DFF', green: '#43A047' }, text: { heading: '#0D1B4B', body: '#1E2D5A', secondary: '#5C6B9A', muted: '#9BA8C9' }, border: { light: '#DCE4F7', medium: '#B8C4E2' }, status: { success: '#2E7D32', successBg: '#E8F5E9', warning: '#E65100', warningBg: '#FFF3E0', error: '#C62828', errorBg: '#FFEBEE', info: '#0277BD', infoBg: '#E1F5FE' } }. Also add fontFamily.display2: ['Nunito', ...fallback] and borderRadius['3xl']: '24px'. Add boxShadow.card: '0 4px 24px rgba(13,27,75,0.10)' and boxShadow.cardHover: '0 8px 32px rgba(13,27,75,0.16)'.",
+    "3. In src/index.css :root block, ADD (never remove) these CSS variables after the existing ones: --sp-white: #FFFFFF; --sp-surface: #EEF2FB; --sp-card: #FFFFFF; --sp-teal: #00BCD4; --sp-teal-dark: #0097A7; --sp-amber: #FFB300; --sp-coral: #FF6F61; --sp-purple: #7C4DFF; --sp-text-heading: #0D1B4B; --sp-text-body: #1E2D5A; --sp-text-secondary: #5C6B9A; --sp-border-light: #DCE4F7;",
+    "4. In src/index.css @layer components, ADD (never remove) these new utility classes: .sp-card { background: var(--sp-card); border: 1px solid var(--sp-border-light); border-radius: 16px; box-shadow: 0 4px 24px rgba(13,27,75,0.10); } .sp-surface { background: var(--sp-surface); } .sp-badge-teal { background: var(--sp-teal); color: #fff; border-radius: 999px; padding: 2px 12px; font-size: 0.75rem; font-weight: 700; } .sp-badge-amber { background: var(--sp-amber); color: #fff; border-radius: 999px; padding: 2px 12px; font-size: 0.75rem; font-weight: 700; } .sp-section-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sp-teal-dark); } .sp-star-score { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #FFB300; }",
+    "5. In index.html, in the existing Google Fonts <link> href, append &family=Nunito:wght@400;600;700;800 to the existing families list (keep Space+Grotesk, Lexend, Space+Mono intact).",
+    "6. Run `npx vite build` — must succeed with no TypeScript errors. Fix any errors.",
+    "7. Run `npx vitest run` — all 177 tests must still pass (this FEAT touches no component logic)."
+  ],
+  "acceptance_criteria": [
+    "tailwind.config.js contains colors.spaceplus.accent.teal: '#00BCD4'",
+    "src/index.css :root contains --sp-teal: #00BCD4",
+    "src/index.css has .sp-card utility class defined",
+    "index.html Google Fonts link includes Nunito",
+    "npx vite build succeeds with no errors",
+    "npx vitest run reports 177 passing tests"
+  ],
+  "verification": [
+    "npx vite build",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": "All 6 acceptance criteria met. Build: ✓ (no TS errors). Tests: ✓ (177/177 passing). Pure additive — no existing tokens, classes, or tests removed."
+}
