@@ -1,6 +1,7 @@
 // src/data/missions/mission-definitions.ts
-// Defines the 6-mission progression arc for ASTRA — Mission Control Academy.
-// Moon missions (m01–m03) unlock in sequence; Mars missions (m04–m06) build on them.
+// Defines the 8-mission progression arc for ASTRA — Mission Control Academy.
+// Moon missions (m01–m03, m07) and Mars missions (m04–m06, m08) form one
+// continuous story: Level → Learn → Play → Decision → Consequence → Next Level.
 // NO React, Zustand, or Phaser imports in this file.
 
 // ── Task rule literals ───────────────────────────────────────────────────────
@@ -48,6 +49,15 @@ export interface MissionDefinition {
   readonly rewards: MissionRewards
   readonly tasks: readonly MissionTask[]
   readonly unlockRequirement?: string
+  // ── Campaign / hybrid gameplay fields (optional, additive) ──
+  readonly levelId?: string
+  readonly storyIntro?: string
+  readonly storyOutro?: string
+  readonly location?: string
+  readonly bgTheme?: 'moon' | 'mars' | 'earth'
+  readonly conceptTaught?: string
+  readonly difficultyLabel?: string
+  readonly interactiveRooms?: readonly string[]
 }
 
 // ── Mission definitions ──────────────────────────────────────────────────────
@@ -60,6 +70,12 @@ const MISSION_01: MissionDefinition = {
   planet: 'moon',
   duration: 30,
   difficulty: 'beginner',
+  levelId: 'level-1',
+  bgTheme: 'moon',
+  conceptTaught: 'Life Support Systems',
+  difficultyLabel: 'Beginner',
+  storyIntro: 'You have just landed on the Moon for the very first time. Mission Control is counting on you to set up the habitat and keep your crew safe!',
+  storyOutro: 'Incredible work, Commander! You survived your first lunar adventure and proved you have what it takes to lead a crew in space.',
   description:
     'Begin your lunar adventure! Set up your life-support systems, survive your first 10 days on the Moon, and handle your first unexpected event.',
   objectives: [
@@ -98,6 +114,12 @@ const MISSION_02: MissionDefinition = {
   planet: 'moon',
   duration: 60,
   difficulty: 'beginner',
+  levelId: 'level-2',
+  bgTheme: 'moon',
+  conceptTaught: 'Oxygen Management',
+  difficultyLabel: 'Explorer',
+  storyIntro: 'You are back on the Moon, but this time the mission lasts a full month. Can you keep the oxygen flowing and handle everything the Moon throws at you?',
+  storyOutro: 'You managed oxygen like a true expert! The crew is healthy, and ASTRA HQ is proud of your 30-day achievement.',
   description:
     'Push further! Maintain healthy oxygen levels and survive a full 30 days while managing multiple unexpected events.',
   objectives: [
@@ -137,6 +159,12 @@ const MISSION_03: MissionDefinition = {
   planet: 'moon',
   duration: 30,
   difficulty: 'intermediate',
+  levelId: 'level-3',
+  bgTheme: 'moon',
+  conceptTaught: 'Power & Lunar Night',
+  difficultyLabel: 'Challenger',
+  storyIntro: 'The sky goes dark and the temperature plummets — the lunar night has begun. Every watt of power counts. Your crew is depending on you!',
+  storyOutro: 'You guided your crew through 14 days of total darkness! That is the mark of a real mission commander.',
   description:
     'The lunar night is coming — 14 days of total darkness. Keep all critical resources above zero and use emergency rations to survive.',
   objectives: [
@@ -176,6 +204,12 @@ const MISSION_04: MissionDefinition = {
   planet: 'mars',
   duration: 30,
   difficulty: 'intermediate',
+  levelId: 'level-4',
+  bgTheme: 'mars',
+  conceptTaught: 'Mars Environment',
+  difficultyLabel: 'Pioneer',
+  storyIntro: 'The red planet awaits! You are the first ASTRA commander to set foot on Mars. The thin atmosphere and reddish sky feel very different from the Moon.',
+  storyOutro: 'Welcome to the Mars Club! You survived your first sols on the red planet and opened the door for every future Martian explorer.',
   description:
     'Take humanity\'s next giant leap — land on Mars! Navigate the thin atmosphere, handle dust storms, and keep your crew safe for 10 Martian sols.',
   objectives: [
@@ -215,6 +249,12 @@ const MISSION_05: MissionDefinition = {
   planet: 'mars',
   duration: 60,
   difficulty: 'advanced',
+  levelId: 'level-5',
+  bgTheme: 'mars',
+  conceptTaught: 'Dust Storm Management',
+  difficultyLabel: 'Expert',
+  storyIntro: 'A giant dust storm is sweeping across Mars, blocking the Sun for weeks. You need every system running perfectly — one wrong call and the mission is over.',
+  storyOutro: 'You weathered the storm and kept your crew alive through 60 challenging sols. You are a true Martian Veteran!',
   description:
     'An extended Martian mission puts your skills to the ultimate test. Survive 60 sols, resolve three major events, and keep all critical systems running.',
   objectives: [
@@ -254,6 +294,12 @@ const MISSION_06: MissionDefinition = {
   planet: 'mars',
   duration: 90,
   difficulty: 'advanced',
+  levelId: 'level-6',
+  bgTheme: 'mars',
+  conceptTaught: 'Long-Duration Mission',
+  difficultyLabel: 'Master',
+  storyIntro: 'Ninety sols. Every resource checked. Every decision counts. This is the longest and hardest mission ASTRA has ever attempted on Mars.',
+  storyOutro: 'You did it — 90 sols on Mars with a score of 500+! The Mars Pioneer badge is yours. The whole world is watching and cheering!',
   description:
     'The ultimate challenge: 90 sols on Mars. Achieve a score of 500+, survive through constant Martian threats, and earn the legendary Mars Pioneer badge.',
   objectives: [
@@ -285,6 +331,96 @@ const MISSION_06: MissionDefinition = {
   unlockRequirement: 'm05',
 }
 
+const MISSION_07: MissionDefinition = {
+  id: 'm07',
+  number: 7,
+  title: 'Return to the Moon',
+  subtitle: 'Advanced Lunar — Expert',
+  planet: 'moon',
+  duration: 60,
+  difficulty: 'advanced',
+  levelId: 'level-7',
+  bgTheme: 'moon',
+  conceptTaught: 'Radiation Management',
+  difficultyLabel: 'Expert',
+  storyIntro: 'Mission Control calls you back to the Moon — but this time, solar flares and micrometeorite impacts make every single day dangerous.',
+  storyOutro: 'You mastered the radiation challenge! Your crew walked away healthy and ASTRA now has the knowledge to protect future missions.',
+  description:
+    'The Moon is calling again — but this time, solar flares and micrometeorite impacts make every day dangerous. Master radiation management to protect your crew.',
+  objectives: [
+    'Survive 60 days under elevated radiation threat',
+    'Resolve 3 solar flare events',
+    'Keep cumulative radiation below critical levels',
+  ],
+  rewards: { stars: 5, badge: 'Radiation Shield' },
+  tasks: [
+    {
+      id: 'm07-t01',
+      label: 'Survive 60 Days',
+      description: 'Keep crew alive for 60 days.',
+      rule: 'survive_60_days',
+    },
+    {
+      id: 'm07-t02',
+      label: 'Resolve 3 Events',
+      description: 'Handle 3 radiation/impact events.',
+      rule: 'resolve_3_events',
+    },
+    {
+      id: 'm07-t03',
+      label: 'Maintain Resources',
+      description: 'Keep all resources above zero.',
+      rule: 'keep_resources_above_critical',
+    },
+  ],
+  unlockRequirement: 'm06',
+}
+
+const MISSION_08: MissionDefinition = {
+  id: 'm08',
+  number: 8,
+  title: 'The Grand Mars Expedition',
+  subtitle: 'Ultimate Challenge — Master',
+  planet: 'mars',
+  duration: 90,
+  difficulty: 'advanced',
+  levelId: 'level-8',
+  bgTheme: 'mars',
+  conceptTaught: 'Full Mission Management',
+  difficultyLabel: 'Master',
+  storyIntro: 'The toughest mission in ASTRA history begins now. Ninety sols on Mars during a global dust storm cycle. Every resource matters. Every decision counts.',
+  storyOutro: 'You are the greatest Mission Commander ASTRA has ever seen! Your legend will inspire generations of space explorers.',
+  description:
+    'The ultimate ASTRA challenge: 90 sols on Mars during a global dust storm cycle. Every resource matters. Every decision counts. This is what Mission Commanders are made of.',
+  objectives: [
+    'Complete the full 90-sol Mars mission',
+    'Achieve a score of 500+',
+    'Survive a global dust storm',
+  ],
+  rewards: { stars: 5, badge: 'Grand Explorer' },
+  tasks: [
+    {
+      id: 'm08-t01',
+      label: 'Complete 90 Sols',
+      description: 'Survive the full 90-sol mission.',
+      rule: 'survive_90_days',
+    },
+    {
+      id: 'm08-t02',
+      label: 'Score 500+',
+      description: 'Earn a final score of 500 or higher.',
+      rule: 'score_500',
+    },
+    {
+      id: 'm08-t03',
+      label: 'Resolve 3 Events',
+      description: 'Handle 3 major environmental events.',
+      rule: 'resolve_3_events',
+    },
+  ],
+  unlockRequirement: 'm07',
+}
+
 // ── Public exports ────────────────────────────────────────────────────────────
 
 export const MISSIONS: readonly MissionDefinition[] = [
@@ -294,6 +430,8 @@ export const MISSIONS: readonly MissionDefinition[] = [
   MISSION_04,
   MISSION_05,
   MISSION_06,
+  MISSION_07,
+  MISSION_08,
 ]
 
 export function getMissionById(id: string): MissionDefinition | undefined {

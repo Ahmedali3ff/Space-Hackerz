@@ -76,6 +76,24 @@ export default {
             infoBg: '#E8FAF9',
           },
         },
+        // ── Game dark-theme tokens (interactive gameplay layer) ──
+        game: {
+          bg: '#0A0E1A',
+          bgDeep: '#050810',
+          bgPurple: '#0F0A1E',
+          card: '#0F1428',
+          cardBorder: '#7C3AED',
+          purple: '#7C3AED',
+          purpleLight: '#A78BFA',
+          purpleDark: '#5B21B6',
+          teal: '#1FC8C0',
+          gold: '#F5A623',
+          goldBright: '#FFD700',
+          red: '#EF4444',
+          text: '#FFFFFF',
+          textMuted: '#C4B5FD',
+          textGold: '#FFD700',
+        },
         // Top-level Space+ aliases for easy Tailwind usage
         primary: '#1FC8C0',
         'bg-app': '#F4F7FA',
@@ -125,12 +143,29 @@ export default {
           from: { opacity: '0', transform: 'translateY(6px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        // ── Game gameplay layer keyframes ──
+        'float-astronaut': {
+          '0%': { transform: 'translateY(-12px)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        'pulse-level-node': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.08)' },
+        },
+        'star-twinkle': {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '1' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.4s ease-out both',
         'slide-in-right': 'slide-in-right 0.45s ease-out both',
         'pulse-warn': 'pulse-warn 1.4s ease-in-out infinite',
         'count-up': 'count-up 0.35s ease-out both',
+        // ── Game gameplay layer animations ──
+        'float-astronaut': 'float-astronaut 3s ease-in-out infinite alternate',
+        'pulse-level-node': 'pulse-level-node 2s ease-in-out infinite',
+        'star-twinkle': 'star-twinkle 2.5s ease-in-out infinite',
       },
     },
   },

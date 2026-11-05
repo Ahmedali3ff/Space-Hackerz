@@ -253,3 +253,200 @@ html[data-reduce-motion='true'] *::after {
     border: 0;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GAME LAYER — Dark space aesthetic for interactive gameplay screens.
+   These tokens are ADDITIVE — they do not override any Space+ light-theme
+   variables defined above.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Game layer custom properties */
+  --game-bg: #0A0E1A;
+  --game-bg-deep: #050810;
+  --game-bg-purple: #0F0A1E;
+  --game-card: #0F1428;
+  --game-purple: #7C3AED;
+  --game-purple-light: #A78BFA;
+  --game-purple-dark: #5B21B6;
+  --game-teal: #1FC8C0;
+  --game-gold: #F5A623;
+  --game-gold-bright: #FFD700;
+  --game-red: #EF4444;
+  --game-text: #FFFFFF;
+  --game-text-muted: #C4B5FD;
+}
+
+@layer components {
+  /* ── Game dark backgrounds ── */
+
+  .game-bg {
+    background: var(--game-bg);
+    min-height: 100vh;
+    position: relative;
+    color: var(--game-text);
+  }
+
+  .game-bg-mars {
+    background: var(--game-bg);
+    background-image: radial-gradient(ellipse at 60% 20%, rgba(239, 68, 68, 0.12) 0%, transparent 60%);
+    min-height: 100vh;
+    position: relative;
+    color: var(--game-text);
+  }
+
+  /* ── Animated star field overlay (sits behind all game content) ── */
+  .star-field {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255, 255, 255, 0.8), transparent 60%),
+      radial-gradient(1px 1px at 25% 40%, rgba(167, 139, 250, 0.6), transparent 60%),
+      radial-gradient(1.5px 1.5px at 45% 70%, rgba(255, 255, 255, 0.7), transparent 60%),
+      radial-gradient(1px 1px at 60% 10%, rgba(31, 200, 192, 0.5), transparent 60%),
+      radial-gradient(1px 1px at 75% 55%, rgba(255, 255, 255, 0.6), transparent 60%),
+      radial-gradient(1.5px 1.5px at 85% 80%, rgba(167, 139, 250, 0.5), transparent 60%),
+      radial-gradient(1px 1px at 15% 85%, rgba(255, 255, 255, 0.5), transparent 60%),
+      radial-gradient(1px 1px at 92% 30%, rgba(31, 200, 192, 0.4), transparent 60%),
+      radial-gradient(1px 1px at 35% 25%, rgba(255, 255, 255, 0.4), transparent 60%),
+      radial-gradient(1.5px 1.5px at 55% 90%, rgba(255, 215, 0, 0.3), transparent 60%);
+    background-size: 700px 700px;
+    background-repeat: repeat;
+    animation: star-twinkle 4s ease-in-out infinite;
+  }
+
+  /* ── Game cards ── */
+
+  .game-card {
+    background: var(--game-card);
+    border: 1px solid var(--game-purple);
+    border-radius: 16px;
+    box-shadow: 0 4px 32px rgba(124, 58, 237, 0.25);
+  }
+
+  .game-card-gold {
+    background: var(--game-card);
+    border: 1px solid var(--game-gold);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(245, 166, 35, 0.2);
+  }
+
+  /* ── Game buttons ── */
+
+  .game-btn-primary {
+    background: linear-gradient(135deg, var(--game-purple) 0%, var(--game-purple-dark) 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .game-btn-primary:hover {
+    transform: scale(1.05);
+  }
+
+  .game-btn-teal {
+    background: var(--game-teal);
+    color: var(--game-bg);
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .game-btn-teal:hover {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+
+  /* ── Text effects ── */
+
+  .gold-glow-text {
+    color: var(--game-gold-bright);
+    text-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+  }
+
+  /* ── Planet sphere primitives (CSS gradient circles, no WebGL) ── */
+
+  .purple-planet {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--game-purple-light), var(--game-purple-dark));
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.5);
+    flex-shrink: 0;
+  }
+
+  .moon-planet {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #E5E7EB, #9CA3AF);
+    box-shadow: 0 0 24px rgba(209, 213, 219, 0.4);
+    flex-shrink: 0;
+  }
+
+  .mars-planet {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #FF8A65, #BF360C);
+    box-shadow: 0 0 32px rgba(239, 68, 68, 0.4);
+    flex-shrink: 0;
+  }
+
+  .earth-planet {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #4FC3F7, #1565C0);
+    box-shadow: 0 0 24px rgba(79, 195, 247, 0.4);
+    flex-shrink: 0;
+  }
+}
+
+/* ── Game layer keyframes ── */
+
+@keyframes float-astronaut {
+  from { transform: translateY(-12px); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes pulse-level-node {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+/* ── Reduced motion: disable new game animations ── */
+@media (prefers-reduced-motion: reduce) {
+  .star-field,
+  .game-btn-primary,
+  .game-btn-teal {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .float-astronaut,
+  .pulse-level-node,
+  .star-twinkle {
+    animation: none !important;
+  }
+}
