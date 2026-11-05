@@ -32,6 +32,18 @@ const MissionsOverviewScreen = React.lazy(
 const LocationSelectionScreen = React.lazy(
   () => import('../features/location-selection/LocationSelectionScreen').then((m) => ({ default: m.LocationSelectionScreen })),
 )
+const MyDiscoveriesScreen = React.lazy(
+  () => import('../features/discoveries/MyDiscoveriesScreen').then((m) => ({ default: m.MyDiscoveriesScreen })),
+)
+const StarMapScreen = React.lazy(
+  () => import('../features/star-map/StarMapScreen').then((m) => ({ default: m.StarMapScreen })),
+)
+const MySpaceshipScreen = React.lazy(
+  () => import('../features/spaceship/MySpaceshipScreen').then((m) => ({ default: m.MySpaceshipScreen })),
+)
+const ExplorersScreen = React.lazy(
+  () => import('../features/explorers/ExplorersScreen').then((m) => ({ default: m.ExplorersScreen })),
+)
 
 // ── Route guard components ────────────────────────────────────────────────────
 
@@ -168,6 +180,46 @@ export function AppRouter(): JSX.Element {
           <Suspense fallback={<LoadingScreen />}>
             <ScreenTransition routeKey="/missions">
               <MissionsOverviewScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/discoveries"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/discoveries">
+              <MyDiscoveriesScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/star-map"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/star-map">
+              <StarMapScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/spaceship"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/spaceship">
+              <MySpaceshipScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/explorers"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/explorers">
+              <ExplorersScreen />
             </ScreenTransition>
           </Suspense>
         }

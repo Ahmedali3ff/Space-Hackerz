@@ -1,14 +1,12 @@
 // src/components/layout/TopNavBar.tsx
-// Top navigation bar for Space+ light-variant screens.
-// Renders the ASTRA rocket logo + wordmark on the left, an optional center
-// hudSlot, and step indicator + reduced-motion toggle on the right.
-// Uses NavLink from react-router-dom for accessible navigation.
+// Top navigation bar for Space+ screens.
+// Left: Space+ logo/wordmark. Center: 4 nav tabs. Right: UserChip + motion toggle.
 
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Rocket } from '@phosphor-icons/react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { Rocket, Eye, EyeClosed } from '@phosphor-icons/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { Eye, EyeClosed } from '@phosphor-icons/react'
+import { useMissionProgressStore } from '@store/mission-progress-store'
 
 type TopNavVariant = 'dark' | 'light'
 
@@ -22,6 +20,46 @@ interface TopNavBarProps {
   readonly hudSlot?: ReactNode
   readonly stepIndicator?: StepIndicator
   readonly variant?: TopNavVariant
+  readonly activeTab?: 'explorers' | 'mission' | 'discoveries' | 'spacecraft'
+}
+
+// Routes that count as "Mission Control" tab being active
+const MISSION_ROUTES: readonly string[] = [
+  '/',
+  '/select-planet',
+  '/select-location',
+  '/select-crew',
+  '/configure-base',
+  '/mission',
+  '/missions',
+]
+
+interface NavTabProps {
+  readonly label: string
+  readonly to: string
+  readonly active: boolean
+}
+
+function NavTab({ label, to, active }: NavTabProps): JSX.Element {
+  return (
+    <NavLink
+      to={to}
+      className={`relative px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0] rounded-lg whitespace-nowrap ${
+        active
+          ? 'text-[#1FC8C0]'
+          : 'text-[#6B7280] hover:text-[#1A1D2E]'
+      }`}
+      aria-current={active ? 'page' : undefined}
+    >
+      {label}
+      {active && (
+        <span
+          className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#1FC8C0]"
+          aria-hidden="true"
+        />
+      )}
+    </NavLink>
+  )
 }
 
 export function TopNavBar({
@@ -31,57 +69,115 @@ export function TopNavBar({
   variant = 'light',
 }: TopNavBarProps): JSX.Element {
   const { reducedMotion, toggleReducedMotion } = useReducedMotion()
+  const location = useLocation()
+  const commanderName = useMissionProgressStore((s) => s.commanderName)
+  const currentLevel = useMissionProgressStore((s) => s.currentLevel)
+  const commanderTitle = useMissionProgressStore((s) => s.commanderTitle)
 
   const isLight = variant === 'light'
 
   const barClass = isLight
-    ? 'flex items-center justify-between gap-4 px-6 py-3 bg-spaceplus-card border-b border-spaceplus-border-light'
-    : 'flex items-center justify-between gap-4 px-6 py-3 backdrop-blur-sm border-b border-border-subtle/60 bg-space-void/70'
+    ? 'flex items-center gap-4 px-4 py-2 bg-white border-b border-[#E5E7EB]'
+    : 'flex items-center gap-4 px-4 py-2 backdrop-blur-sm border-b border-[#E5E7EB]/60 bg-[#0D0F1A]/70'
 
-  const logoTextClass = isLight
-    ? 'font-display2 text-lg font-800 text-spaceplus-text-heading'
-    : 'font-display text-lg font-bold text-text-primary'
+  // Determine which tab is active
+  const path = location.pathname
+  const isMissionActive = MISSION_ROUTES.includes(path) ||
+    path.startsWith('/select') ||
+    path.startsWith('/configure') ||
+    path.startsWith('/mission') ||
+    path.startsWith('/debrief')
+  const isDiscoveriesActive = path === '/discoveries' || path.startsWith('/discoveries')
+  const isSpacecraftActive = path === '/spaceship' || path.startsWith('/spaceship')
+  const isExplorersActive = path === '/explorers' || path.startsWith('/explorers')
+  const isStarMapActive = path === '/star-map' || path.startsWith('/star-map')
 
-  const toggleClass = isLight
-    ? 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-xl border border-spaceplus-border-light px-3 text-sm text-spaceplus-text-secondary transition-colors hover:border-spaceplus-accent-teal/60 hover:text-spaceplus-text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal'
-    : 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-xl border border-border-subtle px-3 text-sm text-text-secondary transition-colors hover:border-accent-orbit/60 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-orbit'
-
-  const stepClass = isLight
-    ? 'text-sm font-600 text-spaceplus-text-secondary'
-    : 'text-sm font-semibold text-text-secondary'
+  const displayName = commanderName.trim().length > 0 ? commanderName : null
 
   return (
     <nav className={barClass} aria-label="Space+ navigation">
       {/* ── Left: Logo + wordmark ── */}
       <NavLink
-        to="/"
-        className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal rounded-lg"
-        aria-label="Space+ — home"
+        to="/missions"
+        className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0] rounded-lg flex-shrink-0"
+        aria-label="Space+ — missions overview"
       >
         <span
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-spaceplus-accent-teal"
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1FC8C0] flex-shrink-0"
           aria-hidden="true"
         >
           <Rocket size={18} weight="fill" color="#fff" />
         </span>
-        <span className={logoTextClass}>
-          {title ?? <><span className="text-[#1A1D2E]">Space</span><span className="text-[#1FC8C0]">+</span></>}
+        <span className="font-bold text-lg leading-none">
+          {title !== undefined ? (
+            <span className="text-[#1A1D2E]">{title}</span>
+          ) : (
+            <>
+              <span className="text-[#1A1D2E]">Space</span>
+              <span className="text-[#1FC8C0]">+</span>
+            </>
+          )}
         </span>
       </NavLink>
 
-      {/* ── Center: optional hudSlot ── */}
-      {hudSlot !== undefined ? (
-        <div className="flex-1 flex items-center justify-center px-4">
-          {hudSlot}
-        </div>
-      ) : null}
+      {/* ── Center: 4 nav tabs ── */}
+      <div className="flex-1 flex items-center justify-center gap-1 overflow-x-auto scrollbar-none">
+        <NavTab
+          label="Explorers"
+          to="/explorers"
+          active={isExplorersActive}
+        />
+        <NavTab
+          label="Mission Control"
+          to="/missions"
+          active={isMissionActive && !isExplorersActive && !isDiscoveriesActive && !isSpacecraftActive && !isStarMapActive}
+        />
+        <NavTab
+          label="My Discoveries"
+          to="/discoveries"
+          active={isDiscoveriesActive}
+        />
+        <NavTab
+          label="My Spaceship"
+          to="/spaceship"
+          active={isSpacecraftActive}
+        />
+      </div>
 
-      {/* ── Right: step indicator + motion toggle ── */}
-      <div className="flex items-center gap-3">
+      {/* ── Right: optional hudSlot / step indicator + UserChip + motion toggle ── */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {hudSlot !== undefined ? (
+          <div className="flex items-center gap-2">{hudSlot}</div>
+        ) : null}
+
         {stepIndicator !== undefined ? (
-          <span className={stepClass} aria-label={`Step ${stepIndicator.current} of ${stepIndicator.total}`}>
+          <span
+            className="text-sm font-semibold text-[#6B7280]"
+            aria-label={`Step ${stepIndicator.current} of ${stepIndicator.total}`}
+          >
             {stepIndicator.current}/{stepIndicator.total}
           </span>
+        ) : null}
+
+        {/* UserChip — only shown when a commander name is set */}
+        {displayName !== null ? (
+          <div
+            className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white border border-[#E5E7EB]"
+            aria-label={`${displayName}, Level ${currentLevel} · ${commanderTitle}`}
+          >
+            <span
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#1FC8C0] font-bold text-white text-xs"
+              aria-hidden="true"
+            >
+              {displayName.charAt(0).toUpperCase()}
+            </span>
+            <div className="flex flex-col leading-none">
+              <span className="text-xs font-bold text-[#1A1D2E]">{displayName}</span>
+              <span className="text-[10px] text-[#6B7280]">
+                Level {currentLevel} · {commanderTitle}
+              </span>
+            </div>
+          </div>
         ) : null}
 
         <button
@@ -89,14 +185,14 @@ export function TopNavBar({
           aria-label={`Toggle reduced motion — currently ${reducedMotion ? 'on' : 'off'}`}
           aria-pressed={reducedMotion}
           onClick={toggleReducedMotion}
-          className={toggleClass}
+          className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border border-[#E5E7EB] px-2 text-sm text-[#6B7280] transition-colors hover:border-[#1FC8C0] hover:text-[#1A1D2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0]"
         >
           {reducedMotion ? (
             <EyeClosed size={18} aria-hidden="true" />
           ) : (
             <Eye size={18} aria-hidden="true" />
           )}
-          <span className="hidden sm:inline text-xs">
+          <span className="hidden sm:inline text-xs ml-1">
             {reducedMotion ? 'Motion: Off' : 'Motion: On'}
           </span>
         </button>

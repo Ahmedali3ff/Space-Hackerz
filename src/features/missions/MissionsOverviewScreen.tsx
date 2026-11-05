@@ -204,8 +204,16 @@ export function MissionsOverviewScreen(_props: MissionsOverviewScreenProps): JSX
             })}
           </div>
 
-          {/* ── Back to home ── */}
-          <div className="mt-10 flex justify-center">
+          {/* ── Footer actions ── */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <PrimaryButton
+              variant="secondary"
+              size="md"
+              onClick={() => navigate('/star-map')}
+              ariaLabel="View Star Map"
+            >
+              🗺 View Star Map →
+            </PrimaryButton>
             <PrimaryButton
               variant="ghost"
               size="md"
