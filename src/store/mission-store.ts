@@ -20,6 +20,8 @@ import type {
 
 export interface MissionState {
   readonly selectedPlanetId: PlanetId | null
+  readonly selectedLocationId: string | null
+  readonly missionDurationDays: number
   readonly crewSize: number
   readonly baseConfig: BaseConfig | null
   readonly missionActive: boolean
@@ -39,6 +41,8 @@ export interface MissionState {
 
 export interface MissionActions {
   selectPlanet: (planetId: PlanetId) => void
+  setSelectedLocation: (id: string) => void
+  setMissionDuration: (days: 30 | 60 | 90) => void
   setCrewSize: (crewSize: number) => void
   setBaseConfig: (config: BaseConfig) => void
   startMission: () => void
@@ -54,6 +58,8 @@ export type MissionStore = MissionState & MissionActions
 
 export const INITIAL_MISSION_STATE: MissionState = {
   selectedPlanetId: null,
+  selectedLocationId: null,
+  missionDurationDays: 30,
   crewSize: 0,
   baseConfig: null,
   missionActive: false,
@@ -76,6 +82,14 @@ export const useMissionStore = create<MissionStore>()((set) => ({
 
   selectPlanet: (planetId: PlanetId): void => {
     set({ selectedPlanetId: planetId })
+  },
+
+  setSelectedLocation: (id: string): void => {
+    set({ selectedLocationId: id })
+  },
+
+  setMissionDuration: (days: 30 | 60 | 90): void => {
+    set({ missionDurationDays: days })
   },
 
   setCrewSize: (crewSize: number): void => {

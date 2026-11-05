@@ -17,6 +17,7 @@ export interface ScoringInput {
   readonly decisionLog: readonly DecisionLogEntry[]
   readonly eventsSuccessfullyResolved: number
   readonly criticalFailureEvents: number
+  readonly targetDurationDays?: number // optional, defaults to 90
 }
 
 /**
@@ -64,8 +65,13 @@ export function calculateMissionScore(input: ScoringInput): MissionScore {
 
   const criticalFailurePenalty = input.criticalFailureEvents * -50
 
+  const targetDays = input.targetDurationDays ?? 90
+  const daysRun = input.missionDuration
+  const completionRatio = Math.min(daysRun / targetDays, 1.0)
+  const durationBonus = Math.round(completionRatio * 100)
+
   const finalScore =
-    baseScore + resourceStabilityBonus + decisionQualityBonus + eventsResolvedBonus + criticalFailurePenalty
+    baseScore + resourceStabilityBonus + decisionQualityBonus + eventsResolvedBonus + criticalFailurePenalty + durationBonus
 
   const outcome: MissionOutcome =
     finalScore >= SUCCESS_THRESHOLD ? 'success' : finalScore >= PARTIAL_THRESHOLD ? 'partial' : 'failure'
@@ -76,6 +82,7 @@ export function calculateMissionScore(input: ScoringInput): MissionScore {
     decisionQualityBonus,
     eventsResolvedBonus,
     criticalFailurePenalty,
+    durationBonus,
     finalScore,
     outcome,
   }

@@ -34,7 +34,7 @@ vi.mock('@/hooks/useAstroContext', () => ({
 // Mock useMissionProgressStore so the screen doesn't attempt localStorage access
 vi.mock('@store/mission-progress-store', () => ({
   useMissionProgressStore: Object.assign(
-    (selector: (s: { commanderName: string; currentMissionId: string | null; totalStars: number; getCurrentMission: () => null; getMissionStatus: (id: string) => 'active' | 'completed' | 'locked'; missions: Record<string, unknown> }) => unknown) =>
+    (selector: (s: { commanderName: string; currentMissionId: string | null; totalStars: number; getCurrentMission: () => null; getMissionStatus: (id: string) => 'active' | 'completed' | 'locked'; missions: Record<string, unknown>; completeMission: () => void }) => unknown) =>
       selector({
         commanderName: '',
         currentMissionId: 'm01',
@@ -42,6 +42,7 @@ vi.mock('@store/mission-progress-store', () => ({
         getCurrentMission: () => null,
         getMissionStatus: (_id: string) => 'locked' as const,
         missions: {},
+        completeMission: vi.fn(),
       }),
     {
       getState: () => ({
@@ -51,6 +52,7 @@ vi.mock('@store/mission-progress-store', () => ({
         getCurrentMission: () => null,
         getMissionStatus: (_id: string) => 'locked' as const,
         missions: {},
+        completeMission: vi.fn(),
       }),
     },
   ),
@@ -59,6 +61,8 @@ vi.mock('@store/mission-progress-store', () => ({
 // Track advanceDay calls so we can assert day increments via the mock
 const makeControlHook = (overrides: Partial<ReturnType<typeof import('@/hooks/useMissionControl').useMissionControl>> = {}): ReturnType<typeof import('@/hooks/useMissionControl').useMissionControl> => ({
   selectedPlanetId: 'moon',
+  selectedLocationId: null,
+  missionDurationDays: 30,
   crewSize: 3,
   baseConfig: {
     solarPanelArea_m2: 100,
@@ -92,6 +96,8 @@ const makeControlHook = (overrides: Partial<ReturnType<typeof import('@/hooks/us
   resolveEvent: mockResolveEvent,
   emergencyRation: vi.fn(),
   endMission: mockEndMission,
+  setSelectedLocation: vi.fn(),
+  setMissionDuration: vi.fn(),
   ...overrides,
 })
 
@@ -202,11 +208,13 @@ describe('MissionControlScreen', () => {
     expect(screen.getByRole('button', { name: /advance to next day/i })).toBeDisabled()
   })
 
-  it('shows mission outcome banner when outcome is not ongoing', () => {
+  it('shows mission outcome overlay when outcome is success', () => {
     controlHookReturnValue = makeControlHook({ missionOutcome: 'success', missionActive: false })
     renderScreen()
-    expect(screen.getByText(/mission successful/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /view mission debrief/i })).toBeInTheDocument()
+    // Success now shows a full-screen Mission Complete overlay
+    const completeHeadings = screen.getAllByText(/mission complete/i)
+    expect(completeHeadings.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('button', { name: /view mission report/i })).toBeInTheDocument()
   })
 
   it('shows error panel and can dismiss it when globalError is set', () => {

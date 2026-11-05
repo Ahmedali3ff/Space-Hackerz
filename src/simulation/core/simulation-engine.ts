@@ -47,7 +47,7 @@ export class SimulationEngine {
   private readonly prng: () => number
   private readonly occurrenceCount: Record<string, number>
   private readonly decisionLog: DecisionLogEntry[]
-  // missionDurationDays is reserved for future use when configurable mission lengths are added
+  private readonly missionDurationDays: number
   private eventConsequences: Map<string, { consequence: EventConsequence; expiresDay: number }>
   // Track stability for scoring
   private stabilityDays: { oxygen: number; water: number; food: number; energy: number }
@@ -58,7 +58,7 @@ export class SimulationEngine {
     this.prng = createPRNG(config.seed)
     this.occurrenceCount = {}
     this.decisionLog = []
-    // missionDurationDays: 30 — reserved for future configurable mission lengths
+    this.missionDurationDays = config.missionDurationDays ?? 90
     this.eventConsequences = new Map()
     this.stabilityDays = { oxygen: 0, water: 0, food: 0, energy: 0 }
     this.eventsSuccessfullyResolved = 0
@@ -100,6 +100,7 @@ export class SimulationEngine {
       decisionLog: this.decisionLog,
       eventsSuccessfullyResolved: this.eventsSuccessfullyResolved,
       criticalFailureEvents: this.criticalFailureCount,
+      targetDurationDays: this.missionDurationDays,
     }
     return calculateMissionScore(scoringInput)
   }

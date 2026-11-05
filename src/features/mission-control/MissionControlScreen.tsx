@@ -5,6 +5,7 @@
 // PRESERVED: all aria-labels, outcome text, button labels, AstroAI 'Explain Situation',
 //            'All systems nominal', event card choices, HUD slot controls.
 
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   XCircle,
@@ -36,6 +37,160 @@ import { EventPanel } from './EventPanel'
 import { AstroAIPanel } from './AstroAIPanel'
 
 interface MissionControlScreenProps {}
+
+// ── Toast notification ────────────────────────────────────────────────────────
+
+interface ToastProps {
+  readonly message: string
+  readonly onDismiss: () => void
+  readonly durationMs?: number
+}
+
+function Toast({ message, onDismiss, durationMs = 3000 }: ToastProps): JSX.Element {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, durationMs)
+    return () => clearTimeout(t)
+  }, [onDismiss, durationMs])
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-20 right-4 z-50 max-w-sm rounded-2xl bg-white border border-[#E5E7EB] shadow-lg px-5 py-4 flex items-center gap-3 animate-slide-in"
+    >
+      <span className="text-sm text-[#1A1D2E]">{message}</span>
+    </div>
+  )
+}
+
+// ── Mission complete overlay ───────────────────────────────────────────────────
+
+interface MissionCompleteOverlayProps {
+  readonly title: string
+  readonly starsEarned: number
+  readonly xpEarned: number
+  readonly onViewReport: () => void
+  readonly onPlayNext: () => void
+}
+
+function MissionCompleteOverlay({
+  title,
+  starsEarned,
+  xpEarned,
+  onViewReport,
+  onPlayNext,
+}: MissionCompleteOverlayProps): JSX.Element {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mission complete"
+    >
+      <div className="flex flex-col items-center gap-6 rounded-3xl bg-white border border-[#E5E7EB] shadow-xl p-10 max-w-md text-center">
+        <div className="text-5xl" aria-hidden="true">🎉</div>
+        <h2 className="text-3xl font-bold text-[#1A1D2E]">Mission Complete!</h2>
+        <p className="text-lg text-[#6B7280]">{title}</p>
+
+        {/* Stars */}
+        <div className="flex items-center gap-1" aria-label={`${starsEarned} stars earned`}>
+          {[1, 2, 3].map((n) => (
+            <Star
+              key={n}
+              size={36}
+              weight={n <= starsEarned ? 'fill' : 'regular'}
+              className={n <= starsEarned ? 'text-[#F5A623]' : 'text-[#E5E7EB]'}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+
+        <p className="text-lg font-bold text-[#1FC8C0]">+{xpEarned} XP earned</p>
+
+        <div className="flex flex-col gap-3 w-full">
+          <PrimaryButton
+            variant="hint"
+            size="lg"
+            onClick={onViewReport}
+            ariaLabel="View mission report"
+          >
+            View Mission Report
+            <ArrowRight size={18} aria-hidden="true" />
+          </PrimaryButton>
+          <PrimaryButton
+            variant="secondary"
+            size="lg"
+            onClick={onPlayNext}
+            ariaLabel="Play next mission"
+          >
+            Play Next Mission
+          </PrimaryButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Mission failed overlay ────────────────────────────────────────────────────
+
+interface MissionFailedOverlayProps {
+  readonly reason: string
+  readonly onTryAgain: () => void
+  readonly onViewReport: () => void
+}
+
+function MissionFailedOverlay({
+  reason,
+  onTryAgain,
+  onViewReport,
+}: MissionFailedOverlayProps): JSX.Element {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mission failed"
+    >
+      <div className="flex flex-col items-center gap-6 rounded-3xl bg-white border border-[#E5E7EB] shadow-xl p-10 max-w-md text-center">
+        <div className="text-5xl" aria-hidden="true">💔</div>
+        <h2 className="text-3xl font-bold text-[#EF4444]">Mission Failed</h2>
+        <p className="text-[#6B7280]">{reason}</p>
+
+        {/* 1 star */}
+        <div className="flex items-center gap-1" aria-label="1 star earned">
+          {[1, 2, 3].map((n) => (
+            <Star
+              key={n}
+              size={36}
+              weight={n === 1 ? 'fill' : 'regular'}
+              className={n === 1 ? 'text-[#F5A623]' : 'text-[#E5E7EB]'}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3 w-full">
+          <PrimaryButton
+            variant="hint"
+            size="lg"
+            onClick={onTryAgain}
+            ariaLabel="Try again"
+          >
+            Try Again
+          </PrimaryButton>
+          <PrimaryButton
+            variant="secondary"
+            size="lg"
+            onClick={onViewReport}
+            ariaLabel="View mission report"
+          >
+            View Report
+          </PrimaryButton>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── Horizontal Journey Map (reference image spec) ─────────────────────────────
 
@@ -505,6 +660,7 @@ export function MissionControlScreen(
     advanceDay,
     endMission,
     currentResources,
+    activeFaultStates,
   } = useMissionControl()
 
   const clearError = useAppStore((s) => s.clearError)
@@ -513,8 +669,38 @@ export function MissionControlScreen(
   const totalStars = useMissionProgressStore((s) => s.totalStars)
   const commanderName = useMissionProgressStore((s) => s.commanderName)
   const currentMissionId = useMissionProgressStore((s) => s.currentMissionId)
+  const completeMission = useMissionProgressStore((s) => s.completeMission)
 
   const currentMission = getCurrentMission()
+
+  // ── Toast state ──────────────────────────────────────────────────────────────
+  const [daySummaryToast, setDaySummaryToast] = useState<string | null>(null)
+  const [taskToast, setTaskToast] = useState<string | null>(null)
+  const [showCompleteOverlay, setShowCompleteOverlay] = useState(false)
+  const [showFailedOverlay, setShowFailedOverlay] = useState(false)
+
+  // Track previous task completion to detect newly completed ones
+  // (reserved for future task-toast integration)
+
+  // Watch for mission outcome changes to trigger overlays
+  useEffect(() => {
+    if (missionOutcome === 'success') {
+      setShowCompleteOverlay(true)
+    } else if (missionOutcome === 'failure') {
+      setShowFailedOverlay(true)
+    }
+  }, [missionOutcome])
+
+  const dismissDaySummary = useCallback(() => setDaySummaryToast(null), [])
+  const dismissTaskToast = useCallback(() => setTaskToast(null), [])
+
+  // Wrapped advanceDay that also shows a day summary toast
+  function handleAdvanceDay(): void {
+    const prevDay = currentMissionDay
+    advanceDay()
+    // Show a quick day summary — the actual resource values will update reactively
+    setDaySummaryToast(`Day ${prevDay + 1} — Resources updated`)
+  }
 
   // Determine planet display label for the HUD
   const planetName =
@@ -534,6 +720,27 @@ export function MissionControlScreen(
     navigate('/debrief')
   }
 
+  // Derive failure reason from fault states
+  const failureReason: string = (() => {
+    if (activeFaultStates.includes('OXYGEN_DEPLETED')) {
+      return `Oxygen ran out on ${timeUnitLabel} ${currentMissionDay}`
+    }
+    if (activeFaultStates.includes('WATER_DEPLETED')) {
+      return `Water ran out on ${timeUnitLabel} ${currentMissionDay}`
+    }
+    if (activeFaultStates.includes('RADIATION_CRITICAL')) {
+      return `Radiation levels became critical on ${timeUnitLabel} ${currentMissionDay}`
+    }
+    return `Mission ended on ${timeUnitLabel} ${currentMissionDay}`
+  })()
+
+  // Stars earned: based on how far through the mission we are (1–3)
+  const starsEarned = Math.max(
+    1,
+    Math.min(3, Math.ceil((currentMissionDay / missionTotalDays) * 3)),
+  )
+  const xpEarned = starsEarned * 20 + (currentMission?.number ?? 1) * 10
+
   // Resources for floating bar
   const res = currentResources
   const maxOxy = res ? Math.max(res.oxygen_kg * 2, 100) : 100
@@ -551,7 +758,7 @@ export function MissionControlScreen(
             currentMissionDay={currentMissionDay}
             planetName={planetName}
             crewSize={crewSize}
-            onAdvanceDay={advanceDay}
+            onAdvanceDay={handleAdvanceDay}
             onEndMission={handleEndMission}
             missionActive={missionActive}
             timeUnitLabel={timeUnitLabel}
@@ -559,6 +766,16 @@ export function MissionControlScreen(
         }
       >
         <div className="flex min-h-screen flex-col gap-4 p-4 pb-24 md:p-6 md:pb-28">
+
+          {/* ── Day summary toast ── */}
+          {daySummaryToast !== null && (
+            <Toast message={daySummaryToast} onDismiss={dismissDaySummary} durationMs={2500} />
+          )}
+
+          {/* ── Task complete toast ── */}
+          {taskToast !== null && (
+            <Toast message={taskToast} onDismiss={dismissTaskToast} durationMs={3000} />
+          )}
 
           {/* ── Global error banner ── */}
           {globalError !== null ? (
@@ -583,31 +800,21 @@ export function MissionControlScreen(
             </Card>
           ) : null}
 
-          {/* ── Mission outcome banner ── */}
-          {missionOutcome !== 'ongoing' ? (
+          {/* ── Mission outcome banner (for partial) ── */}
+          {missionOutcome === 'partial' ? (
             <Card
-              accent={missionOutcome === 'success' ? 'teal' : 'coral'}
+              accent="teal"
               className="flex items-center justify-between gap-3"
             >
               <div className="flex items-center gap-2">
                 <CheckCircle
                   size={20}
                   weight="fill"
-                  className={
-                    missionOutcome === 'success'
-                      ? 'text-spaceplus-status-success'
-                      : missionOutcome === 'partial'
-                      ? 'text-spaceplus-status-warning'
-                      : 'text-spaceplus-status-error'
-                  }
+                  className="text-spaceplus-status-warning"
                   aria-hidden="true"
                 />
                 <p className="text-sm font-semibold text-spaceplus-text-heading">
-                  {missionOutcome === 'success'
-                    ? 'Mission Successful!'
-                    : missionOutcome === 'partial'
-                    ? 'Mission Ended — Partial Success'
-                    : 'Mission Failed'}
+                  Mission Ended — Partial Success
                 </p>
               </div>
               <PrimaryButton
@@ -622,7 +829,7 @@ export function MissionControlScreen(
             </Card>
           ) : null}
 
-          {/* ── Top heading row (reference image: "SOLAR SYSTEM ADVENTURE" + "Ready for your mission") ── */}
+          {/* ── Top heading row ── */}
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-[#1FC8C0] mb-1">
@@ -657,7 +864,7 @@ export function MissionControlScreen(
                 missionTitle={currentMission?.title ?? 'Free Play'}
                 missionSubtitle={currentMission?.subtitle ?? (planetName + ' Mission')}
                 missionDescription={currentMission?.description ?? 'Manage your base and keep your crew alive!'}
-                onAdvanceDay={advanceDay}
+                onAdvanceDay={handleAdvanceDay}
                 missionActive={missionActive}
               />
             </Card>
@@ -668,7 +875,7 @@ export function MissionControlScreen(
               planetId={selectedPlanetId}
               currentDay={currentMissionDay}
               totalDays={missionTotalDays}
-              onAdvanceDay={advanceDay}
+              onAdvanceDay={handleAdvanceDay}
               onEndMission={handleEndMission}
               missionActive={missionActive}
             />
@@ -704,6 +911,47 @@ export function MissionControlScreen(
             maxEnergy={maxEnergy}
             currentDay={currentMissionDay}
             timeUnit={timeUnitLabel}
+          />
+        )}
+
+        {/* ── Mission complete overlay ── */}
+        {showCompleteOverlay && (
+          <MissionCompleteOverlay
+            title={currentMission?.title ?? 'Mission Complete!'}
+            starsEarned={starsEarned}
+            xpEarned={xpEarned}
+            onViewReport={() => {
+              setShowCompleteOverlay(false)
+              if (currentMission !== null) {
+                completeMission(currentMission.id, starsEarned)
+              }
+              endMission()
+              navigate('/debrief')
+            }}
+            onPlayNext={() => {
+              setShowCompleteOverlay(false)
+              if (currentMission !== null) {
+                completeMission(currentMission.id, starsEarned)
+              }
+              endMission()
+              navigate('/missions')
+            }}
+          />
+        )}
+
+        {/* ── Mission failed overlay ── */}
+        {showFailedOverlay && (
+          <MissionFailedOverlay
+            reason={failureReason}
+            onTryAgain={() => {
+              setShowFailedOverlay(false)
+              navigate('/configure-base')
+            }}
+            onViewReport={() => {
+              setShowFailedOverlay(false)
+              endMission()
+              navigate('/debrief')
+            }}
           />
         )}
       </AppShell>

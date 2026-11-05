@@ -1,7 +1,7 @@
 // src/features/base-configuration/BaseConfigurationScreen.tsx
 // Configure habitat systems before launching — Space+ Card layout.
 // Cards: Power Systems, Life Support & Agriculture, Mission Readiness sidebar.
-// Duration selector (UI-only, not passed to sim engine yet).
+// Duration selector wired to mission store (sets missionDurationDays).
 // PRESERVED: all slider aria-labels, shielding buttons, 'Start Mission' button,
 //            initializeMission call, navigation logic, Back button.
 
@@ -146,10 +146,10 @@ function ShieldingControl({ value, onChange }: ShieldingControlProps): JSX.Eleme
 
 type MissionDuration = 30 | 60 | 90
 
-const DURATION_OPTIONS: ReadonlyArray<{ value: MissionDuration; label: string }> = [
-  { value: 30, label: '30 days' },
-  { value: 60, label: '60 days' },
-  { value: 90, label: '90 days' },
+const DURATION_OPTIONS: ReadonlyArray<{ value: MissionDuration; label: string; preview: string }> = [
+  { value: 30, label: '30 Days', preview: '⚡ Quick mission. Great for beginners.' },
+  { value: 60, label: '60 Days', preview: '🚀 Standard challenge. Balanced experience.' },
+  { value: 90, label: '90 Days', preview: '⭐ Expert mode. Maximum score bonus.' },
 ]
 
 interface DurationSelectorProps {
@@ -158,9 +158,10 @@ interface DurationSelectorProps {
 }
 
 function DurationSelector({ value, onChange }: DurationSelectorProps): JSX.Element {
+  const selected = DURATION_OPTIONS.find((o) => o.value === value) ?? DURATION_OPTIONS[0]!
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold text-spaceplus-text-heading">Mission Duration</p>
+      <p className="text-sm font-semibold text-[#1A1D2E]">Mission Length</p>
       <div className="flex gap-2" role="group" aria-label="Mission duration">
         {DURATION_OPTIONS.map((opt) => (
           <button
@@ -168,16 +169,17 @@ function DurationSelector({ value, onChange }: DurationSelectorProps): JSX.Eleme
             type="button"
             aria-pressed={value === opt.value}
             onClick={() => onChange(opt.value)}
-            className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal
-              ${value === opt.value
-                ? 'border-spaceplus-accent-teal bg-spaceplus-accent-tealLight text-spaceplus-accent-tealDark'
-                : 'border-spaceplus-border-light bg-spaceplus-surface text-spaceplus-text-secondary hover:border-spaceplus-border-medium'
-              }`}
+            className={`flex-1 rounded-xl border px-3 py-2 text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0] ${
+              value === opt.value
+                ? 'bg-[#1FC8C0] text-white font-semibold border-[#1FC8C0]'
+                : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:border-[#1FC8C0]'
+            }`}
           >
             {opt.label}
           </button>
         ))}
       </div>
+      <p className="text-xs text-[#6B7280]">{selected.preview}</p>
     </div>
   )
 }
@@ -189,11 +191,12 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
   const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
   const crewSize = useMissionStore((s) => s.crewSize)
   const setBaseConfig = useMissionStore((s) => s.setBaseConfig)
+  const missionDurationDays = useMissionStore((s) => s.missionDurationDays)
+  const setMissionDuration = useMissionStore((s) => s.setMissionDuration)
   const { initializeMission } = useMissionControl()
 
   const [draft, setDraft] = useState<BaseConfig>(() => getDefaultConfig(crewSize))
-  // UI-only duration — not passed to sim engine
-  const [missionDuration, setMissionDuration] = useState<MissionDuration>(30)
+  // missionDuration is now persisted in the store; local state removed
 
   const isSetupValid = selectedPlanetId !== null && crewSize >= 1
 
@@ -336,10 +339,14 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
                     <span className="text-spaceplus-text-secondary">Shielding</span>
                     <span className="font-semibold text-spaceplus-text-heading capitalize">{draft.shieldingLevel}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-spaceplus-text-secondary">Duration</span>
+                    <span className="font-semibold text-spaceplus-text-heading">{missionDurationDays} days</span>
+                  </div>
                 </div>
 
                 <div className="border-t border-spaceplus-border-light pt-4">
-                  <DurationSelector value={missionDuration} onChange={setMissionDuration} />
+                  <DurationSelector value={missionDurationDays as MissionDuration} onChange={setMissionDuration} />
                 </div>
               </Card>
 

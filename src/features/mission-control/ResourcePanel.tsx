@@ -1,13 +1,12 @@
 // src/features/mission-control/ResourcePanel.tsx
-// Displays current resource levels via ResourceBar + sparklines.
-// Reads all data from useMissionControl and the mission store directly.
-// NO simulation engine imports.
+// Displays current resource levels with color-coded bars, deltas, and a
+// critical warning banner when any resource drops below 15%.
+// NO simulation engine imports — reads all data from useMissionControl and store.
 
-import { Drop, Leaf, Wind, Lightning, Biohazard, Users } from '@phosphor-icons/react'
+import { Drop, Leaf, Wind, Lightning, Biohazard, Users, Warning } from '@phosphor-icons/react'
 import { useMissionControl } from '@/hooks/useMissionControl'
 import { useMissionStore } from '@store/mission-store'
 import { Card } from '@/components/common/Card'
-import { ResourceBar } from '@/components/charts/ResourceBar'
 import { StatReadout } from '@/components/common/StatReadout'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import {
@@ -21,9 +20,9 @@ import type { ResourceHistoryPoint } from '@simulation/types'
 type SparkStatus = 'good' | 'warn' | 'crit'
 
 const SPARK_COLOR: Readonly<Record<SparkStatus, string>> = {
-  good: '#46E6A0',
-  warn: '#FFC93C',
-  crit: '#FF5A5F',
+  good: '#1FC8C0',
+  warn: '#F5A623',
+  crit: '#EF4444',
 }
 
 const SPARKLINE_W = 60
@@ -67,19 +66,6 @@ function Sparkline({ points, status, label }: SparklineProps): JSX.Element | nul
 
 type BarStatus = 'good' | 'warn' | 'crit'
 
-function getResourceStatus(
-  current: number,
-  initial: number,
-  critPct: number,
-  warnPct: number,
-): BarStatus {
-  if (initial <= 0) return 'crit'
-  const pct = current / initial
-  if (pct < critPct) return 'crit'
-  if (pct < warnPct) return 'warn'
-  return 'good'
-}
-
 function getRadiationStatus(dose: number): BarStatus {
   if (dose >= RADIATION_CRITICAL_THRESHOLD_MSV) return 'crit'
   if (dose >= RADIATION_HIGH_THRESHOLD_MSV) return 'warn'
@@ -93,6 +79,80 @@ function extractSeries(
   return history.map((p) => p[key] as number)
 }
 
+// ── Inline resource bar (color-coded with delta) ─────────────────────────────
+
+interface InlineResourceBarProps {
+  readonly label: string
+  readonly value: number
+  readonly initial: number
+  readonly unit: string
+  readonly delta: number | null
+  readonly icon: React.ReactNode
+}
+
+function InlineResourceBar({
+  label,
+  value,
+  initial,
+  unit,
+  delta,
+  icon,
+}: InlineResourceBarProps): JSX.Element {
+  const safeMax = initial > 0 ? initial : 1
+  const pct = Math.max(0, Math.min(100, (value / safeMax) * 100))
+
+  const barFill =
+    pct > 50
+      ? 'bg-[#1FC8C0]'
+      : pct > 20
+      ? 'bg-[#F5A623]'
+      : 'bg-[#EF4444]'
+
+  const containerBg =
+    pct > 50
+      ? ''
+      : pct > 20
+      ? 'bg-[#FEF3C7] rounded-xl px-3 py-2 -mx-1'
+      : 'bg-[#FEE2E2] rounded-xl px-3 py-2 -mx-1'
+
+  return (
+    <div className={`flex flex-col gap-1.5 ${containerBg}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-sm text-[#6B7280]">
+          {icon}
+          {label}
+        </span>
+        <div className="flex items-center gap-2">
+          {delta !== null && (
+            <span
+              className={`text-xs tabular-nums ${delta < 0 ? 'text-[#EF4444]' : 'text-[#10B981]'}`}
+              aria-label={`Daily change: ${delta >= 0 ? '+' : ''}${delta.toFixed(1)} ${unit} per day`}
+            >
+              {delta >= 0 ? '+' : ''}{delta.toFixed(1)}/day
+            </span>
+          )}
+          <span className="font-mono text-sm font-semibold text-[#1A1D2E] tabular-nums">
+            {Math.round(value)} {unit}
+          </span>
+        </div>
+      </div>
+      <div
+        className="h-2 w-full overflow-hidden rounded-full bg-[#F3F4F6]"
+        role="progressbar"
+        aria-valuenow={Math.round(value)}
+        aria-valuemin={0}
+        aria-valuemax={Math.round(initial)}
+        aria-label={label}
+      >
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barFill}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface ResourcePanelProps {}
@@ -104,20 +164,34 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
   const res = currentResources
   const init = initialResources
 
-  const oxyStatus = res && init
-    ? getResourceStatus(res.oxygen_kg, init.oxygen_kg, 0.10, 0.20)
-    : 'good'
-  const waterStatus = res && init
-    ? getResourceStatus(res.water_kg, init.water_kg, 0.10, 0.20)
-    : 'good'
-  const foodStatus = res && init
-    ? getResourceStatus(res.food_kg, init.food_kg, 0.10, 0.20)
-    : 'good'
-  const energyStatus = res && init
-    ? getResourceStatus(res.energy_kWh, init.energy_kWh, 0.15, 0.25)
-    : 'good'
-  const radStatus = res ? getRadiationStatus(res.cumulativeRadiation_mSv) : 'good'
+  // Compute statuses
+  const oxyPct = res && init && init.oxygen_kg > 0 ? res.oxygen_kg / init.oxygen_kg : 1
+  const waterPct = res && init && init.water_kg > 0 ? res.water_kg / init.water_kg : 1
+  const foodPct = res && init && init.food_kg > 0 ? res.food_kg / init.food_kg : 1
+  const energyPct = res && init && init.energy_kWh > 0 ? res.energy_kWh / init.energy_kWh : 1
 
+  const oxyStatus: BarStatus = oxyPct < 0.10 ? 'crit' : oxyPct < 0.20 ? 'warn' : 'good'
+  const waterStatus: BarStatus = waterPct < 0.10 ? 'crit' : waterPct < 0.20 ? 'warn' : 'good'
+  const foodStatus: BarStatus = foodPct < 0.10 ? 'crit' : foodPct < 0.20 ? 'warn' : 'good'
+  const energyStatus: BarStatus = energyPct < 0.15 ? 'crit' : energyPct < 0.25 ? 'warn' : 'good'
+  const radStatus: BarStatus = res ? getRadiationStatus(res.cumulativeRadiation_mSv) : 'good'
+
+  // Compute daily deltas from last two history points
+  const lastTwo = resourceHistory.slice(-2)
+  const hasDeltas = lastTwo.length === 2
+  const oxyDelta = hasDeltas ? lastTwo[1]!.oxygen_kg - lastTwo[0]!.oxygen_kg : null
+  const waterDelta = hasDeltas ? lastTwo[1]!.water_kg - lastTwo[0]!.water_kg : null
+  const foodDelta = hasDeltas ? lastTwo[1]!.food_kg - lastTwo[0]!.food_kg : null
+  const energyDelta = hasDeltas ? lastTwo[1]!.energy_kWh - lastTwo[0]!.energy_kWh : null
+
+  // Critical resources (< 15%)
+  const criticalResources: string[] = []
+  if (oxyPct < 0.15) criticalResources.push('Oxygen')
+  if (waterPct < 0.15) criticalResources.push('Water')
+  if (foodPct < 0.15) criticalResources.push('Food')
+  if (energyPct < 0.15) criticalResources.push('Energy')
+
+  // Sparkline history
   const hasHistory = resourceHistory.length >= 2
   const oxyHistory = hasHistory ? extractSeries(resourceHistory, 'oxygen_kg') : []
   const waterHistory = hasHistory ? extractSeries(resourceHistory, 'water_kg') : []
@@ -126,19 +200,31 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
 
   return (
     <Card className="flex flex-col gap-4">
+      {/* Critical warning banner */}
+      {criticalResources.length > 0 && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl bg-[#FEE2E2] border border-[#EF4444]/30 px-3 py-2 text-sm font-semibold text-[#EF4444]"
+        >
+          <Warning size={18} weight="fill" aria-hidden="true" />
+          ⚠ Critical: {criticalResources.join(', ')} {criticalResources.length === 1 ? 'is' : 'are'} running low!
+        </div>
+      )}
+
       <header className="mb-1">
-        <h2 className="font-display2 text-lg font-semibold text-spaceplus-text-heading">Resources</h2>
+        <h2 className="text-lg font-semibold text-[#1A1D2E]">Resources</h2>
       </header>
+
       {/* Oxygen */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <ResourceBar
+          <InlineResourceBar
             label="Oxygen"
             value={res?.oxygen_kg ?? 0}
-            max={init?.oxygen_kg ?? 1}
+            initial={init?.oxygen_kg ?? 1}
             unit="kg"
-            status={oxyStatus}
-            icon={Wind}
+            delta={oxyDelta}
+            icon={<Wind size={16} weight="fill" className="text-[#1FC8C0]" aria-hidden="true" />}
           />
         </div>
         <Sparkline points={oxyHistory} status={oxyStatus} label="Oxygen" />
@@ -147,13 +233,13 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
       {/* Water */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <ResourceBar
+          <InlineResourceBar
             label="Water"
             value={res?.water_kg ?? 0}
-            max={init?.water_kg ?? 1}
+            initial={init?.water_kg ?? 1}
             unit="kg"
-            status={waterStatus}
-            icon={Drop}
+            delta={waterDelta}
+            icon={<Drop size={16} weight="fill" className="text-[#1FC8C0]" aria-hidden="true" />}
           />
         </div>
         <Sparkline points={waterHistory} status={waterStatus} label="Water" />
@@ -162,13 +248,13 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
       {/* Food */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <ResourceBar
+          <InlineResourceBar
             label="Food"
             value={res?.food_kg ?? 0}
-            max={init?.food_kg ?? 1}
+            initial={init?.food_kg ?? 1}
             unit="kg"
-            status={foodStatus}
-            icon={Leaf}
+            delta={foodDelta}
+            icon={<Leaf size={16} weight="fill" className="text-[#1FC8C0]" aria-hidden="true" />}
           />
         </div>
         <Sparkline points={foodHistory} status={foodStatus} label="Food" />
@@ -177,20 +263,20 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
       {/* Energy */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <ResourceBar
+          <InlineResourceBar
             label="Energy"
             value={res?.energy_kWh ?? 0}
-            max={init?.energy_kWh ?? 1}
+            initial={init?.energy_kWh ?? 1}
             unit="kWh"
-            status={energyStatus}
-            icon={Lightning}
+            delta={energyDelta}
+            icon={<Lightning size={16} weight="fill" className="text-[#F5A623]" aria-hidden="true" />}
           />
         </div>
         <Sparkline points={energyHistory} status={energyStatus} label="Energy" />
       </div>
 
       {/* Radiation */}
-      <div className="flex items-center justify-between gap-2 border-t border-spaceplus-border-light pt-3">
+      <div className="flex items-center justify-between gap-2 border-t border-[#E5E7EB] pt-3">
         <StatReadout
           label="Radiation Dose"
           value={(res?.cumulativeRadiation_mSv ?? 0).toFixed(1)}
@@ -211,10 +297,10 @@ export function ResourcePanel(_props: ResourcePanelProps): JSX.Element {
       </div>
 
       {/* Crew */}
-      <div className="flex items-center gap-2 border-t border-spaceplus-border-light pt-3">
-        <Users size={18} weight="fill" className="text-spaceplus-accent-teal" aria-hidden="true" />
-        <span className="text-sm text-spaceplus-text-secondary">Crew aboard:</span>
-        <span className="font-mono font-semibold text-spaceplus-text-heading tabular-nums">{crewSize}</span>
+      <div className="flex items-center gap-2 border-t border-[#E5E7EB] pt-3">
+        <Users size={18} weight="fill" className="text-[#1FC8C0]" aria-hidden="true" />
+        <span className="text-sm text-[#6B7280]">Crew aboard:</span>
+        <span className="font-mono font-semibold text-[#1A1D2E] tabular-nums">{crewSize}</span>
       </div>
     </Card>
   )

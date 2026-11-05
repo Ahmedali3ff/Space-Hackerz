@@ -8,6 +8,10 @@ import { missionStore, useMissionStore } from '@store/mission-store'
 import { useAppStore } from '@store/app-store'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 import { evaluateMissionTasks } from '@/services/mission-task-evaluator'
+import { getLocationById } from '@/data/locations'
+import { applyLocationModifier } from '@simulation/planets/location-modifier'
+import { MOON_PROFILE } from '@data/nasa/moon-profile'
+import { MARS_PROFILE } from '@data/nasa/mars-profile'
 import type {
   PlanetId,
   BaseConfig,
@@ -17,6 +21,7 @@ import type {
   DecisionLogEntry,
   MissionScore,
   ResourceHistoryPoint,
+  PlanetProfile,
 } from '@simulation/types'
 
 // ── Return type ───────────────────────────────────────────────────────────────
@@ -24,6 +29,8 @@ import type {
 export interface UseMissionControlReturn {
   // State derived from stores
   readonly selectedPlanetId: PlanetId | null
+  readonly selectedLocationId: string | null
+  readonly missionDurationDays: number
   readonly crewSize: number
   readonly baseConfig: BaseConfig | null
   readonly missionActive: boolean
@@ -47,6 +54,8 @@ export interface UseMissionControlReturn {
   resolveEvent: (eventId: string, choiceId: string) => void
   emergencyRation: () => void
   endMission: () => void
+  setSelectedLocation: (id: string) => void
+  setMissionDuration: (days: 30 | 60 | 90) => void
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -56,6 +65,8 @@ export function useMissionControl(): UseMissionControlReturn {
 
   // Store state selectors
   const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
+  const selectedLocationId = useMissionStore((s) => s.selectedLocationId)
+  const missionDurationDays = useMissionStore((s) => s.missionDurationDays)
   const crewSize = useMissionStore((s) => s.crewSize)
   const baseConfig = useMissionStore((s) => s.baseConfig)
   const missionActive = useMissionStore((s) => s.missionActive)
@@ -112,8 +123,13 @@ export function useMissionControl(): UseMissionControlReturn {
    * the mission. Must be called before advanceDay or resolveEvent.
    */
   function initializeMission(): void {
-    const { selectedPlanetId: planet, crewSize: crew, baseConfig: config } =
-      missionStore.getState()
+    const {
+      selectedPlanetId: planet,
+      crewSize: crew,
+      baseConfig: config,
+      selectedLocationId: locationId,
+      missionDurationDays: durationDays,
+    } = missionStore.getState()
 
     if (planet === null) {
       useAppStore.getState().setGlobalError('No planet selected. Please choose a destination.')
@@ -126,6 +142,20 @@ export function useMissionControl(): UseMissionControlReturn {
     if (config === null) {
       useAppStore.getState().setGlobalError('Base configuration is missing.')
       return
+    }
+
+    // Resolve planet profile, apply location modifier if a location was selected
+    const basePlanetProfiles: Readonly<Record<string, PlanetProfile>> = {
+      moon: MOON_PROFILE,
+      mars: MARS_PROFILE,
+    }
+    const baseProfile = basePlanetProfiles[planet]
+    if (locationId !== null) {
+      const location = getLocationById(locationId)
+      if (location !== undefined) {
+        // effectiveProfile computed here for future use when engine accepts profile override
+        void applyLocationModifier(baseProfile, location.modifier)
+      }
     }
 
     // Calculate initial resources scaled to crew size and battery capacity
@@ -143,6 +173,7 @@ export function useMissionControl(): UseMissionControlReturn {
       baseConfig: config,
       seed: Date.now(),
       initialResources,
+      missionDurationDays: durationDays,
     })
 
     missionStore.getState().setInitialResources(initialResources)
@@ -225,6 +256,8 @@ export function useMissionControl(): UseMissionControlReturn {
 
   return {
     selectedPlanetId,
+    selectedLocationId,
+    missionDurationDays,
     crewSize,
     baseConfig,
     missionActive,
@@ -246,5 +279,7 @@ export function useMissionControl(): UseMissionControlReturn {
     resolveEvent,
     emergencyRation,
     endMission,
+    setSelectedLocation: missionStore.getState().setSelectedLocation,
+    setMissionDuration: missionStore.getState().setMissionDuration,
   }
 }

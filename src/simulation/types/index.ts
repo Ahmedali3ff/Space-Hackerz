@@ -112,6 +112,7 @@ export interface MissionScore {
   readonly decisionQualityBonus: number
   readonly eventsResolvedBonus: number
   readonly criticalFailurePenalty: number
+  readonly durationBonus: number
   readonly finalScore: number
   readonly outcome: MissionOutcome
 }
@@ -173,4 +174,5 @@ export interface SimulationEngineConfig {
   readonly baseConfig: BaseConfig
   readonly seed: number
   readonly initialResources: ResourceSnapshot
+  readonly missionDurationDays?: number
 }
