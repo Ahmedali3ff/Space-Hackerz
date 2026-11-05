@@ -159,7 +159,7 @@ export function PlanetSelectionScreen(_props: PlanetSelectionScreenProps): JSX.E
   const canContinue = selectedPlanetId !== null
 
   return (
-    <AppShell title="ASTRA — Choose Your Destination" variant="light">
+    <AppShell title="Choose Your Destination" variant="light">
       <ScreenTransition routeKey="/select-planet">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 py-16">
           {/* ── Heading ── */}

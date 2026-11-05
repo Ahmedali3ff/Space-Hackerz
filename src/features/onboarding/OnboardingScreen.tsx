@@ -39,7 +39,7 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
   const setCommanderName = useMissionProgressStore((s) => s.setCommanderName)
 
   return (
-    <AppShell title="ASTRA Mission Control" variant="light">
+    <AppShell title="Space+ Mission Control" variant="light">
       <ScreenTransition routeKey="/">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 py-16">
           {/* ── Main card ── */}
@@ -51,15 +51,13 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
               </span>
             </div>
 
-            {/* Title — PRESERVED: 'ASTRA' text */}
+            {/* Title */}
             <h2 className="font-display2 text-5xl font-extrabold text-spaceplus-text-heading">
-              ASTRA
+              Space<span className="text-[#1FC8C0]">+</span>
             </h2>
             <p className="mt-1 font-display2 text-lg font-semibold text-spaceplus-text-secondary">
               Mission Control Academy
             </p>
-
-            {/* Tagline — PRESERVED: 'Explore', 'Survive', 'Learn' text */}
             <p className="mt-4 font-display2 text-base font-medium tracking-wide text-spaceplus-accent-teal">
               Explore.&nbsp;&nbsp;Decide.&nbsp;&nbsp;Survive.&nbsp;&nbsp;Learn.
             </p>

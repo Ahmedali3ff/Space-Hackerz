@@ -157,6 +157,8 @@ export function MissionsOverviewScreen(_props: MissionsOverviewScreenProps): JSX
   const navigate = useNavigate()
   const commanderName = useMissionProgressStore((s) => s.commanderName)
   const totalStars = useMissionProgressStore((s) => s.totalStars)
+  const currentLevel = useMissionProgressStore((s) => s.currentLevel)
+  const commanderTitle = useMissionProgressStore((s) => s.commanderTitle)
   const getMissionStatus = useMissionProgressStore((s) => s.getMissionStatus)
   const startMission = useMissionProgressStore((s) => s.startMission)
 
@@ -182,7 +184,7 @@ export function MissionsOverviewScreen(_props: MissionsOverviewScreenProps): JSX
             <div className="flex items-center gap-3">
               <StarScore score={totalStars} size="md" />
               {commanderName.trim().length > 0 && (
-                <UserChip name={displayName} role="Commander" size="md" />
+                <UserChip name={displayName} level={currentLevel} levelTitle={commanderTitle} size="md" />
               )}
             </div>
           </div>

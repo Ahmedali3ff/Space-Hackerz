@@ -7,7 +7,7 @@
 import { useEffect, useCallback } from 'react'
 import { useAppStore } from '@store/app-store'
 
-const STORAGE_KEY = 'astra-reduce-motion'
+const STORAGE_KEY = 'spaceplus-reduce-motion'
 
 export interface ReducedMotionApi {
   readonly reducedMotion: boolean

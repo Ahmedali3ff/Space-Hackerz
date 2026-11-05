@@ -51,12 +51,12 @@ export function TopNavBar({
     : 'text-sm font-semibold text-text-secondary'
 
   return (
-    <nav className={barClass} aria-label="ASTRA navigation">
+    <nav className={barClass} aria-label="Space+ navigation">
       {/* ── Left: Logo + wordmark ── */}
       <NavLink
         to="/"
         className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal rounded-lg"
-        aria-label="ASTRA — home"
+        aria-label="Space+ — home"
       >
         <span
           className="flex items-center justify-center w-8 h-8 rounded-full bg-spaceplus-accent-teal"
@@ -65,7 +65,7 @@ export function TopNavBar({
           <Rocket size={18} weight="fill" color="#fff" />
         </span>
         <span className={logoTextClass}>
-          {title ?? 'ASTRA'}
+          {title ?? <><span className="text-[#1A1D2E]">Space</span><span className="text-[#1FC8C0]">+</span></>}
         </span>
       </NavLink>
 

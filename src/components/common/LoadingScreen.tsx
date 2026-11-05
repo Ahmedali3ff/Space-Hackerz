@@ -31,12 +31,12 @@ export function LoadingScreen(): JSX.Element {
       className="fixed inset-0 flex flex-col items-center justify-center bg-[#F4F7FA]"
       role="status"
     >
-      {/* ASTRA wordmark */}
+      {/* Space+ wordmark */}
       <span
         className="font-display2 text-5xl font-bold tracking-widest text-spaceplus-accent-teal"
         aria-hidden="true"
       >
-        ASTRA
+        Space<span className="text-[#1FC8C0]">+</span>
       </span>
 
       {/* Animated ring — static when reducedMotion */}

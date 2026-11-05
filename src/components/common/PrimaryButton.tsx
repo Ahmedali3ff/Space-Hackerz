@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, type Transition } from 'framer-motion'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'hint'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'hint' | 'danger'
 type ButtonSize = 'md' | 'lg'
 
 interface PrimaryButtonProps {
@@ -26,11 +26,11 @@ interface PrimaryButtonProps {
 }
 
 const VARIANT_CLASSES: Readonly<Record<ButtonVariant, string>> = {
-  primary: 'bg-spaceplus-accent-teal text-white hover:bg-spaceplus-accent-tealDark',
-  secondary:
-    'bg-white text-spaceplus-text-heading border border-spaceplus-border-light hover:border-spaceplus-accent-teal hover:shadow-card',
-  ghost: 'bg-transparent text-spaceplus-text-secondary hover:bg-spaceplus-surface hover:text-spaceplus-text-heading',
-  hint: 'bg-spaceplus-accent-teal text-white hover:bg-spaceplus-accent-tealDark',
+  primary:   'bg-[#1FC8C0] text-white hover:bg-[#17A99E] shadow-sm',
+  secondary: 'bg-white text-[#1A1D2E] border-2 border-[#1FC8C0] hover:bg-[#E8FAF9]',
+  ghost:     'bg-transparent text-[#1FC8C0] hover:bg-[#E8FAF9] rounded-xl',
+  hint:      'bg-white text-[#1FC8C0] border-2 border-[#1FC8C0] hover:bg-[#E8FAF9] rounded-full',
+  danger:    'bg-[#EF4444] text-white hover:bg-[#DC2626] shadow-sm',
 }
 
 const SPRING: Transition = { type: 'spring', stiffness: 400, damping: 22 }

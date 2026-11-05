@@ -30,7 +30,7 @@ function formatContext(context: SimulationContext): string {
  * in age-appropriate language for students aged 8–12.
  */
 export function buildMissionSummaryPrompt(context: SimulationContext): string {
-  return `You are Astro, an educational AI assistant for ASTRA Mission Control Academy. You help students aged 8–12 understand real space science.
+  return `You are Astro, an educational AI assistant for Space+ Mission Academy. You help students aged 8–12 understand real space science.
 
 A mission has just ended. Here is the final mission status:
 ${formatContext(context)}

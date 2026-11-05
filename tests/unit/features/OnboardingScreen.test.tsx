@@ -25,9 +25,10 @@ function renderScreen(): ReturnType<typeof render> {
 }
 
 describe('OnboardingScreen', () => {
-  it('renders the ASTRA title', () => {
+  it('renders the Space+ title', () => {
     renderScreen()
-    expect(screen.getByText('ASTRA')).toBeInTheDocument()
+    // Title is split across spans: 'Space' + '+', so we check for 'Space' text node
+    expect(screen.getByText('Space')).toBeInTheDocument()
   })
 
   it('renders the tagline', () => {
@@ -54,6 +55,6 @@ describe('OnboardingScreen', () => {
     renderScreen()
     const h1 = screen.getByRole('heading', { level: 1 })
     expect(h1).toHaveClass('sr-only')
-    expect(h1).toHaveTextContent('ASTRA Mission Control')
+    expect(h1).toHaveTextContent('Space+ Mission Control')
   })
 })

@@ -64,7 +64,7 @@ export function CrewSelectionScreen(_props: CrewSelectionScreenProps): JSX.Eleme
   const planetLabel = selectedPlanetId === 'moon' ? 'The Moon' : selectedPlanetId === 'mars' ? 'Mars' : '—'
 
   return (
-    <AppShell title="ASTRA — Select Your Crew" variant="light">
+    <AppShell title="Select Your Crew" variant="light">
       <ScreenTransition routeKey="/select-crew">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 py-16">
           {/* ── Heading ── */}

@@ -19,9 +19,9 @@ interface CardProps {
 }
 
 const ACCENT_BORDER: Readonly<Record<CardAccent, string>> = {
-  teal: 'border-l-4 border-l-spaceplus-accent-teal',
-  amber: 'border-l-4 border-l-spaceplus-accent-amber',
-  coral: 'border-l-4 border-l-spaceplus-accent-coral',
+  teal: 'border-l-4 border-l-[#1FC8C0]',
+  amber: 'border-l-4 border-l-[#F5A623]',
+  coral: 'border-l-4 border-l-[#FF6F61]',
   none: '',
 }
 
@@ -36,14 +36,14 @@ export function Card({
   ariaPressed,
 }: CardProps): JSX.Element {
   const selectedClass = selected
-    ? 'ring-2 ring-spaceplus-accent-teal'
+    ? 'ring-2 ring-[#1FC8C0]'
     : ''
 
   const interactiveClass = clickable
-    ? 'cursor-pointer hover:shadow-cardHover transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spaceplus-accent-teal'
+    ? 'cursor-pointer hover:shadow-cardHover transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0]'
     : ''
 
-  const combinedClass = `sp-card p-5 ${ACCENT_BORDER[accent]} ${selectedClass} ${interactiveClass} ${className}`.trim()
+  const combinedClass = `bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-5 ${ACCENT_BORDER[accent]} ${selectedClass} ${interactiveClass} ${className}`.trim()
 
   if (clickable || onClick !== undefined) {
     return (

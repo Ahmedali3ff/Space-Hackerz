@@ -1,6 +1,6 @@
 // src/store/mission-progress-store.ts
 // Zustand store (with localStorage persistence) for mission progress across
-// the 6-mission ASTRA story arc. Tracks which missions are active/locked/completed
+// the 6-mission Space+ story arc. Tracks which missions are active/locked/completed
 // and which tasks within each mission have been satisfied.
 
 import { create } from 'zustand'
@@ -8,12 +8,16 @@ import { persist } from 'zustand/middleware'
 import { MISSIONS, getMissionById } from '@data/missions/mission-definitions'
 import type { MissionDefinition } from '@data/missions/mission-definitions'
 import type { MissionProgress, MissionStatus } from '@data/missions/mission-progress'
+import { getLevelForXP, getXPForMission } from '@data/levels/level-definitions'
 
 // ── State shape ───────────────────────────────────────────────────────────────
 
 export interface MissionProgressState {
   readonly missions: Record<string, MissionProgress>
   readonly totalStars: number
+  readonly totalXP: number
+  readonly currentLevel: number
+  readonly commanderTitle: string
   readonly currentMissionId: string | null
   readonly commanderName: string
 }
@@ -25,6 +29,7 @@ export interface MissionProgressActions {
   startMission: (missionId: string) => void
   completeTask: (missionId: string, taskId: string) => void
   completeMission: (missionId: string, earnedStars: number) => void
+  awardXP: (amount: number) => void
   getMissionStatus: (missionId: string) => MissionStatus
   getCurrentMission: () => MissionDefinition | null
   resetProgress: () => void
@@ -51,6 +56,9 @@ function buildInitialMissions(): Record<string, MissionProgress> {
 const INITIAL_STATE: MissionProgressState = {
   missions: buildInitialMissions(),
   totalStars: 0,
+  totalXP: 0,
+  currentLevel: 1,
+  commanderTitle: 'Space Cadet',
   currentMissionId: 'm01',
   commanderName: '',
 }
@@ -139,7 +147,33 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
           // Advance currentMissionId to the newly unlocked mission (or keep it)
           const newCurrentId = nextMission?.id ?? state.currentMissionId
 
-          return { missions: updated, totalStars, currentMissionId: newCurrentId }
+          // Award XP for this mission
+          const missionDef = MISSIONS.find((m) => m.id === missionId)
+          const missionNumber = missionDef?.number ?? 1
+          const xpEarned = getXPForMission(earnedStars, missionNumber)
+          const newTotalXP = state.totalXP + xpEarned
+          const levelDef = getLevelForXP(newTotalXP)
+
+          return {
+            missions: updated,
+            totalStars,
+            totalXP: newTotalXP,
+            currentLevel: levelDef.level,
+            commanderTitle: levelDef.title,
+            currentMissionId: newCurrentId,
+          }
+        })
+      },
+
+      awardXP: (amount: number): void => {
+        set((state) => {
+          const newTotalXP = state.totalXP + amount
+          const levelDef = getLevelForXP(newTotalXP)
+          return {
+            totalXP: newTotalXP,
+            currentLevel: levelDef.level,
+            commanderTitle: levelDef.title,
+          }
         })
       },
 
@@ -158,7 +192,7 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
       },
     }),
     {
-      name: 'astra-mission-progress',
+      name: 'spaceplus-mission-progress',
     },
   ),
 )

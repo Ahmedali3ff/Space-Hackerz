@@ -135,7 +135,7 @@ export function LocationSelectionScreen(_props: LocationSelectionScreenProps): J
   const canContinue = selectedLocationId !== null
 
   return (
-    <AppShell title="ASTRA — Choose Your Landing Site" variant="light">
+    <AppShell title="Choose Your Landing Site" variant="light">
       <ScreenTransition routeKey="/select-location">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center px-6 py-16">
           {/* ── Heading ── */}

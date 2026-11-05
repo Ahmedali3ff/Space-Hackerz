@@ -211,7 +211,7 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
   }
 
   return (
-    <AppShell title="ASTRA — Configure Your Base" variant="light">
+    <AppShell title="Configure Your Base" variant="light">
       <ScreenTransition routeKey="/configure-base">
         <div className="mx-auto flex min-h-[calc(100vh-65px)] max-w-4xl flex-col items-stretch px-6 py-16">
           {/* ── Heading ── */}
