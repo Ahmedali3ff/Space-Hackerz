@@ -1,0 +1,28 @@
+{
+  "project_type": "Vite 5 + React 18 + TypeScript SPA (single-page app), no backend",
+  "language": "TypeScript 5 with strict mode",
+  "build_system": "Vite 5. Build command: npm run build (runs 'tsc -b && vite build'). tsconfig.app.json includes only 'src/' — test files in 'tests/' are NOT type-checked by tsc. Path aliases configured in both tsconfig.app.json and vite.config.ts.",
+  "test_framework": "Vitest 2 with @testing-library/react. Test files in tests/unit/ and tests/integration/. All tests use globals:true (no explicit vitest imports needed for describe/it/expect). Setup file: tests/setup.ts.",
+  "build_command": "npm run build",
+  "test_command": "npm run test -- --run",
+  "verification_instructions": "1. Run 'npm run build' from workspace root — must exit 0 with zero TS errors and zero Vite errors. 2. Run 'npm run test -- --run' — must exit 0, all tests pass. Baseline: 75 tests pass before Phase 9 changes.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Windows PowerShell. No 'grep' or 'tail' — use Select-String and Select-Object instead. Workspace root: c:\\Users\\HP\\Desktop\\NASA SPACE APPS.",
+  "contribution_requirements": "No React/Zustand/Phaser imports in src/simulation/ or src/ai/. All components are functional, max 300 lines. Props typed with named interfaces. No 'any', no enums, no '!' except in tests with justifying comment. Scientific constants must have source comments. Zustand stores use camelCase+Store naming. Hooks use use+PascalCase. Test files mirror src/ structure under tests/.",
+  "key_patterns": "Components read data via hooks (useMissionControl), never import stores or simulation engine directly. Zustand set() callback form '(state) => ({...state.field, newValue})' required when reading current state. Path aliases (@/, @simulation/, @store/, @ai/) used everywhere except within src/ai/ internal imports. Tests wrap components in MemoryRouter when useNavigate is used. ResourceHistoryPoint data comes from SimulationResult.nextState.resources + missionDay.",
+  "relevant_files": [
+    "src/simulation/types/index.ts — add ResourceHistoryPoint after ResourceSnapshot",
+    "src/store/mission-store.ts — add resourceHistory field, update updateFromSimResult to append, make endMission log param optional",
+    "src/hooks/useMissionControl.ts — add resourceHistory to UseMissionControlReturn and return object",
+    "src/simulation/core/mission-scoring.ts — add V1 simplification comment only",
+    "src/features/mission-debrief/MissionDebriefScreen.tsx — create (directory exists, is empty)",
+    "src/app/router.tsx — replace /debrief placeholder, add RequireMissionStarted guard",
+    "tests/unit/store/mission-store.test.ts — fix endMission call (add empty [] arg), add resourceHistory tests",
+    "tests/unit/simulation/resource-history.test.ts — create (6 tests)",
+    "tests/unit/features/MissionDebriefScreen.test.tsx — create (7 tests, wrap in MemoryRouter)",
+    "PATTERN: tests/unit/hooks/useMissionControl.test.ts — how to use renderHook + act + missionStore.setState",
+    "PATTERN: tests/unit/store/mission-store.test.ts — how to reset store in beforeEach, build mock SimulationResult",
+    "PATTERN: src/app/router.tsx — existing RequireSetup and RequireMission guard components"
+  ],
+  "directory_structure": "src/features/ — one directory per screen (mission-debrief/ is empty). src/hooks/ — useMissionControl.ts. src/store/ — mission-store.ts, app-store.ts. src/simulation/types/ — index.ts (all sim types). src/simulation/core/ — mission-scoring.ts, simulation-engine.ts. src/app/ — router.tsx, providers/. tests/unit/ — ai/, hooks/, simulation/, store/. tests/integration/ — simulation/."
+}

@@ -90,6 +90,7 @@ describe('missionStore', () => {
     missionStore.getState().setCrewSize(6)
     missionStore.getState().setBaseConfig(mockBaseConfig)
     missionStore.getState().startMission()
+    missionStore.getState().setInitialResources(mockResources)
     missionStore.getState().updateFromSimResult(buildMockSimResult())
 
     // Reset
@@ -101,6 +102,7 @@ describe('missionStore', () => {
     expect(state.baseConfig).toBeNull()
     expect(state.missionActive).toBe(false)
     expect(state.missionStarted).toBe(false)
+    expect(state.initialResources).toBeNull()
     expect(state.currentResources).toBeNull()
     expect(state.currentMissionDay).toBe(0)
     expect(state.activeFaultStates).toEqual([])
@@ -171,5 +173,48 @@ describe('missionStore', () => {
     expect(resourceHistory.length).toBe(2)
     expect(resourceHistory[0].missionDay).toBe(1)
     expect(resourceHistory[1].missionDay).toBe(2)
+  })
+
+  it('updateFromSimResult with decisionLog sets decisionLog on state', () => {
+    const mockLog = [
+      {
+        missionDay: 1,
+        action: { type: 'ADVANCE_DAY' as const },
+        resultSummary: 'Day advanced normally.',
+        wasOptimal: true,
+      },
+    ]
+    const mockResult = buildMockSimResult()
+    missionStore.getState().updateFromSimResult(mockResult, mockLog)
+    expect(missionStore.getState().decisionLog).toEqual(mockLog)
+  })
+
+  it('updateFromSimResult without decisionLog does not clear existing decisionLog', () => {
+    const mockLog = [
+      {
+        missionDay: 1,
+        action: { type: 'ADVANCE_DAY' as const },
+        resultSummary: 'Day advanced normally.',
+        wasOptimal: true,
+      },
+    ]
+    // First call with log to populate it
+    missionStore.getState().updateFromSimResult(buildMockSimResult(), mockLog)
+    expect(missionStore.getState().decisionLog).toHaveLength(1)
+    // Second call without log — should NOT clear decisionLog
+    missionStore.getState().updateFromSimResult(buildMockSimResult({ missionDay: 4 }))
+    expect(missionStore.getState().decisionLog).toHaveLength(1)
+  })
+
+  it('setInitialResources sets initialResources on state', () => {
+    missionStore.getState().setInitialResources(mockResources)
+    expect(missionStore.getState().initialResources).toEqual(mockResources)
+  })
+
+  it('resetMission clears initialResources to null', () => {
+    missionStore.getState().setInitialResources(mockResources)
+    expect(missionStore.getState().initialResources).not.toBeNull()
+    missionStore.getState().resetMission()
+    expect(missionStore.getState().initialResources).toBeNull()
   })
 })

@@ -63,4 +63,38 @@ describe('AstroAssistant', () => {
     const parsed = AstroResponseSchema.safeParse(result)
     expect(parsed.success).toBe(true)
   })
+
+  describe('getMissionSummary', () => {
+    it('returns a valid AstroResponse for outcome=success (offline fallback)', async () => {
+      const assistant = new AstroAssistant({})
+      const context: SimulationContext = { ...testContext, outcome: 'success' }
+      const result = await assistant.getMissionSummary(context)
+      const parsed = AstroResponseSchema.safeParse(result)
+      expect(parsed.success).toBe(true)
+    })
+
+    it('returns a valid AstroResponse for outcome=failure (offline fallback)', async () => {
+      const assistant = new AstroAssistant({})
+      const context: SimulationContext = { ...testContext, outcome: 'failure' }
+      const result = await assistant.getMissionSummary(context)
+      const parsed = AstroResponseSchema.safeParse(result)
+      expect(parsed.success).toBe(true)
+    })
+
+    it('returns a valid AstroResponse for outcome=partial (offline fallback)', async () => {
+      const assistant = new AstroAssistant({})
+      const context: SimulationContext = { ...testContext, outcome: 'partial' }
+      const result = await assistant.getMissionSummary(context)
+      const parsed = AstroResponseSchema.safeParse(result)
+      expect(parsed.success).toBe(true)
+    })
+
+    it('returns a valid AstroResponse for outcome=ongoing (falls back to default trigger)', async () => {
+      const assistant = new AstroAssistant({})
+      const context: SimulationContext = { ...testContext, outcome: 'ongoing' }
+      const result = await assistant.getMissionSummary(context)
+      const parsed = AstroResponseSchema.safeParse(result)
+      expect(parsed.success).toBe(true)
+    })
+  })
 })

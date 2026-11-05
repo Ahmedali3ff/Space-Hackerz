@@ -24,6 +24,7 @@ export interface MissionState {
   readonly baseConfig: BaseConfig | null
   readonly missionActive: boolean
   readonly missionStarted: boolean
+  readonly initialResources: ResourceSnapshot | null
   readonly currentResources: ResourceSnapshot | null
   readonly currentMissionDay: number
   readonly activeFaultStates: readonly FaultState[]
@@ -41,7 +42,8 @@ export interface MissionActions {
   setCrewSize: (crewSize: number) => void
   setBaseConfig: (config: BaseConfig) => void
   startMission: () => void
-  updateFromSimResult: (result: SimulationResult) => void
+  setInitialResources: (resources: ResourceSnapshot) => void
+  updateFromSimResult: (result: SimulationResult, decisionLog?: readonly DecisionLogEntry[]) => void
   endMission: (score: MissionScore, log?: readonly DecisionLogEntry[]) => void
   resetMission: () => void
 }
@@ -56,6 +58,7 @@ export const INITIAL_MISSION_STATE: MissionState = {
   baseConfig: null,
   missionActive: false,
   missionStarted: false,
+  initialResources: null,
   currentResources: null,
   currentMissionDay: 0,
   activeFaultStates: [],
@@ -87,7 +90,11 @@ export const useMissionStore = create<MissionStore>()((set) => ({
     set({ missionActive: true, missionStarted: true })
   },
 
-  updateFromSimResult: (result: SimulationResult): void => {
+  setInitialResources: (resources: ResourceSnapshot): void => {
+    set({ initialResources: resources })
+  },
+
+  updateFromSimResult: (result: SimulationResult, decisionLog?: readonly DecisionLogEntry[]): void => {
     set((state) => ({
       currentResources: result.nextState.resources,
       currentMissionDay: result.nextState.missionDay,
@@ -105,9 +112,8 @@ export const useMissionStore = create<MissionStore>()((set) => ({
           cumulativeRadiation_mSv: result.nextState.resources.cumulativeRadiation_mSv,
         },
       ],
-      // decisionLog is passed in via the result so the store always reflects
-      // the engine's accumulated log. The hook reads engine.getDecisionLog()
-      // and injects it here on every step.
+      // The hook passes engine.getDecisionLog() on every successful step
+      ...(decisionLog !== undefined ? { decisionLog: [...decisionLog] } : {}),
     }))
   },
 

@@ -108,6 +108,7 @@ export function useMissionControl(): UseMissionControlReturn {
       initialResources,
     })
 
+    missionStore.getState().setInitialResources(initialResources)
     missionStore.getState().startMission()
   }
 
@@ -123,7 +124,8 @@ export function useMissionControl(): UseMissionControlReturn {
     const result = engineRef.current.step({ type: 'ADVANCE_DAY' })
 
     if (result.success) {
-      missionStore.getState().updateFromSimResult(result.value)
+      // Non-null: we just null-checked engineRef.current above
+      missionStore.getState().updateFromSimResult(result.value, engineRef.current!.getDecisionLog())
     } else {
       useAppStore.getState().setGlobalError(result.error.message)
     }
@@ -141,7 +143,8 @@ export function useMissionControl(): UseMissionControlReturn {
     const result = engineRef.current.step({ type: 'RESOLVE_EVENT', eventId, choiceId })
 
     if (result.success) {
-      missionStore.getState().updateFromSimResult(result.value)
+      // Non-null: we just null-checked engineRef.current above
+      missionStore.getState().updateFromSimResult(result.value, engineRef.current!.getDecisionLog())
     } else {
       useAppStore.getState().setGlobalError(result.error.message)
     }
@@ -159,7 +162,8 @@ export function useMissionControl(): UseMissionControlReturn {
     const result = engineRef.current.step({ type: 'EMERGENCY_RATION' })
 
     if (result.success) {
-      missionStore.getState().updateFromSimResult(result.value)
+      // Non-null: we just null-checked engineRef.current above
+      missionStore.getState().updateFromSimResult(result.value, engineRef.current!.getDecisionLog())
     } else {
       useAppStore.getState().setGlobalError(result.error.message)
     }

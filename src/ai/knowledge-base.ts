@@ -269,6 +269,24 @@ export const KNOWLEDGE_BASE: readonly KnowledgeEntry[] = [
   },
 
   {
+    trigger: 'mission-partial',
+    explanation:
+      'Your crew made it through the mission — that is a real achievement, Commander! ' +
+      'Things did not go perfectly, but space exploration never goes exactly as planned. ' +
+      'Real NASA missions face unexpected problems all the time, and the engineers and ' +
+      'astronauts who learn from those moments are the ones who make the next mission even better. ' +
+      'Review your decision log and see what you would do differently — then go again!',
+    scienceFact:
+      'NASA\'s Apollo 13 mission in 1970 had a life-threatening oxygen tank explosion ' +
+      'on the way to the Moon, but the crew and mission control worked together to bring ' +
+      'the crew safely home — it is now called NASA\'s "most successful failure". ' +
+      '(Source: NASA)',
+    suggestion:
+      'Look at your resource history in the debrief to find the moment things started ' +
+      'going wrong — that is your best clue for planning a stronger mission next time!',
+  },
+
+  {
     trigger: 'mission-success',
     explanation:
       'Your crew has successfully completed the mission — what an incredible achievement! ' +

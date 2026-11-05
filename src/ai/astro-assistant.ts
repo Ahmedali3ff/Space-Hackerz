@@ -9,6 +9,7 @@ import { getKnowledgeEntry } from './knowledge-base'
 import { buildEventExplanationPrompt } from './prompts/event-explanation.prompt'
 import { buildResourceChangePrompt } from './prompts/resource-change.prompt'
 import { buildDecisionGuidancePrompt } from './prompts/decision-guidance.prompt'
+import { buildMissionSummaryPrompt } from './prompts/mission-summary.prompt'
 
 export interface AstroAssistantConfig {
   readonly apiKey?: string
@@ -80,6 +81,26 @@ export class AstroAssistant {
   ): Promise<AstroResponse> {
     const prompt = buildDecisionGuidancePrompt(context, eventId)
     return this.callAI(prompt, eventId)
+  }
+
+  /**
+   * Generates a mission summary for the debrief screen.
+   * Maps outcome to a knowledge-base fallback trigger.
+   * Never rejects — falls back to the knowledge base when offline or unavailable.
+   */
+  async getMissionSummary(context: SimulationContext): Promise<AstroResponse> {
+    let trigger: string
+    if (context.outcome === 'success') {
+      trigger = 'mission-success'
+    } else if (context.outcome === 'failure') {
+      trigger = 'mission-failure'
+    } else if (context.outcome === 'partial') {
+      trigger = 'mission-partial'
+    } else {
+      trigger = 'default'
+    }
+    const prompt = buildMissionSummaryPrompt(context)
+    return this.callAI(prompt, trigger)
   }
 
   /** Maps a knowledge base entry to an AstroResponse (offline/fallback content). */

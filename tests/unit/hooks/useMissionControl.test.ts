@@ -248,5 +248,41 @@ describe('useMissionControl', () => {
 
       expect(result.current.resourceHistory.length).toBe(2)
     })
+
+    it('decisionLog is non-empty after advanceDay (not only after endMission)', () => {
+      setupValidMissionState()
+
+      const { result } = renderHook(() => useMissionControl())
+
+      act(() => {
+        result.current.initializeMission()
+      })
+
+      expect(result.current.decisionLog.length).toBe(0)
+
+      act(() => {
+        result.current.advanceDay()
+      })
+
+      // The engine records each step as a decision log entry
+      expect(result.current.decisionLog.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('initializeMission', () => {
+    it('initialResources is set (non-null) after initializeMission', () => {
+      setupValidMissionState()
+
+      const { result } = renderHook(() => useMissionControl())
+
+      // Before init, initialResources is null
+      expect(missionStore.getState().initialResources).toBeNull()
+
+      act(() => {
+        result.current.initializeMission()
+      })
+
+      expect(missionStore.getState().initialResources).not.toBeNull()
+    })
   })
 })

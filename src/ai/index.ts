@@ -17,6 +17,7 @@ export { KNOWLEDGE_BASE, getKnowledgeEntry } from './knowledge-base'
 export { buildEventExplanationPrompt } from './prompts/event-explanation.prompt'
 export { buildResourceChangePrompt } from './prompts/resource-change.prompt'
 export { buildDecisionGuidancePrompt } from './prompts/decision-guidance.prompt'
+export { buildMissionSummaryPrompt } from './prompts/mission-summary.prompt'
 
 // astro-assistant
 export type { AstroAssistantConfig } from './astro-assistant'

@@ -1,0 +1,7 @@
+{
+  "task_id": "task-phase9-debrief",
+  "task_description": "Implement Phase 9 — Mission Debrief for ASTRA: add ResourceHistoryPoint type, resourceHistory store field, update the mission store and hook, implement MissionDebriefScreen with 6 sections and Recharts history charts, update the router /debrief route, and add all required tests.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}
