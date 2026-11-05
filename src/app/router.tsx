@@ -1,12 +1,31 @@
+import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
-import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen'
-import { PlanetSelectionScreen } from '@/features/planet-selection/PlanetSelectionScreen'
-import { CrewSelectionScreen } from '@/features/crew-selection/CrewSelectionScreen'
-import { BaseConfigurationScreen } from '@/features/base-configuration/BaseConfigurationScreen'
-import { MissionControlScreen } from '@/features/mission-control/MissionControlScreen'
-import { MissionDebriefScreen } from '@/features/mission-debrief/MissionDebriefScreen'
+import { LoadingScreen } from '@/components/common/LoadingScreen'
+import { ScreenTransition } from '@/components/layout/ScreenTransition'
+
+// ── Lazy-loaded screens ───────────────────────────────────────────────────────
+// LoadingScreen itself is NOT lazy — it must be available immediately as a fallback.
+
+const OnboardingScreen = React.lazy(
+  () => import('../features/onboarding/OnboardingScreen').then((m) => ({ default: m.OnboardingScreen })),
+)
+const PlanetSelectionScreen = React.lazy(
+  () => import('../features/planet-selection/PlanetSelectionScreen').then((m) => ({ default: m.PlanetSelectionScreen })),
+)
+const CrewSelectionScreen = React.lazy(
+  () => import('../features/crew-selection/CrewSelectionScreen').then((m) => ({ default: m.CrewSelectionScreen })),
+)
+const BaseConfigurationScreen = React.lazy(
+  () => import('../features/base-configuration/BaseConfigurationScreen').then((m) => ({ default: m.BaseConfigurationScreen })),
+)
+const MissionControlScreen = React.lazy(
+  () => import('../features/mission-control/MissionControlScreen').then((m) => ({ default: m.MissionControlScreen })),
+)
+const MissionDebriefScreen = React.lazy(
+  () => import('../features/mission-debrief/MissionDebriefScreen').then((m) => ({ default: m.MissionDebriefScreen })),
+)
 
 // ── Route guard components ────────────────────────────────────────────────────
 
@@ -59,21 +78,43 @@ export function AppRouter(): JSX.Element {
     <Routes>
       <Route
         path="/"
-        element={<OnboardingScreen />}
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/">
+              <OnboardingScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
       />
       <Route
         path="/select-planet"
-        element={<PlanetSelectionScreen />}
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/select-planet">
+              <PlanetSelectionScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
       />
       <Route
         path="/select-crew"
-        element={<CrewSelectionScreen />}
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/select-crew">
+              <CrewSelectionScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
       />
       <Route
         path="/configure-base"
         element={
           <RequireSetup>
-            <BaseConfigurationScreen />
+            <Suspense fallback={<LoadingScreen />}>
+              <ScreenTransition routeKey="/configure-base">
+                <BaseConfigurationScreen />
+              </ScreenTransition>
+            </Suspense>
           </RequireSetup>
         }
       />
@@ -82,7 +123,11 @@ export function AppRouter(): JSX.Element {
         element={
           <RequireSetup>
             <RequireMission>
-              <MissionControlScreen />
+              <Suspense fallback={<LoadingScreen />}>
+                <ScreenTransition routeKey="/mission">
+                  <MissionControlScreen />
+                </ScreenTransition>
+              </Suspense>
             </RequireMission>
           </RequireSetup>
         }
@@ -92,7 +137,11 @@ export function AppRouter(): JSX.Element {
         element={
           <RequireSetup>
             <RequireMissionStarted>
-              <MissionDebriefScreen />
+              <Suspense fallback={<LoadingScreen />}>
+                <ScreenTransition routeKey="/debrief">
+                  <MissionDebriefScreen />
+                </ScreenTransition>
+              </Suspense>
             </RequireMissionStarted>
           </RequireSetup>
         }

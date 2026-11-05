@@ -10,12 +10,20 @@ PHASE 2 — Project Scaffold ✅ COMPLETE
 PHASE 3 — Scientific Foundation ✅ COMPLETE
 PHASE 4 — Simulation Core ✅ COMPLETE
 PHASE 5 — Application Foundation ✅ COMPLETE
-PHASE 8 (partial) — Astro-AI knowledge base + service ✅ COMPLETE (UI integration pending design)
+PHASE 6/7 — Playable 2D/Glass Vertical Slice ✅ COMPLETE (FEAT-001 through FEAT-005)
+PHASE 8 (partial) — Astro-AI knowledge base + service ✅ COMPLETE (integrated into Mission Control + Debrief)
 PHASE 9 — Mission Debrief ✅ COMPLETE
 
 ## Current Task
 
-**Building the playable 2D/glass vertical slice** (R1 design system + R2 components + all setup screens + 3D Mission Control hero + debrief re-skin + decisionLog bug fix). Workflow `wf_ca2c9d52439ca363` running. **3D (React Three Fiber) is a later phase — this slice is 2D/glass.**
+**Playable 2D/glass vertical slice — COMPLETE** ✅
+
+All five features (FEAT-001 through FEAT-005) are done. The game is playable end-to-end:
+Onboarding → Planet Selection → Crew → Base Config → Mission Control → Debrief.
+
+R1 design tokens ✅ | R2 shared components ✅ | R3 decisionLog live fix ✅ | R4 setup screens ✅ | R5 Mission Control hero ✅ | Debrief re-skin ✅ | Code-split (lazy routes) ✅ | React Router v7 flags ✅
+
+**Next up:** 3D stack (React Three Fiber + drei + three) — blocked on 3D assets.
 
 R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Location Selection, F10 Mission Duration, F11 3D World; `requirements.md` added FR-09/FR-10/FR-11.
 
@@ -88,6 +96,11 @@ R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Locat
 | DEB-003  | ResourceHistoryPoint type + store tracking + tests     | 2026-11-04 |
 | DEB-004  | MissionDebriefScreen (6 sections, Recharts) + tests    | 2026-11-04 |
 | DEB-005  | Router update: /debrief uses RequireMissionStarted     | 2026-11-04 |
+| FEAT-001 | Design tokens + shared components (R1+R2)             | 2026-11-04 |
+| FEAT-002 | decisionLog live fix + initialResources + useAstroContext + getMissionSummary | 2026-11-04 |
+| FEAT-003 | Setup screens (Onboarding/Planet/Crew/Config) + router wiring | 2026-11-04 |
+| FEAT-004 | Mission Control hero + sub-panels + Astro-AI + event-registry | 2026-11-04 |
+| FEAT-005 | Debrief re-skin + code-split + v7 flags + final verification + docs | 2026-11-04 |
 
 ## Pending Tasks (ordered)
 

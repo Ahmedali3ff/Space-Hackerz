@@ -5,7 +5,7 @@ import { GlobalProviders } from '@/app/providers/GlobalProviders'
 export default function App(): JSX.Element {
   return (
     <GlobalProviders>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppRouter />
       </BrowserRouter>
     </GlobalProviders>

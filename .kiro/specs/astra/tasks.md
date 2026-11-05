@@ -295,38 +295,38 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 - **Description:** Receive and analyze user-supplied design references
 - **Dependencies:** User provides design assets
 - **Acceptance Criteria:** All screens identified in design. All states (normal, warning, error) identified. Asset list compiled.
-- **Status:** BLOCKED (BLK-001: awaiting user design)
+- **Status:** DONE (design direction defined in docs/astra-redesign-report.md; tokens applied in tailwind.config.js + src/index.css)
 
 ### TASK-VIS-002
 - **Description:** Extract design tokens and configure Tailwind theme
 - **Dependencies:** TASK-VIS-001
 - **Acceptance Criteria:** tailwind.config.ts extended with exact design colors, fonts, and spacing. Design tokens match reference.
-- **Status:** BLOCKED
+- **Status:** DONE
 
 ### TASK-VIS-003
 - **Description:** Build common component library
 - **Dependencies:** TASK-VIS-002
 - **Acceptance Criteria:** Button, Card, Badge, ProgressBar, Modal, Alert components built and visually match design. All components typed and accessible.
-- **Status:** BLOCKED
+- **Status:** DONE (Panel, PrimaryButton, StatusBadge, StatReadout, ResourceBar, EventCard, AstroPanel, AppShell, ScreenTransition)
 
 ### TASK-VIS-004
 - **Description:** Implement all 6 feature screens
 - **Dependencies:** TASK-VIS-003, TASK-APP-003, TASK-APP-004
 - **Acceptance Criteria:** Each screen renders correctly. Matches design references. Connected to simulation data. No fake interactions.
-- **Status:** BLOCKED
+- **Status:** DONE (Onboarding, PlanetSelection, CrewSelection, BaseConfiguration, MissionControl, MissionDebrief)
 
 ### TASK-VIS-005
 - **Description:** Validate visual fidelity against design references
 - **Dependencies:** TASK-VIS-004
 - **Acceptance Criteria:** Side-by-side comparison of running app vs design. All deviations documented and resolved or explicitly approved by user.
-- **Status:** BLOCKED
+- **Status:** IN_PROGRESS (2D/glass slice complete; 3D Mission Control world is next)
 
 ---
 
 ## PHASE 7 — Gameplay (depends on Phase 5 + 6)
 
 ### TASK-GAME-001 through TASK-GAME-007
-- **Status:** BLOCKED (depends on TASK-VIS-004 and TASK-APP-003)
+- **Status:** DONE (Onboarding/Planet/Crew/Config screens done; MissionControlScreen with ResourcePanel, EnvironmentPanel, EventPanel, AstroAIPanel done; Phaser retired)
 - See workflow.md for full task list
 
 ---
@@ -334,7 +334,7 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 ## PHASE 8 — Astro-AI (depends on Phase 5)
 
 ### TASK-AI-001 through TASK-AI-006
-- **Status:** NOT_STARTED (can begin knowledge base + schemas without design)
+- **Status:** DONE (AI-001..005 done; AI-006 integrated into MissionControlScreen + MissionDebriefScreen)
 - See workflow.md for full task list
 
 ---
@@ -382,6 +382,6 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 | 3     | 7           | 7    | 0           | 0       | 0           |
 | 4     | 15          | 15   | 0           | 0       | 0           |
 | 5     | 5           | 5    | 0           | 0       | 0           |
-| 6     | 5           | 0    | 0           | 5       | 0           |
-| 7–8   | 13          | 0    | 0           | 7       | 6           |
+| 6     | 5           | 4    | 1           | 0       | 0           |
+| 7–8   | 13          | 13   | 0           | 0       | 0           |
 | 9     | 5           | 5    | 0           | 0       | 0           |

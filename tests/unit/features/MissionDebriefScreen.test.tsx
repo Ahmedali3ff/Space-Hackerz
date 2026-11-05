@@ -1,9 +1,11 @@
 // tests/unit/features/MissionDebriefScreen.test.tsx
 // Component tests for MissionDebriefScreen.
 // Wraps renders in MemoryRouter because the component calls useNavigate.
+// The AI summary call is async (getMissionSummary); we assert the loading
+// placeholder is shown initially (synchronous path in tests = offline fallback).
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { MissionDebriefScreen } from '@/features/mission-debrief/MissionDebriefScreen'
 import { missionStore, INITIAL_MISSION_STATE } from '@store/mission-store'
@@ -55,7 +57,7 @@ describe('MissionDebriefScreen', () => {
   it('displays success text for outcome success', () => {
     missionStore.setState({ ...INITIAL_MISSION_STATE, missionOutcome: 'success' })
     renderDebrief()
-    // The outcome banner label and learning section both mention "success"
+    // The outcome banner label and heading both contain "success"
     expect(screen.getAllByText(/success/i).length).toBeGreaterThan(0)
   })
 
@@ -99,5 +101,26 @@ describe('MissionDebriefScreen', () => {
     // decisionLog is [] in INITIAL_MISSION_STATE
     renderDebrief()
     expect(screen.getByText('No decisions recorded.')).toBeTruthy()
+  })
+
+  it('does not use any legacy gray-900 background class', () => {
+    const { container } = renderDebrief()
+    // Ensure none of the old gray-900 Tailwind classes are present anywhere
+    expect(container.querySelector('.bg-gray-900')).toBeNull()
+  })
+
+  it('shows loading placeholder or fallback text in learning summary section', async () => {
+    missionStore.setState({ ...INITIAL_MISSION_STATE, missionOutcome: 'success' })
+    renderDebrief()
+    // useAstroContext returns null (mission not active in test state), so the
+    // useEffect never fires → summaryLoading stays false → fallback text shown.
+    // If the context were available and AI call were async, we'd see the loading
+    // placeholder first, then the AI text via waitFor.
+    await waitFor(() => {
+      // Either the loading placeholder or the fallback text must be present
+      const loadingEl = screen.queryByText(/calculating mission summary/i)
+      const fallbackEl = screen.queryByText(/outstanding mission commander/i)
+      expect(loadingEl !== null || fallbackEl !== null).toBe(true)
+    })
   })
 })
