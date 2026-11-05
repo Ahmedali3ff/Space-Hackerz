@@ -87,6 +87,7 @@ R0 spec reconciliation done: `product.md` re-scoped 3D into V1 + added F09 Locat
 | DEB-002  | Mission scoring algorithm (verified vs sim-model doc)  | 2026-11-04 |
 | DEB-003  | ResourceHistoryPoint type + store tracking + tests     | 2026-11-04 |
 | DEB-004  | MissionDebriefScreen (6 sections, Recharts) + tests    | 2026-11-04 |
+| DEB-005  | Router update: /debrief uses RequireMissionStarted     | 2026-11-04 |
 
 ## Pending Tasks (ordered)
 

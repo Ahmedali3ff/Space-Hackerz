@@ -341,8 +341,35 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 
 ## PHASE 9 — Mission Debrief (depends on Phase 4 + 5)
 
-### TASK-DEB-001 through TASK-DEB-004
-- **Status:** NOT_STARTED (scoring + data model can begin; UI blocked on design)
+### TASK-DEB-001
+- **Description:** Implement decision log recording
+- **Dependencies:** TASK-APP-001, TASK-SIM-011
+- **Acceptance Criteria:** Every player decision recorded in the mission store with day, event ID, option chosen, and outcome. endMission pulls the engine log.
+- **Status:** DONE
+
+### TASK-DEB-002
+- **Description:** Implement mission scoring algorithm
+- **Dependencies:** TASK-SIM-013
+- **Acceptance Criteria:** calculateMissionScore verified against docs/simulation-model.md. Score covers duration, resource stability, decisions, and events survived.
+- **Status:** DONE
+
+### TASK-DEB-003
+- **Description:** Implement ResourceHistoryPoint type + store tracking + tests
+- **Dependencies:** TASK-APP-001, TASK-SIM-001
+- **Acceptance Criteria:** ResourceHistoryPoint typed, store appends snapshot each step, unit tests pass (6 tests).
+- **Status:** DONE
+
+### TASK-DEB-004
+- **Description:** Implement MissionDebriefScreen with 6 sections and Recharts
+- **Dependencies:** TASK-DEB-001, TASK-DEB-002, TASK-DEB-003
+- **Acceptance Criteria:** Screen renders mission outcome, score breakdown, resource history charts (Recharts), decision log, and learning summary. Component tests pass (7 tests).
+- **Status:** DONE
+
+### TASK-DEB-005
+- **Description:** Router update — wire /debrief route to MissionDebriefScreen with RequireMissionStarted guard
+- **Dependencies:** TASK-DEB-004, TASK-APP-004
+- **Acceptance Criteria:** /debrief renders MissionDebriefScreen. RequireMissionStarted guard (not missionActive) keeps the route accessible after endMission(). Redirects to "/" if mission was never started.
+- **Status:** DONE
 
 ---
 
@@ -356,4 +383,5 @@ Status values: NOT_STARTED | IN_PROGRESS | BLOCKED | DONE
 | 4     | 15          | 15   | 0           | 0       | 0           |
 | 5     | 5           | 5    | 0           | 0       | 0           |
 | 6     | 5           | 0    | 0           | 5       | 0           |
-| 7–9   | 17          | 0    | 0           | 7       | 10          |
+| 7–8   | 13          | 0    | 0           | 7       | 6           |
+| 9     | 5           | 5    | 0           | 0       | 0           |
