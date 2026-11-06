@@ -15,6 +15,7 @@ import { getAudioManager } from '@/services/audio-manager'
 import { getEventDefinition } from '@/features/events/event-registry'
 import { EventBus } from '@game/EventBus'
 import { createPhaserConfig } from '@game/config/PhaserConfig'
+import { MainGameScene } from '@game/scenes/MainGameScene'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -460,18 +461,32 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     const config = createPhaserConfig(canvasRef.current, 800, 600, planetType)
     console.log('[GameplayScreen] Config:', config)
     
+    // Create the game instance
+    // MainGameScene will auto-start because it's first in the scene array
     gameRef.current = new Phaser.Game(config)
     console.log('[GameplayScreen] Game instance created:', gameRef.current)
     console.log('[GameplayScreen] Phaser version:', Phaser.VERSION)
 
-    // Start scene with planet data
+    // Wait for scene to be ready, then pass planet data
     gameRef.current.events.once('ready', () => {
       console.log('[GameplayScreen] Phaser "ready" event fired')
-      const scene = gameRef.current?.scene.getScene('MainGameScene')
+      const scene = gameRef.current?.scene.getScene('MainGameScene') as MainGameScene | undefined
       console.log('[GameplayScreen] MainGameScene instance:', scene)
+      
       if (scene) {
-        console.log('[GameplayScreen] Starting MainGameScene with planetId:', planetType)
-        scene.scene.start('MainGameScene', { planetId: planetType })
+        console.log('[GameplayScreen] Scene found — checking if active')
+        const isActive = gameRef.current?.scene.isActive('MainGameScene')
+        console.log('[GameplayScreen] Scene active?', isActive)
+        
+        // If scene auto-started, restart it with planet data
+        // Otherwise, start it manually
+        if (isActive) {
+          console.log('[GameplayScreen] Restarting scene with planetId:', planetType)
+          scene.scene.restart({ planetId: planetType })
+        } else {
+          console.log('[GameplayScreen] Starting scene with planetId:', planetType)
+          scene.scene.start('MainGameScene', { planetId: planetType })
+        }
       } else {
         console.error('[GameplayScreen] MainGameScene NOT FOUND in scene manager!')
       }
