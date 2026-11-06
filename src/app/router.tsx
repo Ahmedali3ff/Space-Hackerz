@@ -8,6 +8,9 @@ import { ScreenTransition } from '@/components/layout/ScreenTransition'
 // ── Lazy-loaded screens ───────────────────────────────────────────────────────
 // LoadingScreen itself is NOT lazy — it must be available immediately as a fallback.
 
+const MainMenuScreen = React.lazy(
+  () => import('../features/main-menu/MainMenuScreen').then((m) => ({ default: m.MainMenuScreen })),
+)
 const OnboardingScreen = React.lazy(
   () => import('../features/onboarding/OnboardingScreen').then((m) => ({ default: m.OnboardingScreen })),
 )
@@ -137,6 +140,16 @@ export function AppRouter(): JSX.Element {
         element={
           <Suspense fallback={<LoadingScreen />}>
             <ScreenTransition routeKey="/">
+              <MainMenuScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/onboarding"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/onboarding">
               <OnboardingScreen />
             </ScreenTransition>
           </Suspense>
