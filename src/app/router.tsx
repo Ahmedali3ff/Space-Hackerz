@@ -26,6 +26,9 @@ const BaseConfigurationScreen = React.lazy(
 const MissionControlScreen = React.lazy(
   () => import('../features/mission-control/MissionControlScreen').then((m) => ({ default: m.MissionControlScreen })),
 )
+const MissionControlDashboardScreen = React.lazy(
+  () => import('../features/mission-control/MissionControlDashboardScreen').then((m) => ({ default: m.MissionControlDashboardScreen })),
+)
 const MissionDebriefScreen = React.lazy(
   () => import('../features/mission-debrief/MissionDebriefScreen').then((m) => ({ default: m.MissionDebriefScreen })),
 )
@@ -271,6 +274,17 @@ export function AppRouter(): JSX.Element {
           <Suspense fallback={<LoadingScreen />}>
             <ScreenTransition routeKey="/explorers">
               <ExplorersScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+
+      <Route
+        path="/mission-hub"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/mission-hub">
+              <MissionControlDashboardScreen />
             </ScreenTransition>
           </Suspense>
         }
