@@ -1,0 +1,40 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "New screens: My Discoveries, Star Map, My Spaceship, Explorers leaderboard. Complete TopNavBar with all 4 tab routes. Update router with all new routes. Depends on FEAT-001 (level system) and FEAT-003 (api-client for leaderboard). Independent from FEAT-002 and FEAT-005.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — CREATE src/features/discoveries/MyDiscoveriesScreen.tsx: Build a screen showing 6 discovery cards (one per mission). Import MISSIONS from '@data/missions/mission-definitions'. Import useMissionProgressStore. For each mission: if completed → show teal card with mission badge, title, '3 science facts learned', stars earned, and a science fact from a hardcoded array (one fact per mission from the mission's scientificExplanation equivalent). If locked → show gray card with Lock icon. If active → show white card with 'In Progress'. Use AppShell variant='light' with title='Space+ — My Discoveries'. Wrap in ScreenTransition routeKey='/discoveries'. Discovery facts array (hardcoded, one per mission): m01: 'The Moon has no atmosphere, so temperatures swing from -173°C to +127°C!', m02: 'You need about 0.84 kg of oxygen per person per day to breathe on the Moon.', m03: 'The lunar night lasts 14 Earth days — that is 336 hours of total darkness!', m04: 'Mars has only 38% of Earth gravity — you would weigh less than half your Earth weight!', m05: 'A Martian dust storm in 2018 covered the entire planet for months, ending the Opportunity rover mission.', m06: 'Olympus Mons on Mars is the tallest volcano in the solar system — nearly 3 times taller than Mount Everest!'",
+
+    "Step 2 — CREATE src/features/star-map/StarMapScreen.tsx: Build a visual path screen. Layout: centered on page, a horizontal SVG path or div-based path from left (Earth) through 3 Moon waypoints to 3 Mars waypoints. Each waypoint is a circle (64px) with mission number inside. State comes from useMissionProgressStore: completed = teal solid circle + checkmark, active = teal pulsing ring (animate-ping) + mission number, locked = gray circle + lock icon. Clicking an active waypoint shows a mission card popup (use local state activePopupId). The popup card shows mission title, description, difficulty, reward, and a 'Start Mission' button that navigates to /select-planet and calls startMission(id). Use AppShell variant='light' title='Space+ — Star Map'. Add a connecting dashed line between waypoints using an absolutely positioned SVG or a CSS border-dashed trick. The path is: Earth → Moon 1 → Moon 2 → Moon 3 → (gap) → Mars 4 → Mars 5 → Mars 6. Moon missions have moon emoji header, Mars have mars emoji. Wrap in ScreenTransition routeKey='/star-map'.",
+
+    "Step 3 — CREATE src/features/spaceship/MySpaceshipScreen.tsx: Commander profile screen. Import useMissionProgressStore, getCurrentLevel and getXPForMission from '@data/levels/level-definitions'. Layout sections: (a) Commander Profile Card: large avatar circle with name initial (teal, 80px), commander name, 'Level N · {title}', XP progress bar showing XP within current level (current - minXP) / (maxXP - minXP) * 100, total stars badge. (b) Mission History: last 5 completed missions from missions Record filtered by status === 'completed', show mission title, stars earned, badge name in a list. (c) Achievement Badges: for each completed mission, show the reward.badge as a rounded pill badge in amber. (d) Stats row: total missions completed, total stars, best mission (highest stars). Use AppShell variant='light' title='Space+ — My Spaceship'. Wrap in ScreenTransition routeKey='/spaceship'.",
+
+    "Step 4 — CREATE src/features/explorers/ExplorersScreen.tsx: Leaderboard screen. Import apiClient from '@/services/api-client'. Import useMissionProgressStore for current player fallback. Use useState<LeaderboardEntry[]> and useEffect to fetch apiClient.getLeaderboard() on mount. If empty or error, fall back to showing current player as the only entry: [{ rank: 1, commander_name: commanderName || 'You', level: getCurrentLevel(totalXP).level, total_stars: totalStars, best_mission: currentMissionId ?? '—' }]. Render: heading 'Top Explorers', a table with columns: Rank, Commander, Level, Stars, Best Mission. First row gets a gold trophy icon. Current player row gets teal highlight if found in list. Show 'Loading...' while fetching. Show 'Connect to server for full leaderboard' note when offline. Use AppShell variant='light' title='Space+ — Explorers'. Wrap in ScreenTransition routeKey='/explorers'.",
+
+    "Step 5 — UPDATE TopNavBar.tsx to add the 4 nav tabs: The tabs already exist from FEAT-001. Verify: import NavLink from 'react-router-dom'. The 4 tabs are: 'Mission Control' (link to /mission, active on /mission), 'My Discoveries' (link to /discoveries, active on /discoveries), 'My Spaceship' (link to /spaceship, active on /spaceship), 'Explorers' (link to /explorers, active on /explorers). Active tab style: border-b-2 border-[#1FC8C0] text-[#1A1D2E] font-semibold. Inactive: text-[#6B7280] hover:text-[#1A1D2E]. NavLink className callback: ({ isActive }) => isActive ? 'active-class' : 'inactive-class'. Tabs appear between logo and right side controls. On mobile (<md) the tabs collapse — add a hamburger button that toggles a dropdown, or just hide tabs on mobile with 'hidden md:flex'.",
+
+    "Step 6 — UPDATE src/app/router.tsx to add all new routes: Add lazy imports for: MyDiscoveriesScreen from '../features/discoveries/MyDiscoveriesScreen', StarMapScreen from '../features/star-map/StarMapScreen', MySpaceshipScreen from '../features/spaceship/MySpaceshipScreen', ExplorersScreen from '../features/explorers/ExplorersScreen'. Add routes: /discoveries → MyDiscoveriesScreen (no guard), /star-map → StarMapScreen (no guard), /spaceship → MySpaceshipScreen (no guard), /explorers → ExplorersScreen (no guard). All wrapped in Suspense + ScreenTransition per the existing pattern.",
+
+    "Step 7 — ADD 'Star Map' entry point on MissionsOverviewScreen: In src/features/missions/MissionsOverviewScreen.tsx, add a link/button 'View Star Map' → /star-map near the top heading row. Use PrimaryButton variant='secondary'.",
+
+    "Step 8 — VERIFY all 4 nav tabs are accessible from every screen: Since TopNavBar is rendered inside AppShell (via hudSlot) or directly in each screen, and AppShell currently only has hudSlot + reduced-motion toggle, the tabs must be added to AppShell's header directly OR TopNavBar must be used as the primary header in AppShell. DECISION: Update AppShell.tsx to use TopNavBar as its header instead of the current custom header. Replace the <header> element in AppShell with <TopNavBar title={title} hudSlot={hudSlot} />. This means every screen that uses AppShell automatically gets the 4-tab nav. Check that MissionControlScreen passes its HudSlot correctly (it does, via AppShell's hudSlot prop)."
+  ],
+  "acceptance_criteria": [
+    "src/features/discoveries/MyDiscoveriesScreen.tsx exists and renders 6 discovery cards",
+    "src/features/star-map/StarMapScreen.tsx exists with visual mission path",
+    "src/features/spaceship/MySpaceshipScreen.tsx exists with profile, history, and badges sections",
+    "src/features/explorers/ExplorersScreen.tsx exists and fetches leaderboard with graceful offline fallback",
+    "/discoveries, /star-map, /spaceship, /explorers routes are registered in router.tsx",
+    "TopNavBar shows all 4 tabs with active state styling",
+    "All screens using AppShell show the 4-tab nav",
+    "Clicking 'My Spaceship' navigates to /spaceship"
+  ],
+  "verification": [
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run build — 0 TypeScript errors",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm test — all 219+ tests pass",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run dev — open /discoveries, /star-map, /spaceship, /explorers — all render without blank screens or console errors"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

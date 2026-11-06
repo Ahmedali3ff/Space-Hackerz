@@ -431,7 +431,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const energyPct = toPct(res.energy_kWh, init.energy_kWh)
 
   // ── Initialize simulation on mount ────────────────────────────────────────
-
+  // Only initialize if the mission hasn't already been started by BaseConfigurationScreen
   useEffect(() => {
     if (!missionStarted) {
       initializeMission()
@@ -442,20 +442,43 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   // ── Phaser initialization ─────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!canvasRef.current || gameRef.current) return
+    console.log('[GameplayScreen] Mount — canvasRef.current:', canvasRef.current)
+    console.log('[GameplayScreen] Dimensions:', window.innerWidth, window.innerHeight)
+    console.log('[GameplayScreen] Planet type:', planetType)
+    
+    if (!canvasRef.current) {
+      console.error('[GameplayScreen] canvasRef.current is NULL — Phaser cannot mount!')
+      return
+    }
+    
+    if (gameRef.current) {
+      console.log('[GameplayScreen] Game already exists — skipping initialization')
+      return
+    }
 
+    console.log('[GameplayScreen] Creating Phaser game...')
     const config = createPhaserConfig(canvasRef.current, 800, 600, planetType)
+    console.log('[GameplayScreen] Config:', config)
+    
     gameRef.current = new Phaser.Game(config)
+    console.log('[GameplayScreen] Game instance created:', gameRef.current)
+    console.log('[GameplayScreen] Phaser version:', Phaser.VERSION)
 
     // Start scene with planet data
     gameRef.current.events.once('ready', () => {
+      console.log('[GameplayScreen] Phaser "ready" event fired')
       const scene = gameRef.current?.scene.getScene('MainGameScene')
+      console.log('[GameplayScreen] MainGameScene instance:', scene)
       if (scene) {
+        console.log('[GameplayScreen] Starting MainGameScene with planetId:', planetType)
         scene.scene.start('MainGameScene', { planetId: planetType })
+      } else {
+        console.error('[GameplayScreen] MainGameScene NOT FOUND in scene manager!')
       }
     })
 
     return () => {
+      console.log('[GameplayScreen] Unmounting — destroying Phaser game')
       gameRef.current?.destroy(true)
       gameRef.current = null
     }
@@ -565,7 +588,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
       <div
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 1, background: '#0A0E1A' }}
       />
 
       {/* Loading overlay */}

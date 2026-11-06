@@ -1,0 +1,7 @@
+{
+  "task_id": "task-hybrid-campaign",
+  "task_description": "Add hybrid 8-level campaign to ASTRA: game design tokens, campaign data (8 missions), audio manager service, 7 new game screens (CampaignMap, CinematicIntro, Gameplay, EventModal, PauseMenu, LevelComplete, GameOver), router integration, and unit tests — all additive, zero simulation changes, all 219 existing tests kept passing.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

@@ -209,8 +209,10 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
   function handleStartMission(): void {
     if (!isSetupValid) return
     setBaseConfig(draft)
+    setMissionDuration(missionDurationDays as 30 | 60 | 90)
     initializeMission()
-    navigate('/mission')
+    // Go to Phaser game — level-1 by default, or derived from current mission
+    navigate('/game/level-1')
   }
 
   return (
@@ -354,7 +356,7 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
           </div>
 
           {/* ── Navigation ── always visible ── */}
-          <div className="mt-10 flex items-center gap-4">
+          <div className="mt-10 flex items-center justify-between gap-4">
             <PrimaryButton
               variant="ghost"
               size="md"
@@ -365,22 +367,20 @@ export function BaseConfigurationScreen(_props: BaseConfigurationScreenProps): J
               Back
             </PrimaryButton>
 
-            <div className="lg:hidden">
-              <PrimaryButton
-                variant="hint"
-                size="lg"
-                disabled={!isSetupValid}
-                onClick={handleStartMission}
-                ariaLabel={
-                  isSetupValid
-                    ? 'Start the mission'
-                    : 'Select a planet and crew size first'
-                }
-              >
-                <Rocket size={22} aria-hidden="true" />
-                Start Mission
-              </PrimaryButton>
-            </div>
+            <PrimaryButton
+              variant="primary"
+              size="lg"
+              disabled={!isSetupValid}
+              onClick={handleStartMission}
+              ariaLabel={
+                isSetupValid
+                  ? 'Launch your mission'
+                  : 'Complete base configuration first'
+              }
+            >
+              <Rocket size={22} aria-hidden="true" />
+              Launch Mission
+            </PrimaryButton>
           </div>
         </div>
       </ScreenTransition>

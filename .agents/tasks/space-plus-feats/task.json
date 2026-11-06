@@ -1,0 +1,13 @@
+{
+  "task_id": "task-space-plus-full",
+  "task_description": "Complete Space+ Mission Academy game: rebrand from ASTRA to Space+, fix invisible buttons, add level system, complete gameplay loop with overlays, add Express+SQLite backend, wire location selection to simulation, wire mission duration to scoring, add My Discoveries/Star Map/My Spaceship screens, upgrade Astro-AI hint button, add Explorers leaderboard screen, complete TopNavBar with 4 tabs, and fix all remaining issues.",
+  "status": "pending",
+  "feature_order": [
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003",
+    "FEAT-004",
+    "FEAT-005"
+  ],
+  "blocked_reason": null
+}

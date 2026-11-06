@@ -1,0 +1,54 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Express + SQLite backend server, API client service, and store wiring. Depends on FEAT-001 (level system XP types exist) and FEAT-002 (mission duration + location fields exist in store). Independent from FEAT-004 and FEAT-005.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — INSTALL PACKAGES: From workspace root run: npm install express better-sqlite3 cors && npm install --save-dev @types/express @types/better-sqlite3 @types/cors tsx concurrently. Verify these appear in package.json dependencies/devDependencies.",
+
+    "Step 2 — CREATE server/ DIRECTORY STRUCTURE: Create these empty directories: server/, server/routes/, server/types/.",
+
+    "Step 3 — CREATE server/types/api.types.ts: Define and export these interfaces (no 'any'): PlayerRecord { id: number; name: string; total_xp: number; current_level: number; commander_title: string; total_stars: number; created_at: string; updated_at: string }, MissionProgressPayload { player_id: number; mission_id: string; status: 'active' | 'completed' | 'locked'; tasks_complete: number; stars_earned: number; completed_at: string | null }, MissionRunPayload { player_id: number; mission_id: string; planet_id: string; crew_size: number; mission_duration_days: number; days_survived: number; final_score: number; stars_earned: number; outcome: 'success' | 'partial' | 'failure'; events_resolved: number }, LeaderboardEntry { rank: number; commander_name: string; level: number; total_stars: number; best_mission: string }.",
+
+    "Step 4 — CREATE server/db.ts: Import Database from 'better-sqlite3'. Create and export a singleton db instance: const db = new Database('./space-plus.db'). Run CREATE TABLE IF NOT EXISTS for: players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, total_xp INTEGER DEFAULT 0, current_level INTEGER DEFAULT 1, commander_title TEXT DEFAULT 'Space Cadet', total_stars INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now'))), mission_progress (player_id INTEGER, mission_id TEXT, status TEXT DEFAULT 'locked', tasks_complete INTEGER DEFAULT 0, stars_earned INTEGER DEFAULT 0, completed_at TEXT, PRIMARY KEY (player_id, mission_id), FOREIGN KEY (player_id) REFERENCES players(id)), mission_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER, mission_id TEXT, planet_id TEXT, crew_size INTEGER, mission_duration_days INTEGER, days_survived INTEGER, final_score INTEGER DEFAULT 0, stars_earned INTEGER DEFAULT 0, outcome TEXT, events_resolved INTEGER DEFAULT 0, completed_at TEXT DEFAULT (datetime('now')), FOREIGN KEY (player_id) REFERENCES players(id)). Enable WAL mode: db.pragma('journal_mode = WAL'). Export db as default.",
+
+    "Step 5 — CREATE server/routes/players.ts: Import express Router and db. Export router = Router(). Implement: GET /api/players/:id — query players by id, return 404 if not found, 200 with PlayerRecord. POST /api/players — insert player (name, total_xp=0, current_level=1, commander_title='Space Cadet', total_stars=0), return 201 with created record. PATCH /api/players/:id/xp — body: { xp: number } — update total_xp += xp, recalculate current_level and commander_title using the level thresholds (hardcode the 6 levels: 0,100,300,600,1000,1500), update updated_at, return 200 with updated record. All SQL uses parameterized queries (db.prepare().run()/get()). Wrap all handlers in try/catch returning 500 on DB errors.",
+
+    "Step 6 — CREATE server/routes/missions.ts: Import express Router and db. Export router = Router(). Implement: GET /api/missions/progress/:playerId — return all mission_progress rows for player as array, return [] if none. POST /api/missions/progress — upsert (INSERT OR REPLACE) a mission_progress row from MissionProgressPayload body, return 201 with the row.",
+
+    "Step 7 — CREATE server/routes/scores.ts: Import express Router and db. Export router = Router(). Implement: POST /api/scores — insert a mission_runs row from MissionRunPayload body, return 201. GET /api/scores/leaderboard — query: SELECT p.name as commander_name, p.current_level as level, p.total_stars, (SELECT m.mission_id FROM mission_runs m WHERE m.player_id = p.id ORDER BY m.final_score DESC LIMIT 1) as best_mission FROM players p ORDER BY p.total_stars DESC, p.total_xp DESC LIMIT 20. Return array of LeaderboardEntry with rank field added (1-indexed). If no runs exist, return [].",
+
+    "Step 8 — CREATE server/index.ts: Import express, cors, and the 3 routers. Create app = express(). Apply: app.use(cors({ origin: 'http://localhost:5173', credentials: true })). app.use(express.json()). app.use('/api/players', playersRouter). app.use('/api/missions', missionsRouter). app.use('/api/scores', scoresRouter). app.get('/health', (_req, res) => res.json({ status: 'ok' })). Listen on port 3001: app.listen(3001, () => console.log('Space+ API running on :3001')). Export app for testing.",
+
+    "Step 9 — UPDATE package.json scripts: Add to the scripts object: 'server': 'tsx server/index.ts', 'server:dev': 'tsx watch server/index.ts', 'dev:full': 'concurrently \"npm run dev\" \"npm run server:dev\"'. Verify these don't conflict with existing scripts.",
+
+    "Step 10 — CREATE src/services/api-client.ts: Define BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001'. Implement these exported async functions, all wrapped in try/catch returning null on network failure (graceful offline degradation): async function getPlayer(id: number): Promise<PlayerRecord | null>, async function upsertPlayer(name: string): Promise<PlayerRecord | null> — POST /api/players, async function addXP(playerId: number, xp: number): Promise<PlayerRecord | null> — PATCH /api/players/{id}/xp, async function saveMissionProgress(payload: MissionProgressPayload): Promise<void> — POST /api/missions/progress, async function saveMissionRun(payload: MissionRunPayload): Promise<void> — POST /api/scores, async function getLeaderboard(): Promise<LeaderboardEntry[]> — GET /api/scores/leaderboard, returns [] on failure. Import types from a relative path to a new file src/services/api.types.ts that re-exports from '@/services/api-client' (or just define the types inline in api-client.ts). No 'any'. All fetch calls include headers: { 'Content-Type': 'application/json' }.",
+
+    "Step 11 — WIRE API INTO STORES: In src/store/mission-progress-store.ts: Import apiClient from '@/services/api-client'. In setCommanderName action: after set({ commanderName: name }), fire-and-forget void apiClient.upsertPlayer(name). In completeMission action: after state update, fire-and-forget void apiClient.saveMissionProgress({ player_id: 1, mission_id: missionId, status: 'completed', tasks_complete: get().missions[missionId]?.completedTaskIds.length ?? 0, stars_earned: earnedStars, completed_at: new Date().toISOString() }). Also fire-and-forget void apiClient.addXP(1, getXPForMission(earnedStars, missionNumber)). NOTE: player_id hardcoded to 1 for V1 (single-player, no auth).",
+
+    "Step 12 — WIRE API INTO DEBRIEF SCREEN: In src/features/mission-debrief/MissionDebriefScreen.tsx: Import apiClient from '@/services/api-client'. After the component mounts (useEffect with [] dependency), if missionScore is not null: fire-and-forget void apiClient.saveMissionRun({ player_id: 1, mission_id: currentMissionId ?? 'free-play', planet_id: selectedPlanetId ?? 'moon', crew_size: crewSize, mission_duration_days: selectedMissionDurationDays ?? 30, days_survived: currentMissionDay, final_score: missionScore.finalScore, stars_earned: Math.floor(missionScore.finalScore / 200), outcome: missionOutcome as 'success' | 'partial' | 'failure', events_resolved: decisionLog.filter(d => d.action.type === 'RESOLVE_EVENT').length }). Import selectedMissionDurationDays from useMissionStore. Only fire once (useRef guard).",
+
+    "Step 13 — UPDATE .env.example: Add VITE_API_URL=http://localhost:3001 under the Feature Flags section. Add a comment: '# Backend API URL — set to empty string to run in offline-only mode'.",
+
+    "Step 14 — CREATE tsconfig.server.json (if needed): The root tsconfig may not include server/ directory. Check tsconfig.json — if it has 'include: [\"src\"]' only, create a tsconfig.server.json that extends './tsconfig.json' and sets 'include: [\"server\"]', 'module: CommonJS', 'outDir: dist-server'. tsx will auto-detect this. Alternatively, confirm tsx can run TypeScript files without a separate config — tsx does support this. No tsconfig change may be needed."
+  ],
+  "acceptance_criteria": [
+    "server/index.ts exists and starts without errors when running 'npx tsx server/index.ts'",
+    "GET /health returns { status: 'ok' }",
+    "POST /api/players creates a player record in space-plus.db",
+    "GET /api/players/1 returns the player record",
+    "POST /api/scores creates a mission run record",
+    "GET /api/scores/leaderboard returns an array (possibly empty)",
+    "src/services/api-client.ts exists with all 6 exported functions",
+    "api-client functions return null (not throw) when server is unreachable",
+    "package.json has 'dev:full' script",
+    ".env.example has VITE_API_URL entry"
+  ],
+  "verification": [
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run build — 0 TypeScript errors (server files are not part of Vite build, so only src/ is checked)",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm test — all 219+ tests pass",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npx tsx server/index.ts — server starts and GET http://localhost:3001/health returns {status:'ok'}"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

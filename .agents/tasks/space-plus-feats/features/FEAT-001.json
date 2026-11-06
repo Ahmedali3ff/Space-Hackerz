@@ -1,0 +1,57 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Rebrand from ASTRA to Space+, fix invisible buttons and Card styles, and add the Level System with XP. These are foundational visual/branding changes that all subsequent FEATs depend on. Independent of FEAT-002 through FEAT-005 in terms of code dependencies, but must be done first to avoid merge conflicts on shared components.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — REBRAND index.html: Change title to 'Space+ Mission Academy', change meta description to 'Space+ Mission Academy: an interactive educational space mission simulation for young commanders.'",
+
+    "Step 2 — REBRAND package.json: Change 'name' field to 'space-plus-mission-academy'.",
+
+    "Step 3 — REBRAND TopNavBar.tsx (src/components/layout/TopNavBar.tsx): Change aria-label='ASTRA navigation' to aria-label='Space+ navigation'. Change aria-label='ASTRA — home' to aria-label='Space+ — home'. Change default title from 'ASTRA' to 'Space+' (the {title ?? 'ASTRA'} expression). Change the wordmark span to render 'Space<span class=\"text-[#1FC8C0]\">+</span>' using dangerouslySetInnerHTML is NOT allowed — instead render two spans: <span>Space</span><span className=\"text-[#1FC8C0]\">+</span>. Add 4 NavLink tab items between the logo and the right controls: 'Mission Control' → /mission, 'My Discoveries' → /discoveries, 'My Spaceship' → /spaceship, 'Explorers' → /explorers. Each NavLink uses className callback for active state (teal underline). Add UserChip with commanderName + level display pulled from useMissionProgressStore on the right side. Remove the StepIndicator from the right side (replace with UserChip). Keep the reduced-motion toggle.",
+
+    "Step 4 — REBRAND OnboardingScreen.tsx (src/features/onboarding/OnboardingScreen.tsx): Change <AppShell title='ASTRA Mission Control'> to <AppShell title='Space+ Mission Academy'>. Change the h2 heading from 'ASTRA' to render 'Space<span className=\"text-[#1FC8C0]\">+</span>'. Change the subtitle from 'Mission Control Academy' to 'Mission Control Academy'. Keep the tagline 'Explore. Decide. Survive. Learn.' unchanged. Change the comment '/* Title — PRESERVED: ASTRA text */' to note it now says 'Space+'.",
+
+    "Step 5 — REBRAND all AppShell title props in feature screens: BaseConfigurationScreen.tsx: change title prop from 'ASTRA — Configure Your Base' to 'Space+ — Configure Your Base'. CrewSelectionScreen.tsx: change from 'ASTRA — Select Your Crew' to 'Space+ — Select Your Crew'. LocationSelectionScreen.tsx: change from 'ASTRA — Choose Your Landing Site' to 'Space+ — Choose Your Landing Site'. PlanetSelectionScreen.tsx: change from 'ASTRA — Choose Your Destination' to 'Space+ — Choose Your Destination'. MissionsOverviewScreen.tsx: change from 'Mission Control Academy' to 'Space+ Mission Academy'. MissionControlScreen.tsx: change the <AppShell title='Mission Control'> to title='Space+ Mission Control'.",
+
+    "Step 6 — REBRAND LoadingScreen.tsx (src/components/common/LoadingScreen.tsx): Change the 'ASTRA' text in the wordmark to 'Space+' using the two-span pattern <span>Space</span><span className='text-[#1FC8C0]'>+</span>.",
+
+    "Step 7 — REBRAND AI prompt files — update text 'ASTRA Mission Control Academy' to 'Space+ Mission Academy' in: src/ai/prompts/decision-guidance.prompt.ts, src/ai/prompts/event-explanation.prompt.ts, src/ai/prompts/mission-summary.prompt.ts, src/ai/prompts/resource-change.prompt.ts. The AI persona name 'Astro' stays the same.",
+
+    "Step 8 — REBRAND localStorage keys (non-breaking — keep old keys to preserve existing player data, but add a note in a comment): In src/store/mission-progress-store.ts change the persist name from 'astra-mission-progress' to 'space-plus-mission-progress'. In src/hooks/useReducedMotion.ts change STORAGE_KEY from 'astra-reduce-motion' to 'space-plus-reduce-motion'.",
+
+    "Step 9 — FIX PrimaryButton.tsx (src/components/common/PrimaryButton.tsx): Update the ButtonVariant type to add 'danger'. Update VARIANT_CLASSES to: primary: 'bg-[#1FC8C0] text-white hover:bg-[#17A99E] shadow-sm', secondary: 'bg-white text-[#1A1D2E] border-2 border-[#1FC8C0] hover:bg-[#E8FAF9]', ghost: 'bg-transparent text-[#1FC8C0] underline-offset-2 hover:underline', hint: 'bg-white text-[#1FC8C0] border-2 border-[#1FC8C0] hover:bg-[#E8FAF9] rounded-full', danger: 'bg-[#EF4444] text-white hover:bg-[#DC2626] shadow-sm'. Remove all spaceplus-* Tailwind tokens from VARIANT_CLASSES — use literal hex values only for maximum reliability.",
+
+    "Step 10 — FIX Card.tsx (src/components/common/Card.tsx): Ensure the base sp-card class is defined in the global CSS (index.css or tailwind.css). The sp-card class must apply: bg-white rounded-2xl border border-[#E5E7EB] shadow-[0_2px_12px_rgba(0,0,0,0.06)]. Check src/index.css for .sp-card definition and update if it uses wrong colors. Also verify sp-badge-teal and sp-badge-amber are defined with teal=#1FC8C0 exactly.",
+
+    "Step 11 — ADD Level System: Create src/data/levels/level-definitions.ts. Define LevelDefinition interface: { readonly level: number; readonly title: string; readonly minXP: number; readonly maxXP: number | null }. Define LEVELS array with exactly 6 entries: { level: 1, title: 'Space Cadet', minXP: 0, maxXP: 99 }, { level: 2, title: 'Explorer', minXP: 100, maxXP: 299 }, { level: 3, title: 'Star Explorer', minXP: 300, maxXP: 599 }, { level: 4, title: 'Mission Expert', minXP: 600, maxXP: 999 }, { level: 5, title: 'Commander', minXP: 1000, maxXP: 1499 }, { level: 6, title: 'Admiral', minXP: 1500, maxXP: null }. Export getLevelForXP(xp: number): LevelDefinition — returns the highest level whose minXP <= xp. Export getXPForMission(starsEarned: number, missionNumber: number): number — returns (starsEarned * 20) + (missionNumber * 10). All functions have explicit TypeScript types, no 'any'.",
+
+    "Step 12 — UPDATE mission-progress-store.ts to add XP fields: Add totalXP: number to MissionProgressState (initial 0). Add awardXP(amount: number): void to MissionProgressActions. In the store implementation: awardXP adds to totalXP, then calls completeMission's unlock logic if the new XP crosses a level boundary. Add two DERIVED selectors as exported standalone functions (not store actions, since Zustand doesn't support computed): export function getCurrentLevel(totalXP: number): LevelDefinition — calls getLevelForXP. export function getCommanderTitle(totalXP: number): string — returns getLevelForXP(totalXP).title. Update completeMission to also call awardXP(getXPForMission(earnedStars, missionNumber)) — look up missionNumber from MISSIONS array. IMPORTANT: the INITIAL_STATE and INITIAL_PROGRESS_STATE must include totalXP: 0. Keep all existing fields.",
+
+    "Step 13 — UPDATE UserChip.tsx to show level: Add optional xp prop (number). When xp is provided, show 'Level N · {title}' below the name using getCurrentLevel(xp) from level-definitions. The display: name on top line, 'Level N · Title' on second line in smaller teal text.",
+
+    "Step 14 — UPDATE TopNavBar to wire UserChip with level: Read commanderName and totalXP from useMissionProgressStore. Pass them to UserChip. The UserChip in the nav shows: avatar initial, name, 'Level N · Title'."
+  ],
+  "acceptance_criteria": [
+    "index.html title tag reads 'Space+ Mission Academy'",
+    "OnboardingScreen h2 shows 'Space+' with the '+' in teal (#1FC8C0)",
+    "TopNavBar logo reads 'Space+' with teal '+', has 4 nav tabs, shows UserChip with level",
+    "All AppShell title props say 'Space+' not 'ASTRA'",
+    "LoadingScreen wordmark shows 'Space+'",
+    "PrimaryButton with variant='danger' renders red (#EF4444) background with white text",
+    "PrimaryButton with variant='secondary' is NOT invisible — has border-2 border-[#1FC8C0]",
+    "Card background is white (#FFFFFF) with visible shadow",
+    "src/data/levels/level-definitions.ts exports getLevelForXP and getXPForMission",
+    "getLevelForXP(0) returns level 1 Space Cadet, getLevelForXP(100) returns level 2 Explorer",
+    "getXPForMission(3, 1) returns 70 (3*20 + 1*10)",
+    "mission-progress-store has totalXP field initialized to 0",
+    "UserChip shows 'Level N · Title' when xp prop is provided"
+  ],
+  "verification": [
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run build — must complete with 0 TypeScript errors",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm test — all 219+ tests must pass",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run dev — open http://localhost:5173, verify: title bar says 'Space+ Mission Academy', onboarding shows 'Space+' with teal plus, nav tabs are visible, secondary buttons have teal border"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

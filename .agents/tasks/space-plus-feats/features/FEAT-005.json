@@ -1,0 +1,51 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Final fixes and integration: Astro-AI hint button upgrade, MissionControlScreen heading personalization, 'YOU ARE HERE' advances with days, star rating in journey map from real store data, teal token consistency (#1FC8C0 everywhere), fix AppShell header to use TopNavBar on every screen, remove any remaining ASTRA text, and final cross-feature integration verification. Depends on all previous FEATs being complete. This is the final integration FEAT.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — ASTRO-AI HINT BUTTON UPGRADE: In src/features/mission-control/AstroAIPanel.tsx and src/components/feedback/AstroPanel.tsx: (a) Loading state: when isLoading=true, show 'Astro is thinking...' text with a pulsing teal dot (w-2 h-2 rounded-full bg-[#1FC8C0] animate-pulse). (b) After first response: change button label from 'Explain Situation' to 'Another hint?'. Track this with a local hasResponded state: when messages.length > 0, use 'Another hint?'. (c) Expanding panel: when a response exists, ensure the explanation is visible, the scientificFact is in italic teal text, and the suggestion is in a teal background box. Check the existing AstroPanel component to see what it already renders and fill in any missing elements. (d) Offline indicator: if isOffline, show a small amber badge '⚡ Knowledge base mode' instead of hiding the panel. Keep the panel fully functional in offline mode.",
+
+    "Step 2 — MISSIONCONTROL HEADING PERSONALIZATION: In src/features/mission-control/MissionControlScreen.tsx, update the h1 heading from 'Ready for your mission{commanderName ? `, ${commanderName}` : ''}?' to 'Ready for a little {planetMagic} magic, {commanderName || 'Commander'}?' where planetMagic = selectedPlanetId === 'moon' ? 'moon' : 'Mars'. This matches the reference image text 'Ready for a little moon magic, {name}?'",
+
+    "Step 3 — YOU ARE HERE MARKER ADVANCES: In MissionControlScreen.tsx, in the HorizontalJourneyMap component, the 'YOU ARE HERE' / rocket waypoint is currently always centered between Earth and destination. Make its horizontal position responsive to mission progress: compute xPercent = (currentDay / totalDays) * 100. Use inline style left: `${xPercent}%` on the rocket waypoint div (with position: absolute on the container). The Earth waypoint is at left: 0, Destination at left: 100%, and the rocket moves between them. Update the SVG dashed line to show a teal completed segment from 0 to xPercent% and a gray remaining segment. The container needs position: relative and the SVG needs to span the full width.",
+
+    "Step 4 — STAR RATING FROM REAL DATA: In MissionControlScreen.tsx, in HorizontalJourneyMap, the StarScore currently shows Math.min(Math.floor((currentDay / totalDays) * 5), 5). Replace with actual earned stars: read from useMissionProgressStore: const missionStars = useMissionProgressStore.getState().missions[currentMissionId ?? '']?.earnedStars ?? 0. If mission is still active (outcome === 'ongoing'), show a projected score based on current day progress. Final stars should only show when mission is complete.",
+
+    "Step 5 — TEAL TOKEN CONSISTENCY AUDIT: Search all .tsx and .ts files in src/ for '#00BCD4', '#1FC8BF', 'accent-orbit', and any other non-standard teal values. Replace all occurrences with '#1FC8C0'. Also check tailwind.config.ts/js to ensure the spaceplus-accent-teal token maps to exactly #1FC8C0 (not a close approximation). Check src/index.css for any hardcoded teal values. Run a full string search: grep -r '00BCD4' src/ and grep -r 'teal-' src/ to find non-token usages.",
+
+    "Step 6 — APPSHELL INTEGRATION WITH TOPNAV: Verify the change from FEAT-004 Step 8 (AppShell using TopNavBar) works correctly on all screens. Check that: (a) The HUD slot in MissionControlScreen still renders the day counter and Advance/End buttons, (b) The reduced-motion toggle still exists (it's now in TopNavBar), (c) The step indicator that was in TopNavBar is removed (no longer needed), (d) AppShell no longer has its own custom header — it delegates to TopNavBar. If any screen broke, fix the AppShell/TopNavBar integration.",
+
+    "Step 7 — REMAINING ASTRA REMOVAL: Run a final search for any remaining 'ASTRA' text in src/ files (case-sensitive). Fix any remaining instances found in: comment headers (change to 'Space+'), aria-labels, screen reader texts. Files most likely to still have it: comment-only references in mars-profile.ts, moon-profile.ts, mission-definitions.ts, simulation-engine.ts, mission-progress-store.ts — these are comments only, update them. The AI prompts were updated in FEAT-001; verify they now say 'Space+ Mission Academy'.",
+
+    "Step 8 — COSMIC JOURNEY STRIP STAR RATING FIX: In MissionControlScreen.tsx CosmicJourneyStrip, the completed mission cards show a static 'Completed' label. Add the actual star rating: for completed missions, read earnedStars from missions[m.id].earnedStars and render StarScore component. Import StarScore from '@/components/common/StarScore'.",
+
+    "Step 9 — FIX MISSION CONTROL NAVIGATION: The MissionControlScreen is currently guarded by RequireMission (requires missionActive). When a player navigates to /missions and clicks 'Start Mission', it navigates to /select-planet. The full flow is: /missions → /select-planet → /select-location → /select-crew → /configure-base → /mission. Verify this flow works end-to-end without guard redirections breaking it. Specifically: after completeMission is called (endMission + navigate /debrief), and then player navigates to /missions to start again, the new mission selection should call missionStore.resetMission() first. Add this reset to the handleStartMission function in MissionsOverviewScreen.tsx.",
+
+    "Step 10 — ACCESSIBILITY FINAL PASS: Review all new screens and components added in FEAT-001 through FEAT-005 for: (a) All interactive elements have aria-label or visible text, (b) Focus order is logical (tab key navigates sensibly), (c) All images and decorative icons have aria-hidden='true', (d) Color is not the only indicator of status (check EventPanel urgency colors — add a text label 'URGENT' or 'ATTENTION' for screen readers), (e) Progress bars have role='progressbar' with aria-valuenow/min/max. Note any issues found in the FEAT findings field.",
+
+    "Step 11 — FINAL BUILD AND TEST: Run npm run build and npm test. If any TypeScript errors exist from FEAT-002's simulation type changes (durationBonus field added to MissionScore), find the failing tests in tests/ that reference MissionScore and add the durationBonus field to their expected objects (set to any number, as the test verifies structure not exact values). Do NOT delete any tests. If test expects exact finalScore value, update it to account for durationBonus added to the sum."
+  ],
+  "acceptance_criteria": [
+    "AstroAIPanel shows 'Astro is thinking...' with pulsing dot when loading",
+    "AstroAIPanel button changes to 'Another hint?' after first response",
+    "AstroAIPanel shows amber badge in offline mode, not hidden",
+    "MissionControlScreen h1 reads 'Ready for a little moon/Mars magic, {name}?'",
+    "YOU ARE HERE marker position moves as mission days advance",
+    "No '#00BCD4' values exist in src/ files",
+    "spaceplus-accent-teal token in tailwind.config is exactly #1FC8C0",
+    "No visible 'ASTRA' text appears in the running app (comments in code files are acceptable)",
+    "All 4 nav tabs are visible and functional on every screen",
+    "Completed mission cards in CosmicJourneyStrip show actual star rating",
+    "npm run build completes with 0 errors",
+    "npm test: all 219+ tests pass"
+  ],
+  "verification": [
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run build — must show 0 TypeScript errors and produce a dist/ folder",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm test -- must show all tests passing (219+ green)",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run dev — full manual E2E: enter name → select planet → select location → select crew → configure base with 60-day duration → start mission → advance 3 days → resolve an event → view Astro-AI hint → end mission → view debrief. All steps must work without console errors.",
+    "cd \"c:\\Users\\HP\\Desktop\\NASA SPACE APPS\" && npm run dev:full — both Vite dev server and Express server start. Navigate to /explorers and verify leaderboard table renders (even if empty)."
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

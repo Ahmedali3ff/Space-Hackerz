@@ -1,0 +1,32 @@
+{
+  "project_type": "Vite 5 + React 18 + TypeScript SPA with Express/SQLite backend, Space+ light theme educational game",
+  "language": "TypeScript (strict mode, no any, no enums)",
+  "build_system": "Vite 5 — `npm run build` runs `tsc -b && vite build`. Path aliases: @/ → src/, @simulation/ → src/simulation/, @data/ → src/data/, @ai/ → src/ai/, @game/ → src/game/, @store/ → src/store/",
+  "test_framework": "Vitest 2 + jsdom + @testing-library/react. Config in vite.config.ts test block. Setup: tests/setup.ts (imports @testing-library/jest-dom). globals: true.",
+  "build_command": "npm run build",
+  "test_command": "npx vitest run",
+  "verification_instructions": "1. Run `npm run build` from workspace root — must exit 0. 2. Run `npx vitest run` — must show ≥ 219 tests passing (new tests will add to total). No test failures allowed.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Windows PowerShell — use semicolons not && to chain commands. Workspace: C:\\Users\\HP\\Desktop\\NASA SPACE APPS. NEVER edit src/simulation/. No new npm packages — only framer-motion, @phosphor-icons/react, recharts, zustand, zod, react-router-dom, plus already-installed packages.",
+  "contribution_requirements": "No React/Zustand imports in src/simulation/ or src/data/. No class components. Props typed with named interface above component. Max 300 lines per file. No inline styles except dynamic values. All scientific constants need source comment. No ! non-null assertion except in tests with justification comment. Use `as const` not enums.",
+  "key_patterns": "1. Screens export a named function (e.g. `export function MissionsOverviewScreen()`). 2. Lazy-loaded in router via React.lazy + .then(m => ({default: m.ScreenName})). 3. AppShell wraps all screens with variant='light'. 4. ScreenTransition wraps content with routeKey={path}. 5. Cards use `<Card>` component from @/components/common/Card. 6. Buttons use `<PrimaryButton variant='hint'|'secondary'|'ghost'>`. 7. Zustand stores: create() with typed state+actions interfaces. 8. persist() middleware from zustand/middleware for stores needing localStorage. 9. Test files mirror source in tests/ folder. 10. Mission definitions: MISSIONS array + getMissionById() exported from @data/missions/mission-definitions. 11. MissionProgressStore has completeMission(id, stars), startMission(id), completeTask(id, taskId). 12. useMissionControl() hook bridges React to SimulationEngine. 13. Game dark theme tokens: game.bg='#0A0E1A', game.purple='#7C3AED', game.teal='#1FC8C0', game.gold='#F5A623'. 14. No Phaser — CSS/SVG animations only (Phaser installed but never imported per product.md).",
+  "relevant_files": [
+    "src/app/router.tsx",
+    "src/data/missions/mission-definitions.ts",
+    "src/store/mission-progress-store.ts",
+    "src/store/mission-store.ts",
+    "src/hooks/useMissionControl.ts",
+    "src/services/mission-task-evaluator.ts",
+    "tailwind.config.js",
+    "src/index.css",
+    "src/components/layout/AppShell.tsx",
+    "src/features/missions/MissionsOverviewScreen.tsx",
+    "src/features/mission-control/MissionControlScreen.tsx",
+    "src/simulation/events/lunar-events.ts",
+    "src/simulation/events/martian-events.ts",
+    "src/simulation/types/index.ts",
+    "tests/unit/store/mission-progress-store.test.ts",
+    "tests/unit/services/mission-task-evaluator.test.ts"
+  ],
+  "directory_structure": "src/app/ (router), src/components/ (shared UI: layout/AppShell, layout/TopNavBar, common/Card, common/PrimaryButton, common/SectionLabel, common/StarScore, common/StatusDot, common/UserChip, charts/MiniProgressBar), src/data/ (missions/mission-definitions, missions/mission-progress, levels/level-definitions, locations), src/features/ (one folder per screen), src/hooks/ (useMissionControl), src/services/ (mission-task-evaluator, api-client), src/simulation/ (UNTOUCHABLE), src/store/ (mission-store, mission-progress-store, app-store), tests/ (mirrors src/ structure), .agents/tasks/hybrid-campaign-feats/ (FEAT artifacts)"
+}

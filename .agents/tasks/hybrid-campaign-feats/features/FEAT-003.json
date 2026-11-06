@@ -1,0 +1,37 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Add 7 new routes to router.tsx (all additive, existing routes untouched), add RequireGameActive guard, and write unit tests for: game-progress-store, audio-manager, CampaignMapScreen, CinematicIntroScreen, LevelCompleteScreen, GameOverScreen. FEAT-003 depends on FEAT-001 and FEAT-002 being complete.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — src/app/router.tsx: Add 7 new lazy-loaded imports at the top of the existing lazy-load section (after the existing ones, before the route guard components): CampaignMapScreen from '../features/game/CampaignMapScreen', CinematicIntroScreen from '../features/game/CinematicIntroScreen', GameplayScreen from '../features/game/GameplayScreen', GameEventModal from '../features/game/GameEventModal', PauseMenuOverlay from '../features/game/PauseMenuOverlay', LevelCompleteScreen from '../features/game/LevelCompleteScreen', GameOverScreen from '../features/game/GameOverScreen'. Add RequireGameActive guard (reads useMissionStore missionStarted and redirects to '/missions' if false — mirrors RequireMissionStarted but redirects differently). Add 7 new <Route> entries inside the existing <Routes> block (after the last existing route): /game/campaign → CampaignMapScreen (no guard), /game/cinematic/:missionId → CinematicIntroScreen (no guard), /game/play/:missionId → GameplayScreen (RequireGameActive: requires missionStarted OR missionActive), /game/event/:missionId/:eventId → GameEventModal (RequireGameActive), /game/pause → PauseMenuOverlay (no guard — accessible even when paused), /game/level-complete/:missionId → LevelCompleteScreen (RequireMissionStarted), /game/game-over → GameOverScreen (RequireMissionStarted). All routes wrapped in <Suspense fallback={<LoadingScreen />}> and <ScreenTransition routeKey='/game/...'> following the exact same pattern as existing routes.",
+
+    "Step 2 — tests/unit/game/game-progress-store.test.ts: Unit tests for useGameProgressStore. Follow the same pattern as tests/unit/store/mission-progress-store.test.ts. Import { useGameProgressStore, INITIAL_GAME_PROGRESS_STATE } from '@store/game-progress-store'. beforeEach: localStorage.clear(); useGameProgressStore.setState({...INITIAL_GAME_PROGRESS_STATE}). Tests: (a) 'initial state has currentLevelId null', (b) 'initial state has activeGameState idle', (c) 'setCurrentLevel updates currentLevelId', (d) 'completeLevel adds to completedLevelIds', (e) 'unlockLevel adds to unlockedLevelIds', (f) 'setGameState updates activeGameState', (g) 'addPlaytime increments totalPlaytimeSecs', (h) 'resetCampaign restores initial state after mutations'. Minimum 8 tests.",
+
+    "Step 3 — tests/unit/services/audio-manager.test.ts: Unit tests for audioManager. Import { getAudioManager } from '@/services/audio-manager'. Tests run in jsdom where AudioContext may be undefined — the implementation must handle this gracefully (no throws). Tests: (a) 'getAudioManager returns an AudioManager instance', (b) 'playSound does not throw in test environment', (c) 'setMuted(true) makes isMuted() return true', (d) 'setMuted(false) makes isMuted() return false', (e) 'setVolume(0.5) sets volume to 0.5', (f) 'setVolume clamps to [0,1] — setVolume(1.5) sets to 1', (g) 'setVolume clamps to [0,1] — setVolume(-0.5) sets to 0'. Minimum 7 tests.",
+
+    "Step 4 — tests/unit/game/CampaignMapScreen.test.tsx: Render test for CampaignMapScreen. Use @testing-library/react renderWithRouter pattern (wrap in MemoryRouter from react-router-dom). Mock useMissionProgressStore to return all 8 missions in 'locked' state except m01 ('active'). Tests: (a) 'renders 8 mission nodes', (b) 'active mission node is not greyed out', (c) 'locked mission shows lock indicator'. Minimum 3 tests.",
+
+    "Step 5 — tests/unit/game/CinematicIntroScreen.test.tsx: Render test for CinematicIntroScreen. Wrap in MemoryRouter with initialEntries=['/game/cinematic/m01']. Use Route path='/game/cinematic/:missionId' so useParams works. Tests: (a) 'renders mission title from mission definition', (b) 'renders Begin Mission button', (c) 'renders Skip Intro button'. Minimum 3 tests.",
+
+    "Step 6 — tests/unit/game/LevelCompleteScreen.test.tsx: Render test for LevelCompleteScreen. Wrap in MemoryRouter with /game/level-complete/m01. Mock useMissionStore to return missionStarted=true, currentMissionDay=20, missionOutcome='success'. Mock useMissionProgressStore. Tests: (a) 'renders Mission Complete heading', (b) 'renders Continue Campaign button', (c) 'renders View Full Report button'. Minimum 3 tests.",
+
+    "Step 7 — tests/unit/game/GameOverScreen.test.tsx: Render test for GameOverScreen. Mock useMissionStore to return activeFaultStates=['OXYGEN_DEPLETED'], currentMissionDay=5, missionStarted=true. Mock useMissionProgressStore. Tests: (a) 'renders Mission Failed heading', (b) 'renders oxygen depletion reason', (c) 'renders Try Again button', (d) 'renders Return to Campaign button'. Minimum 4 tests."
+  ],
+  "acceptance_criteria": [
+    "src/app/router.tsx has 7 new /game/* routes",
+    "All new routes use Suspense + ScreenTransition following existing pattern",
+    "RequireGameActive guard exists and redirects to /missions when no active mission",
+    "tests/unit/game/ contains 4 test files: game-progress-store.test.ts, CampaignMapScreen.test.tsx, CinematicIntroScreen.test.tsx, LevelCompleteScreen.test.tsx, GameOverScreen.test.tsx",
+    "tests/unit/services/audio-manager.test.ts exists with ≥7 tests",
+    "npx vitest run shows ≥ 244 tests passing (219 existing + ≥25 new)",
+    "npm run build exits 0",
+    "No existing tests broken"
+  ],
+  "verification": [
+    "npm run build",
+    "npx vitest run"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

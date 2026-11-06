@@ -4,15 +4,16 @@ import { MainGameScene } from '../scenes/MainGameScene'
 
 export function createPhaserConfig(
   parent: HTMLElement,
-  width: number,
-  height: number,
-  planetId: 'moon' | 'mars'
+  _width: number,
+  _height: number,
+  planetId: 'moon' | 'mars',
 ): Phaser.Types.Core.GameConfig {
   return {
     type: Phaser.AUTO,
     parent,
-    width,
-    height,
+    // Use full window dimensions so the game fills the screen
+    width: window.innerWidth,
+    height: window.innerHeight,
     backgroundColor: planetId === 'mars' ? '#1a0808' : '#0A0E1A',
     physics: {
       default: 'arcade',
@@ -20,8 +21,11 @@ export function createPhaserConfig(
     },
     scene: [MainGameScene],
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.RESIZE,   // resize with browser window
       autoCenter: Phaser.Scale.CENTER_BOTH,
+      parent,
+      width: window.innerWidth,
+      height: window.innerHeight,
     },
     audio: { disableWebAudio: false },
   }

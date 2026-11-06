@@ -33,6 +33,7 @@ export class MainGameScene extends Phaser.Scene {
   }
 
   preload(): void {
+    console.log('[MainGameScene] preload() started')
     // ALL textures are generated programmatically — NO image files needed.
     // Astronaut (white helmet + blue suit)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,6 +127,8 @@ export class MainGameScene extends Phaser.Scene {
     marsGfx.generateTexture('mars-ground', 64, 64)
     marsGfx.destroy()
 
+    console.log('[MainGameScene] preload() complete — all textures generated')
+
     // Rock obstacle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rockGfx: any = this.makeGfx()
@@ -138,11 +141,15 @@ export class MainGameScene extends Phaser.Scene {
   }
 
   create(data: { planetId?: 'moon' | 'mars' }): void {
+    console.log('[MainGameScene] create() called with data:', data)
     this.planetId = data?.planetId ?? 'moon'
+    console.log('[MainGameScene] Planet ID set to:', this.planetId)
     const groundTex = this.planetId === 'mars' ? 'mars-ground' : 'moon-ground'
+    console.log('[MainGameScene] Ground texture:', groundTex)
 
     // World bounds: 1600x1200
     this.physics.world.setBounds(0, 0, 1600, 1200)
+    console.log('[MainGameScene] World bounds:', this.physics.world.bounds)
 
     // Tile ground
     for (let x = 0; x < 1600; x += 64) {
@@ -171,6 +178,7 @@ export class MainGameScene extends Phaser.Scene {
     // Buildings group
     this.buildings = this.add.group()
     this.buildHabitat()
+    console.log('[MainGameScene] Buildings created:', this.buildings.getLength())
 
     // Scatter rocks
     for (let i = 0; i < 12; i++) {
@@ -183,11 +191,20 @@ export class MainGameScene extends Phaser.Scene {
     this.playerSprite = this.physics.add.sprite(800, 800, 'astronaut')
     this.playerSprite.setCollideWorldBounds(true)
     this.playerSprite.setDepth(10)
+    console.log('[MainGameScene] Player sprite created:', this.playerSprite)
+    console.log('[MainGameScene] Player position:', this.playerSprite.x, this.playerSprite.y)
 
     // Camera follows player
     this.cameras.main.startFollow(this.playerSprite, true, 0.1, 0.1)
     this.cameras.main.setZoom(1.2)
     this.cameras.main.setBounds(0, 0, 1600, 1200)
+    console.log('[MainGameScene] Camera:', {
+      width: this.cameras.main.width,
+      height: this.cameras.main.height,
+      zoom: this.cameras.main.zoom,
+      scrollX: this.cameras.main.scrollX,
+      scrollY: this.cameras.main.scrollY,
+    })
 
     // Input
     this.cursors = this.input.keyboard!.createCursorKeys()
@@ -203,7 +220,11 @@ export class MainGameScene extends Phaser.Scene {
     EventBus.on('planet-set', (d: { planetId: 'moon' | 'mars' }) => { this.planetId = d.planetId }, this)
 
     // Signal React that scene is ready
-    this.time.delayedCall(100, () => { EventBus.emit('scene-ready', {}) })
+    console.log('[MainGameScene] Scene setup complete — signaling ready in 100ms')
+    this.time.delayedCall(100, () => {
+      console.log('[MainGameScene] Emitting scene-ready event')
+      EventBus.emit('scene-ready', {})
+    })
   }
 
   private buildHabitat(): void {
