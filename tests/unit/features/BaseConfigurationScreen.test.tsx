@@ -120,28 +120,28 @@ describe('BaseConfigurationScreen', () => {
     expect(screen.getByText(/please select a planet and crew size first/i)).toBeInTheDocument()
   })
 
-  it('Start Mission is disabled when planet/crew not set', () => {
+  it('Launch Mission is disabled when planet/crew not set', () => {
     missionStore.setState({ ...INITIAL_MISSION_STATE })
     renderScreen()
-    const btn = screen.getByRole('button', { name: /select a planet and crew size first/i })
+    const btn = screen.getByRole('button', { name: /complete base configuration first/i })
     expect(btn).toBeDisabled()
   })
 
-  it('Start Mission is enabled when planet and crew are set', () => {
+  it('Launch Mission is enabled when planet and crew are set', () => {
     renderWithValidSetup()
-    const btn = screen.getByRole('button', { name: /start the mission/i })
+    const btn = screen.getByRole('button', { name: /launch your mission/i })
     expect(btn).not.toBeDisabled()
   })
 
-  it('Start Mission calls setBaseConfig, initializeMission, and navigates to /mission', () => {
+  it('Launch Mission calls setBaseConfig, initializeMission, and navigates to /game/level-1', () => {
     renderWithValidSetup()
-    fireEvent.click(screen.getByRole('button', { name: /start the mission/i }))
+    fireEvent.click(screen.getByRole('button', { name: /launch your mission/i }))
     // setBaseConfig should have been called (store should have a non-null baseConfig)
     expect(missionStore.getState().baseConfig).not.toBeNull()
     // initializeMission mock should have been called
     expect(mockInitializeMission).toHaveBeenCalledTimes(1)
-    // navigate to /mission
-    expect(mockNavigate).toHaveBeenCalledWith('/mission')
+    // navigate to /game/level-1
+    expect(mockNavigate).toHaveBeenCalledWith('/game/level-1')
   })
 
   it('Back button navigates to /select-crew', () => {
