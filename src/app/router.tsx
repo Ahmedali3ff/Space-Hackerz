@@ -289,6 +289,16 @@ export function AppRouter(): JSX.Element {
           </Suspense>
         }
       />
+      <Route
+        path="/mission-control-dashboard"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/mission-control-dashboard">
+              <MissionControlDashboardScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
 
       {/* ── Game campaign routes (dark theme) ──────────────────────────────── */}
       <Route

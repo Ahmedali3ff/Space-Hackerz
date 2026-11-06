@@ -42,7 +42,7 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
   const displayName = commanderName.trim()
 
   return (
-    <AppShell title="Space+ Mission Control" variant="light">
+    <AppShell title="Space Hackerz Mission Control" variant="light">
       <ScreenTransition routeKey="/">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 py-16">
           {/* ── Welcome back card for returning players ── */}
@@ -77,7 +77,7 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
 
             {/* Title */}
             <h2 className="font-display2 text-5xl font-extrabold text-spaceplus-text-heading">
-              Space<span className="text-[#1FC8C0]">+</span>
+              Space<span className="text-[#1FC8C0]">Hackerz</span>
             </h2>
             <p className="mt-1 font-display2 text-lg font-semibold text-spaceplus-text-secondary">
               Mission Control Academy

@@ -158,7 +158,7 @@ export function ExplorersScreen(_props: ExplorersScreenProps): JSX.Element {
                     Leaderboard Offline
                   </h3>
                   <p className="text-sm text-[#6B7280] mb-2">
-                    The leaderboard requires the Space+ server to be running.
+                    The leaderboard requires the Space Hackerz server to be running.
                   </p>
                   <p className="text-sm text-[#6B7280] mb-2">
                     Start it with:

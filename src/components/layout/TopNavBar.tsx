@@ -101,12 +101,12 @@ export function TopNavBar({
   const displayName = commanderName.trim().length > 0 ? commanderName : null
 
   return (
-    <nav className={barClass} aria-label="Space+ navigation">
+    <nav className={barClass} aria-label="Space Hackerz navigation">
       {/* ── Left: Logo + wordmark ── */}
       <NavLink
         to="/missions"
         className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0] rounded-lg flex-shrink-0"
-        aria-label="Space+ — missions overview"
+        aria-label="Space Hackerz — missions overview"
       >
         <span
           className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1FC8C0] flex-shrink-0"
@@ -120,7 +120,7 @@ export function TopNavBar({
           ) : (
             <>
               <span className="text-[#1A1D2E]">Space</span>
-              <span className="text-[#1FC8C0]">+</span>
+              <span className="text-[#1FC8C0]">Hackerz</span>
             </>
           )}
         </span>

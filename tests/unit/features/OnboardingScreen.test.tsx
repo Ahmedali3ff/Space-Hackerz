@@ -59,6 +59,6 @@ describe('OnboardingScreen', () => {
     renderScreen()
     const h1 = screen.getByRole('heading', { level: 1 })
     expect(h1).toHaveClass('sr-only')
-    expect(h1).toHaveTextContent('Space+ Mission Control')
+    expect(h1).toHaveTextContent('Space Hackerz Mission Control')
   })
 })

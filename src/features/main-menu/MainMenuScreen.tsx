@@ -147,7 +147,9 @@ function PlanetPill({ label, value, selected, onClick }: PlanetPillProps): JSX.E
 export function MainMenuScreen(): JSX.Element {
   const navigate = useNavigate()
   const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
+  const crewSize = useMissionStore((s) => s.crewSize)
   const selectPlanet = useMissionStore((s) => s.selectPlanet)
+  const setCrewSize = useMissionStore((s) => s.setCrewSize)
 
   const [showHowToPlay, setShowHowToPlay] = useState(false)
 
@@ -169,6 +171,10 @@ export function MainMenuScreen(): JSX.Element {
     // Ensure planet is committed to store
     if (selectedPlanetId === null) {
       selectPlanet(activePlanet)
+    }
+    // Ensure crewSize has a sensible default so RequireSetup guard passes
+    if (crewSize === 0) {
+      setCrewSize(4)
     }
     navigate('/configure-base')
   }
