@@ -28,7 +28,9 @@ export interface ScoringInput {
  * decisionQualityBonus     = optimalDecisions × 25 + suboptimalDecisions × 5
  * eventsResolvedBonus      = eventsSuccessfullyResolved × 30
  * criticalFailurePenalty   = criticalFailureEvents × -50
- * finalScore               = sum of above
+ * rawScore                 = sum of above
+ * durationMultiplier       = 0.8 (≤30d), 1.0 (≤60d), 1.3 (>60d)
+ * finalScore               = Math.round(rawScore × durationMultiplier)
  *
  * Outcomes:
  *   finalScore ≥ 800 → success
@@ -68,10 +70,17 @@ export function calculateMissionScore(input: ScoringInput): MissionScore {
   const targetDays = input.targetDurationDays ?? 90
   const daysRun = input.missionDuration
   const completionRatio = Math.min(daysRun / targetDays, 1.0)
-  const durationBonus = Math.round(completionRatio * 100)
+  const completionBonus = Math.round(completionRatio * 100)
 
-  const finalScore =
-    baseScore + resourceStabilityBonus + decisionQualityBonus + eventsResolvedBonus + criticalFailurePenalty + durationBonus
+  // Calculate duration multiplier based on mission length
+  const durationMultiplier =
+    targetDays <= 30 ? 0.8 : targetDays <= 60 ? 1.0 : 1.3
+
+  const rawScore =
+    baseScore + resourceStabilityBonus + decisionQualityBonus + eventsResolvedBonus + criticalFailurePenalty + completionBonus
+
+  const finalScore = Math.round(rawScore * durationMultiplier)
+  const durationBonus = finalScore - rawScore
 
   const outcome: MissionOutcome =
     finalScore >= SUCCESS_THRESHOLD ? 'success' : finalScore >= PARTIAL_THRESHOLD ? 'partial' : 'failure'
@@ -83,6 +92,7 @@ export function calculateMissionScore(input: ScoringInput): MissionScore {
     eventsResolvedBonus,
     criticalFailurePenalty,
     durationBonus,
+    durationMultiplier,
     finalScore,
     outcome,
   }

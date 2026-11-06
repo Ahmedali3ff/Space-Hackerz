@@ -126,6 +126,7 @@ export interface MissionScore {
   readonly eventsResolvedBonus: number
   readonly criticalFailurePenalty: number
   readonly durationBonus: number
+  readonly durationMultiplier: number
   readonly finalScore: number
   readonly outcome: MissionOutcome
 }

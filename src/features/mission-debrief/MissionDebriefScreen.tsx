@@ -199,6 +199,16 @@ function renderScoreBreakdown(missionScore: MissionScore | null): JSX.Element {
       <ScoreRow label="Decision Quality Bonus" value={missionScore.decisionQualityBonus} />
       <ScoreRow label="Events Resolved Bonus" value={missionScore.eventsResolvedBonus} />
       <ScoreRow label="Critical Failure Penalty" value={missionScore.criticalFailurePenalty} />
+      {missionScore.durationMultiplier !== 1.0 && (
+        <div className="flex justify-between items-center py-1.5 border-b border-spaceplus-border-light">
+          <span className="text-sm text-spaceplus-text-secondary">
+            Duration Bonus ({missionScore.durationMultiplier}x multiplier)
+          </span>
+          <span className={`text-sm font-bold ${missionScore.durationBonus < 0 ? 'text-spaceplus-status-error' : 'text-spaceplus-status-success'}`}>
+            {missionScore.durationBonus >= 0 ? '+' : ''}{missionScore.durationBonus}
+          </span>
+        </div>
+      )}
       <div className="flex justify-between items-center py-2 mt-1 border-t-2 border-spaceplus-border-medium">
         <span className="text-spaceplus-text-heading font-bold">Final Score</span>
         <span className="text-xl font-bold text-spaceplus-text-heading">{missionScore.finalScore}</span>
