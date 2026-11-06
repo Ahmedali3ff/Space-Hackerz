@@ -8,25 +8,78 @@ Make scientifically informed decisions. Survive the unexpected.
 
 ---
 
-## Status
+## Features
 
-🚧 **Under active development** — See [docs/team-workflow.md](docs/team-workflow.md) for setup instructions.
+✨ **8-Mission Campaign** — Progress through a story-driven mission arc from first lunar steps to the ultimate 90-sol Mars expedition
 
-Current phase: **Phase 1 — Requirements and Architecture**
+🎮 **Interactive 2D Gameplay** — Control an astronaut character, explore your habitat, and interact with critical systems using Phaser 3
+
+🌍 **Location Selection** — Choose your landing site on the Moon or Mars — each location affects solar exposure, temperature, and dust levels
+
+🤖 **Astro-AI Assistant** — Get real-time scientific explanations and mission advice powered by NASA data
+
+📊 **Mission Debrief** — Review your decisions, resource management, and mission score with detailed charts and insights
 
 ---
 
-## What is ASTRA?
+## How to Run
 
-ASTRA puts students in the role of a mission commander managing a human space habitat.
+### Development Mode
 
-- Select your destination: **Moon** or **Mars**
-- Configure your crew (1–8 members)
-- Set up habitat systems: life support, water recycling, power, food, radiation protection
-- Manage daily resources as your mission advances
-- Respond to real-world-inspired events (dust storms, radiation alerts, power failures)
-- Consult **Astro-AI** for age-appropriate scientific explanations
-- Complete your mission and review what you learned
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+
+# Open http://localhost:5173 in your browser
+```
+
+### Production Build
+
+```bash
+# Build for production
+npm run build
+
+# Preview the production build
+npm run preview
+```
+
+### Run Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+---
+
+## Game Controls
+
+| Key | Action |
+|-----|--------|
+| **WASD** or **Arrow Keys** | Move astronaut |
+| **E** | Interact with building/system |
+| **Esc** | Pause game |
+| **Click** | UI interactions |
+
+---
+
+## Tech Stack
+
+- **React 18** — UI framework
+- **TypeScript** — Type safety and developer experience
+- **Vite** — Fast build tool and dev server
+- **Phaser 3** — 2D game engine for interactive gameplay
+- **Tailwind CSS** — Utility-first styling
+- **Zustand** — Lightweight state management
+- **Zod** — Runtime validation for NASA data and AI responses
+- **Recharts** — Mission debrief visualizations
+- **Vitest** — Unit and integration testing
 
 ---
 
@@ -44,18 +97,6 @@ All simulation values are classified and documented:
 - `EDUCATIONAL_ASSUMPTION` — simplified for educational purposes
 
 See [docs/scientific-references.md](docs/scientific-references.md) and [docs/scientific-assumptions.md](docs/scientific-assumptions.md).
-
----
-
-## Quick Start (Development)
-
-```bash
-npm install
-cp .env.example .env
-npm run dev
-```
-
-See [docs/team-workflow.md](docs/team-workflow.md) for the full guide.
 
 ---
 
@@ -82,6 +123,26 @@ Key principles:
 - **No backend required** — local-first, all state in-browser
 - **Scientific honesty** — no invented "NASA data", all assumptions documented
 - **Graceful AI degradation** — app works without an AI API key
+
+---
+
+## Known Limitations
+
+- **Local-only** — No multiplayer or collaborative missions (V1)
+- **2 planets** — Moon and Mars only (Earth and other destinations are out of scope for V1)
+- **No custom scripting** — Educators cannot create custom missions in V1
+- **WebGL required** — The Phaser 3 gameplay layer requires WebGL support (2D fallback is not yet implemented)
+- **English only** — No internationalization support in V1
+
+---
+
+## Browser Support
+
+ASTRA requires a modern browser with WebGL support:
+- **Chrome 90+** ✅
+- **Firefox 88+** ✅
+- **Edge 90+** ✅
+- **Safari 15+** ✅
 
 ---
 

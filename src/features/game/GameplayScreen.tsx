@@ -389,6 +389,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const gameRef = useRef<Phaser.Game | null>(null)
 
   const [sceneReady, setSceneReady] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [phaserError, setPhaserError] = useState<string | null>(null)
   const [nearBuildingId, setNearBuildingId] = useState<string | null>(null)
   const [openBuildingId, setOpenBuildingId] = useState<string | null>(null)
   const [isPaused, setIsPaused] = useState(false)
@@ -443,57 +445,48 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   // ── Phaser initialization ─────────────────────────────────────────────────
 
   useEffect(() => {
-    console.log('[GameplayScreen] Mount — canvasRef.current:', canvasRef.current)
-    console.log('[GameplayScreen] Dimensions:', window.innerWidth, window.innerHeight)
-    console.log('[GameplayScreen] Planet type:', planetType)
-    
     if (!canvasRef.current) {
-      console.error('[GameplayScreen] canvasRef.current is NULL — Phaser cannot mount!')
+      setPhaserError('Canvas container not ready')
       return
     }
     
     if (gameRef.current) {
-      console.log('[GameplayScreen] Game already exists — skipping initialization')
       return
     }
 
-    console.log('[GameplayScreen] Creating Phaser game...')
-    const config = createPhaserConfig(canvasRef.current, 800, 600, planetType)
-    console.log('[GameplayScreen] Config:', config)
-    
-    // Create the game instance
-    // MainGameScene will auto-start because it's first in the scene array
-    gameRef.current = new Phaser.Game(config)
-    console.log('[GameplayScreen] Game instance created:', gameRef.current)
-    console.log('[GameplayScreen] Phaser version:', Phaser.VERSION)
-
-    // Wait for scene to be ready, then pass planet data
-    gameRef.current.events.once('ready', () => {
-      console.log('[GameplayScreen] Phaser "ready" event fired')
-      const scene = gameRef.current?.scene.getScene('MainGameScene') as MainGameScene | undefined
-      console.log('[GameplayScreen] MainGameScene instance:', scene)
+    try {
+      setLoadingProgress(10)
+      const config = createPhaserConfig(canvasRef.current, 800, 600, planetType)
+      setLoadingProgress(30)
       
-      if (scene) {
-        console.log('[GameplayScreen] Scene found — checking if active')
-        const isActive = gameRef.current?.scene.isActive('MainGameScene')
-        console.log('[GameplayScreen] Scene active?', isActive)
+      // Create the game instance
+      gameRef.current = new Phaser.Game(config)
+      setLoadingProgress(60)
+
+      // Wait for scene to be ready
+      gameRef.current.events.once('ready', () => {
+        setLoadingProgress(80)
+        const scene = gameRef.current?.scene.getScene('MainGameScene') as MainGameScene | undefined
         
-        // If scene auto-started, restart it with planet data
-        // Otherwise, start it manually
-        if (isActive) {
-          console.log('[GameplayScreen] Restarting scene with planetId:', planetType)
-          scene.scene.restart({ planetId: planetType })
+        if (scene) {
+          const isActive = gameRef.current?.scene.isActive('MainGameScene')
+          
+          if (isActive) {
+            scene.scene.restart({ planetId: planetType })
+          } else {
+            scene.scene.start('MainGameScene', { planetId: planetType })
+          }
+          setLoadingProgress(100)
         } else {
-          console.log('[GameplayScreen] Starting scene with planetId:', planetType)
-          scene.scene.start('MainGameScene', { planetId: planetType })
+          setPhaserError('Scene initialization failed')
         }
-      } else {
-        console.error('[GameplayScreen] MainGameScene NOT FOUND in scene manager!')
-      }
-    })
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      setPhaserError(`Phaser failed to initialize: ${message}`)
+    }
 
     return () => {
-      console.log('[GameplayScreen] Unmounting — destroying Phaser game')
       gameRef.current?.destroy(true)
       gameRef.current = null
     }
@@ -597,6 +590,40 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // Error fallback UI
+  if (phaserError) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-[#0A0E1A] flex flex-col items-center justify-center gap-6 p-8">
+        <div className="text-6xl mb-4">⚠️</div>
+        <h1 className="text-2xl font-bold text-[#EF4444] text-center">
+          WebGL Not Supported
+        </h1>
+        <p className="text-white/60 text-sm text-center max-w-md leading-relaxed">
+          Your browser does not support WebGL, which is required to run the game.
+          Please use a modern browser like Chrome, Firefox, Edge, or Safari 15+.
+        </p>
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-[#1FC8C0] hover:bg-[#17a8a0] text-black font-bold text-sm rounded-xl transition-colors"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={() => navigate('/missions')}
+            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl transition-colors"
+          >
+            Back to Missions
+          </button>
+        </div>
+        <details className="mt-6 text-xs text-white/30 max-w-md">
+          <summary className="cursor-pointer hover:text-white/50">Technical details</summary>
+          <p className="mt-2 font-mono text-[10px]">{phaserError}</p>
+        </details>
+      </div>
+    )
+  }
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#0A0E1A]">
       {/* Phaser canvas container */}
@@ -606,17 +633,26 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         style={{ zIndex: 1, background: '#0A0E1A' }}
       />
 
-      {/* Loading overlay */}
+      {/* Loading overlay with progress */}
       {!sceneReady && (
         <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#0A0E1A]">
           <div className="text-4xl mb-4 animate-bounce">🚀</div>
           <p className="text-white/60 text-sm font-semibold tracking-widest uppercase">
             Deploying Habitat…
           </p>
-          <p className="text-white/30 text-xs mt-2">
+          <p className="text-white/30 text-xs mt-2 mb-4">
             {planetType === 'moon' ? '🌙 Lunar Base' : '🔴 Mars Base'}
             {mission ? ` — ${mission.title}` : ''}
           </p>
+          {/* Progress bar */}
+          {loadingProgress > 0 && (
+            <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#1FC8C0] rounded-full transition-all duration-300"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+          )}
         </div>
       )}
 

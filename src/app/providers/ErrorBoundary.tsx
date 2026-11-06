@@ -33,18 +33,25 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   override render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-8">
-          <h1 className="text-2xl font-bold text-red-600">Something went wrong.</h1>
-          <p className="text-gray-600">Please refresh the page.</p>
+        <div className="flex flex-col items-center justify-center min-h-screen gap-6 p-8 bg-spaceplus-bg-app">
+          <div className="text-6xl mb-2">🛸</div>
+          <h1 className="text-2xl font-bold text-spaceplus-text-heading">Houston, we have a problem!</h1>
+          <p className="text-spaceplus-text-secondary text-center max-w-md">
+            Something unexpected happened and ASTRA needs to restart. 
+            Your mission progress is saved locally and will be restored.
+          </p>
           <button
             type="button"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-6 py-3 bg-spaceplus-teal hover:bg-spaceplus-teal/90 text-white font-bold rounded-xl transition-colors"
             onClick={() => {
               window.location.reload()
             }}
           >
-            Reload
+            Reload ASTRA
           </button>
+          <p className="text-xs text-spaceplus-text-muted mt-4">
+            If this keeps happening, try clearing your browser cache.
+          </p>
         </div>
       )
     }

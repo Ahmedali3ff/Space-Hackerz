@@ -8,10 +8,6 @@ export function createPhaserConfig(
   _height: number,
   planetId: 'moon' | 'mars',
 ): Phaser.Types.Core.GameConfig {
-  console.log('[createPhaserConfig] Creating config for parent:', parent)
-  console.log('[createPhaserConfig] Window dimensions:', window.innerWidth, 'x', window.innerHeight)
-  console.log('[createPhaserConfig] Planet ID:', planetId)
-  
   return {
     type: Phaser.AUTO,
     parent,

@@ -435,5 +435,25 @@ export const MISSIONS: readonly MissionDefinition[] = [
 ]
 
 export function getMissionById(id: string): MissionDefinition | undefined {
-  return MISSIONS.find((m) => m.id === id)
+  try {
+    return MISSIONS.find((m) => m.id === id)
+  } catch (error) {
+    // Log error but don't crash — return undefined to allow caller to handle
+    console.error('[mission-definitions] Error loading mission:', id, error)
+    return undefined
+  }
+}
+
+// Validate missions array on module load to catch configuration errors early
+if (MISSIONS.length === 0) {
+  throw new Error('[mission-definitions] MISSIONS array is empty — check mission configuration')
+}
+
+// Validate all mission IDs are unique
+const idSet = new Set<string>()
+for (const mission of MISSIONS) {
+  if (idSet.has(mission.id)) {
+    throw new Error(`[mission-definitions] Duplicate mission ID found: ${mission.id}`)
+  }
+  idSet.add(mission.id)
 }

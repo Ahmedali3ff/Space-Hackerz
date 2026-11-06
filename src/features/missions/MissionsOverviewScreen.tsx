@@ -3,6 +3,7 @@
 // Complete = teal checkmark overlay. Active = teal border + Start Mission button.
 // Locked = greyed out with Lock icon.
 
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Lock, Rocket, Star } from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout/AppShell'
@@ -155,12 +156,21 @@ function MissionCard({ mission, status, onStart }: MissionCardProps): JSX.Elemen
 
 export function MissionsOverviewScreen(_props: MissionsOverviewScreenProps): JSX.Element {
   const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(true)
   const commanderName = useMissionProgressStore((s) => s.commanderName)
   const totalStars = useMissionProgressStore((s) => s.totalStars)
   const currentLevel = useMissionProgressStore((s) => s.currentLevel)
   const commanderTitle = useMissionProgressStore((s) => s.commanderTitle)
   const getMissionStatus = useMissionProgressStore((s) => s.getMissionStatus)
   const startMission = useMissionProgressStore((s) => s.startMission)
+
+  // Simulate loading (mission data is synchronous, but we add a brief delay for polish)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   function handleStartMission(missionId: string): void {
     startMission(missionId)
@@ -203,19 +213,33 @@ export function MissionsOverviewScreen(_props: MissionsOverviewScreenProps): JSX
           </div>
 
           {/* ── Mission grid ── */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {MISSIONS.map((mission) => {
-              const status = getMissionStatus(mission.id)
-              return (
-                <MissionCard
-                  key={mission.id}
-                  mission={mission}
-                  status={status}
-                  onStart={handleStartMission}
-                />
-              )
-            })}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading missions">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} accent="none" className="animate-pulse">
+                  <div className="h-4 bg-spaceplus-bg-app rounded w-16 mb-3" />
+                  <div className="h-5 bg-spaceplus-bg-app rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-spaceplus-bg-app rounded w-full mb-3" />
+                  <div className="h-3 bg-spaceplus-bg-app rounded w-1/2 mb-4" />
+                  <div className="h-8 bg-spaceplus-bg-app rounded w-full" />
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {MISSIONS.map((mission) => {
+                const status = getMissionStatus(mission.id)
+                return (
+                  <MissionCard
+                    key={mission.id}
+                    mission={mission}
+                    status={status}
+                    onStart={handleStartMission}
+                  />
+                )
+              })}
+            </div>
+          )}
 
           {/* ── Footer actions ── */}
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
