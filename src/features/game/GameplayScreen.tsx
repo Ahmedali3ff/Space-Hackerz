@@ -1,256 +1,109 @@
 // src/features/game/GameplayScreen.tsx
-// Phaser 3 top-down astronaut game embedded in a React shell.
-// The player controls an astronaut character with WASD/arrow keys.
-// React overlays show resource HUD, alerts, and building panels.
-// All simulation state comes from useMissionControl().
+// V2 — React Three Fiber 3D habitat gameplay screen.
+// Fully replaces the Phaser-based version. The simulation engine is untouched.
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import Phaser from 'phaser'
+
 import { useMissionControl } from '@/hooks/useMissionControl'
 import { useMissionStore } from '@store/mission-store'
 import { useGameProgressStore } from '@store/game-progress-store'
-import { getMissionById } from '@data/missions/mission-definitions'
 import { getAudioManager } from '@/services/audio-manager'
 import { getEventDefinition } from '@/features/events/event-registry'
-import { EventBus } from '@game/EventBus'
-import { createPhaserConfig } from '@game/config/PhaserConfig'
-import { MainGameScene } from '@game/scenes/MainGameScene'
 
-// ── Props ─────────────────────────────────────────────────────────────────────
+import { HabitatWorld } from '@/game3d/components/HabitatWorld'
+import { CinematicIntro } from '@/game3d/components/CinematicIntro'
+import { ResourceHUD } from './ResourceHUD'
+import { TaskCorner } from './TaskCorner'
+import { MissionAlertBanner } from './MissionAlertBanner'
+import { CriticalFailureScreen } from './CriticalFailureScreen'
+import { PauseMenuOverlay } from './PauseMenuOverlay'
 
-interface GameplayScreenProps {
-  _props?: Record<string, never>
-}
-
-// ── Building metadata ─────────────────────────────────────────────────────────
+// ── Building info ─────────────────────────────────────────────────────────────
 
 interface BuildingInfo {
-  readonly id: string
   readonly label: string
   readonly icon: string
   readonly resourceLabel: string
   readonly tip: string
 }
 
-const BUILDING_INFO: Record<string, BuildingInfo> = {
+const BUILDING_INFO: Readonly<Record<string, BuildingInfo>> = {
   'life-support': {
-    id: 'life-support',
     label: 'Life Support Bay',
     icon: '🫁',
     resourceLabel: 'Oxygen',
     tip: 'Life support recycles CO₂ into breathable oxygen. Each crew member consumes ~0.84 kg of O₂ per day.',
   },
   'command-center': {
-    id: 'command-center',
     label: 'Command Center',
     icon: '🖥️',
     resourceLabel: 'Energy',
     tip: 'The command center coordinates all habitat systems. Maintaining high energy ensures communications and control.',
   },
-  'crew-quarters': {
-    id: 'crew-quarters',
-    label: 'Crew Quarters',
-    icon: '👥',
-    resourceLabel: 'Morale',
-    tip: 'Rest is critical on long missions. Crew fatigue increases errors and resource waste.',
-  },
-  'water-recycling': {
-    id: 'water-recycling',
-    label: 'Water Recycling',
-    icon: '💧',
-    resourceLabel: 'Water',
-    tip: 'Water recyclers recover up to 93% of wastewater. Each crew member needs ~3 L/day to stay healthy.',
-  },
-  'solar-panels': {
-    id: 'solar-panels',
-    label: 'Solar Array Alpha',
-    icon: '☀️',
-    resourceLabel: 'Energy',
-    tip: 'Solar panels convert sunlight into electricity. On the Moon, panels work at ~100% efficiency in sunlight.',
-  },
-  'solar-panels-2': {
-    id: 'solar-panels-2',
-    label: 'Solar Array Beta',
-    icon: '☀️',
-    resourceLabel: 'Energy',
-    tip: 'A second solar array provides redundancy. Mars dust storms can reduce solar output by up to 99%.',
-  },
-  'communications': {
-    id: 'communications',
-    label: 'Communications Dish',
-    icon: '📡',
-    resourceLabel: 'Signal',
-    tip: 'Earth comms have a 1.3-second delay from the Moon and up to 24 minutes from Mars. Plan your messages!',
-  },
   'power-room': {
-    id: 'power-room',
     label: 'Power Generator',
     icon: '⚡',
     resourceLabel: 'Energy',
     tip: 'Nuclear RTG generators provide baseload power day and night, regardless of solar conditions.',
   },
-  'hydroponics': {
-    id: 'hydroponics',
-    label: 'Hydroponics Bay',
+  'solar-panels': {
+    label: 'Solar Array',
+    icon: '☀️',
+    resourceLabel: 'Energy',
+    tip: 'Solar panels convert sunlight into electricity. On the Moon, panels work at ~100% efficiency in sunlight.',
+  },
+  'water-recycling': {
+    label: 'Water Recycling',
+    icon: '💧',
+    resourceLabel: 'Water',
+    tip: 'Water recyclers recover up to 93% of wastewater. Each crew member needs ~3 L/day to stay healthy.',
+  },
+  greenhouse: {
+    label: 'Greenhouse',
     icon: '🌱',
     resourceLabel: 'Food',
     tip: 'Hydroponic crops grow 30% faster than on Earth with LED lighting. Food security is a mission priority.',
   },
-}
-
-// ── ResourceHUD ───────────────────────────────────────────────────────────────
-
-interface ResourceHUDProps {
-  readonly oxygen: number
-  readonly water: number
-  readonly food: number
-  readonly energy: number
-}
-
-function ResourceHUD({ oxygen, water, food, energy }: ResourceHUDProps): JSX.Element {
-  const bars: Array<{ label: string; icon: string; value: number; color: string }> = [
-    { label: 'O₂',    icon: '🫁', value: oxygen, color: '#1FC8C0' },
-    { label: 'H₂O',   icon: '💧', value: water,  color: '#38BDF8' },
-    { label: 'Food',  icon: '🌱', value: food,   color: '#10B981' },
-    { label: 'Power', icon: '⚡', value: energy,  color: '#F5A623' },
-  ]
-
-  return (
-    <div
-      className="absolute top-3 left-3 z-20 flex flex-col gap-1.5 bg-black/60 backdrop-blur-sm rounded-xl px-3 py-2.5 min-w-[130px]"
-      aria-label="Resource status"
-    >
-      {bars.map((bar) => {
-        const pct = Math.max(0, Math.min(100, bar.value))
-        const isLow = pct < 20
-        const isCrit = pct < 10
-        const barColor = isCrit ? '#EF4444' : isLow ? '#F59E0B' : bar.color
-        return (
-          <div key={bar.label} className="flex items-center gap-2">
-            <span className="text-sm leading-none w-4 text-center">{bar.icon}</span>
-            <div className="flex-1 flex flex-col gap-0.5">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] font-bold text-white/70 uppercase tracking-wide">{bar.label}</span>
-                <span
-                  className="text-[9px] font-bold tabular-nums"
-                  style={{ color: barColor }}
-                >
-                  {Math.round(pct)}%
-                </span>
-              </div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${pct}%`, backgroundColor: barColor }}
-                />
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── MissionAlert ──────────────────────────────────────────────────────────────
-
-interface MissionAlertProps {
-  readonly activeEventIds: readonly string[]
-  readonly missionDay: number
-  readonly totalDays: number
-}
-
-function MissionAlert({ activeEventIds, missionDay, totalDays }: MissionAlertProps): JSX.Element {
-  const hasEvent = activeEventIds.length > 0
-  const firstEvent = hasEvent ? getEventDefinition(activeEventIds[0]) : undefined
-
-  return (
-    <div
-      className={[
-        'absolute top-3 right-3 z-20 rounded-xl px-3 py-2 text-xs font-bold backdrop-blur-sm max-w-[200px]',
-        hasEvent
-          ? 'bg-[#EF4444]/20 border border-[#EF4444]/60 text-[#EF4444] animate-pulse'
-          : 'bg-black/50 border border-white/10 text-white/60',
-      ].join(' ')}
-      role={hasEvent ? 'alert' : undefined}
-    >
-      {hasEvent ? (
-        <span>⚠️ {firstEvent?.title ?? 'Event Alert!'}</span>
-      ) : (
-        <span>✅ All systems nominal</span>
-      )}
-      <div className="text-white/40 font-normal mt-0.5">
-        Day {missionDay} / {totalDays}
-      </div>
-    </div>
-  )
-}
-
-// ── VirtualJoystick ───────────────────────────────────────────────────────────
-
-function VirtualJoystick(): JSX.Element {
-  return (
-    <div
-      className="absolute bottom-16 left-4 z-20 pointer-events-none"
-      aria-hidden="true"
-    >
-      {/* Outer ring */}
-      <div className="w-20 h-20 rounded-full border-2 border-white/20 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-        {/* Inner knob */}
-        <div className="w-8 h-8 rounded-full bg-white/20 border border-white/30" />
-      </div>
-      <p className="text-[8px] text-white/30 text-center mt-1 tracking-wide">WASD / ↑↓←→</p>
-    </div>
-  )
-}
-
-// ── InteractPrompt ────────────────────────────────────────────────────────────
-
-interface InteractPromptProps {
-  readonly nearBuildingId: string | null
-}
-
-function InteractPrompt({ nearBuildingId }: InteractPromptProps): JSX.Element | null {
-  if (!nearBuildingId) return null
-  const info = BUILDING_INFO[nearBuildingId]
-  const label = info?.label ?? nearBuildingId
-
-  return (
-    <div
-      className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/70 border border-[#1FC8C0]/50 rounded-full px-4 py-2 backdrop-blur-sm"
-      role="status"
-      aria-live="polite"
-    >
-      <kbd className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded font-mono">E</kbd>
-      <span className="text-xs text-white font-semibold">Interact with</span>
-      <span className="text-xs text-[#1FC8C0] font-bold">{label}</span>
-    </div>
-  )
+  communications: {
+    label: 'Communications Dish',
+    icon: '📡',
+    resourceLabel: 'Signal',
+    tip: 'Earth comms have a 1.3-second delay from the Moon and up to 24 minutes from Mars. Plan your messages!',
+  },
+  airlock: {
+    label: 'Airlock',
+    icon: '🚪',
+    resourceLabel: 'Safety',
+    tip: 'Exit for EVA repairs and resource scouting outside the habitat. Always check your suit before going out!',
+  },
 }
 
 // ── BuildingPanel ─────────────────────────────────────────────────────────────
 
 interface BuildingPanelProps {
   readonly buildingId: string
-  readonly oxygen: number
-  readonly water: number
-  readonly food: number
-  readonly energy: number
+  readonly oxygenPct: number
+  readonly waterPct: number
+  readonly foodPct: number
+  readonly energyPct: number
   readonly activeEventIds: readonly string[]
   readonly onResolveEvent: (eventId: string, choiceId: string) => void
+  readonly onEmergencyRation: () => void
+  readonly onAdvanceDay: () => void
   readonly onClose: () => void
-  readonly onAstroAI: () => void
 }
 
 function BuildingPanel({
   buildingId,
-  oxygen,
-  water,
-  food,
-  energy,
+  oxygenPct,
+  waterPct,
+  foodPct,
+  energyPct,
   activeEventIds,
   onResolveEvent,
+  onEmergencyRation,
+  onAdvanceDay,
   onClose,
 }: BuildingPanelProps): JSX.Element {
   const info = BUILDING_INFO[buildingId]
@@ -258,19 +111,17 @@ function BuildingPanel({
   const label = info?.label ?? buildingId
   const tip = info?.tip ?? 'This module is part of the habitat system.'
 
-  // Pick the relevant resource value for this building
-  const resourceValue = (() => {
+  const resourceValue = ((): { label: string; value: number; color: string } | null => {
     if (!info) return null
     switch (info.resourceLabel) {
-      case 'Oxygen':  return { label: 'Oxygen',  value: oxygen,  color: '#1FC8C0' }
-      case 'Water':   return { label: 'Water',   value: water,   color: '#38BDF8' }
-      case 'Food':    return { label: 'Food',    value: food,    color: '#10B981' }
-      case 'Energy':  return { label: 'Energy',  value: energy,  color: '#F5A623' }
-      default:        return null
+      case 'Oxygen': return { label: 'Oxygen', value: oxygenPct, color: '#8B5CF6' }
+      case 'Water':  return { label: 'Water',  value: waterPct,  color: '#3B82F6' }
+      case 'Food':   return { label: 'Food',   value: foodPct,   color: '#10B981' }
+      case 'Energy': return { label: 'Energy', value: energyPct, color: '#F59E0B' }
+      default:       return null
     }
   })()
 
-  // Find events relevant to this building
   const relevantEvents = activeEventIds
     .map((id) => getEventDefinition(id))
     .filter((e): e is NonNullable<typeof e> => e !== undefined)
@@ -280,23 +131,47 @@ function BuildingPanel({
       role="dialog"
       aria-modal="true"
       aria-label={`${label} panel`}
-      className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.65)',
+        backdropFilter: 'blur(6px)',
+      }}
       onClick={onClose}
     >
       <div
-        className="bg-[#0A0E1A] border border-[#1FC8C0]/30 rounded-2xl p-5 w-full max-w-sm mx-4 flex flex-col gap-4"
+        style={{
+          background: 'rgba(10,14,26,0.97)',
+          border: '1px solid rgba(31,200,192,0.3)',
+          borderRadius: 20,
+          padding: '20px 24px',
+          width: '100%',
+          maxWidth: 380,
+          margin: '0 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          maxHeight: '85vh',
+          overflowY: 'auto',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{icon}</span>
-            <h2 className="text-base font-black text-white">{label}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 28 }}>{icon}</span>
+            <h2 style={{ color: 'white', fontSize: 16, fontWeight: 900, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
+              {label}
+            </h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close panel"
-            className="text-white/40 hover:text-white transition-colors text-lg leading-none"
+            style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}
           >
             ✕
           </button>
@@ -304,49 +179,48 @@ function BuildingPanel({
 
         {/* Resource reading */}
         {resourceValue !== null && (
-          <div className="bg-white/5 rounded-xl px-4 py-3">
-            <p className="text-[10px] uppercase tracking-widest text-[#1FC8C0] font-bold mb-1">
+          <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '12px 16px' }}>
+            <p style={{ color: '#1FC8C0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, fontFamily: 'Nunito, sans-serif', marginBottom: 8 }}>
               {resourceValue.label} Level
             </p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-2.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${Math.max(0, Math.min(100, resourceValue.value))}%`,
-                    backgroundColor: resourceValue.value < 20 ? '#EF4444' : resourceValue.color,
-                  }}
-                />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 5, overflow: 'hidden' }}>
+                <div style={{
+                  height: 10,
+                  borderRadius: 5,
+                  background: resourceValue.value < 20 ? '#EF4444' : resourceValue.color,
+                  width: `${Math.max(0, Math.min(100, resourceValue.value))}%`,
+                  transition: 'width 0.6s ease',
+                }} />
               </div>
-              <span
-                className="text-sm font-black tabular-nums"
-                style={{ color: resourceValue.color }}
-              >
+              <span style={{ color: resourceValue.color, fontSize: 16, fontWeight: 900, minWidth: 40, textAlign: 'right' }}>
                 {Math.round(resourceValue.value)}%
               </span>
             </div>
           </div>
         )}
 
-        {/* Educational tip */}
-        <div className="bg-[#1FC8C0]/10 border border-[#1FC8C0]/20 rounded-xl px-4 py-3">
-          <p className="text-[10px] uppercase tracking-widest text-[#1FC8C0] font-bold mb-1">
+        {/* Astro-AI tip */}
+        <div style={{ background: 'rgba(31,200,192,0.08)', border: '1px solid rgba(31,200,192,0.2)', borderRadius: 12, padding: '12px 16px' }}>
+          <p style={{ color: '#1FC8C0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, fontFamily: 'Nunito, sans-serif', marginBottom: 6 }}>
             🤖 Astro-AI
           </p>
-          <p className="text-xs text-white/80 leading-relaxed">{tip}</p>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, lineHeight: 1.6, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
+            {tip}
+          </p>
         </div>
 
-        {/* Active event choices */}
+        {/* Active events */}
         {relevantEvents.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] uppercase tracking-widest text-[#EF4444] font-bold">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <p style={{ color: '#EF4444', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
               ⚠️ Active Alert
             </p>
             {relevantEvents.slice(0, 1).map((event) => (
-              <div key={event.id} className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl px-3 py-3">
-                <p className="text-xs font-bold text-white mb-2">{event.title}</p>
-                <p className="text-xs text-white/60 mb-3 leading-relaxed">{event.description}</p>
-                <div className="flex flex-col gap-1.5">
+              <div key={event.id} style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 16px' }}>
+                <p style={{ color: 'white', fontSize: 13, fontWeight: 700, fontFamily: 'Nunito, sans-serif', marginBottom: 6 }}>{event.title}</p>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, lineHeight: 1.5, fontFamily: 'Nunito, sans-serif', marginBottom: 10 }}>{event.description}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {event.choices.map((choice) => (
                     <button
                       key={choice.id}
@@ -355,7 +229,18 @@ function BuildingPanel({
                         onResolveEvent(event.id, choice.id)
                         onClose()
                       }}
-                      className="text-xs text-left bg-white/10 hover:bg-[#1FC8C0]/20 border border-white/10 hover:border-[#1FC8C0]/40 rounded-lg px-3 py-2 text-white transition-colors"
+                      style={{
+                        textAlign: 'left',
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 10,
+                        padding: '10px 14px',
+                        color: 'white',
+                        fontSize: 12,
+                        fontFamily: 'Nunito, sans-serif',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                      }}
                     >
                       {choice.label}
                     </button>
@@ -366,9 +251,25 @@ function BuildingPanel({
           </div>
         )}
 
+        {/* Quick actions */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => { getAudioManager().playSound('day_advance'); onAdvanceDay(); onClose() }}
+            style={{ flex: 1, background: '#1FC8C0', color: 'black', fontWeight: 900, fontSize: 13, fontFamily: 'Nunito, sans-serif', border: 'none', borderRadius: 10, padding: '11px 0', cursor: 'pointer' }}
+          >
+            ⏭️ Next Day
+          </button>
+          <button
+            onClick={() => { getAudioManager().playSound('click'); onEmergencyRation(); onClose() }}
+            style={{ flex: 1, background: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.4)', color: '#F5A623', fontWeight: 700, fontSize: 13, fontFamily: 'Nunito, sans-serif', borderRadius: 10, padding: '11px 0', cursor: 'pointer' }}
+          >
+            🍱 Ration
+          </button>
+        </div>
+
         <button
           onClick={onClose}
-          className="text-xs text-[#1FC8C0] hover:text-white transition-colors text-center py-1"
+          style={{ color: 'rgba(31,200,192,0.8)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontFamily: 'Nunito, sans-serif', padding: '4px 0', textAlign: 'center' }}
         >
           ← Back to Base
         </button>
@@ -377,51 +278,65 @@ function BuildingPanel({
   )
 }
 
-// ── GameplayScreen (main) ─────────────────────────────────────────────────────
+// ── Props ─────────────────────────────────────────────────────────────────────
+
+interface GameplayScreenProps {
+  _props?: Record<string, never>
+}
+
+// ── Game phases ───────────────────────────────────────────────────────────────
+
+type GamePhase = 'intro' | 'playing' | 'paused' | 'failed' | 'won'
+
+// ── Main component ─────────────────────────────────────────────────────────────
 
 export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
-  const { levelId, missionId: missionIdParam } = useParams<{ levelId?: string; missionId?: string }>()
-  // missionId resolves from either param
+  const { levelId, missionId: missionIdParam } = useParams<{
+    levelId?: string
+    missionId?: string
+  }>()
   const missionId = missionIdParam ?? levelId
   const navigate = useNavigate()
 
-  const canvasRef = useRef<HTMLDivElement>(null)
-  const gameRef = useRef<Phaser.Game | null>(null)
-
-  const [sceneReady, setSceneReady] = useState(false)
-  const [loadingProgress, setLoadingProgress] = useState(0)
-  const [phaserError, setPhaserError] = useState<string | null>(null)
-  const [nearBuildingId, setNearBuildingId] = useState<string | null>(null)
+  const [gamePhase, setGamePhase] = useState<GamePhase>('intro')
   const [openBuildingId, setOpenBuildingId] = useState<string | null>(null)
-  const [isPaused, setIsPaused] = useState(false)
 
   const {
     missionStarted,
     currentResources,
     currentMissionDay,
     activeEventIds,
+    activeFaultStates,
     missionOutcome,
     missionDurationDays,
-    selectedPlanetId,
+    commanderName,
     initializeMission,
     advanceDay,
     resolveEvent,
     emergencyRation,
   } = useMissionControl()
 
+  const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
   const initialResources = useMissionStore((s) => s.initialResources)
   const { completeLevel, unlockLevel } = useGameProgressStore()
 
-  const mission = missionId ? getMissionById(missionId) : undefined
-  const planetType: 'moon' | 'mars' = selectedPlanetId === 'mars' ? 'mars' : 'moon'
+  const planetId: 'moon' | 'mars' = selectedPlanetId === 'mars' ? 'mars' : 'moon'
 
-  // ── Resource percentages (0–100) ─────────────────────────────────────────
+  // ── Fallback resource snapshots ────────────────────────────────────────────
 
   const res = currentResources ?? {
-    oxygen_kg: 0, water_kg: 0, food_kg: 0, energy_kWh: 0, cumulativeRadiation_mSv: 0,
+    oxygen_kg: 0,
+    water_kg: 0,
+    food_kg: 0,
+    energy_kWh: 0,
+    cumulativeRadiation_mSv: 0,
   }
   const init = initialResources ?? {
-    oxygen_kg: 100, water_kg: 100, food_kg: 100, energy_kWh: 100, cumulativeRadiation_mSv: 0,
+    oxygen_kg: 100,
+    water_kg: 100,
+    food_kg: 100,
+    energy_kWh: 100,
+    cumulativeRadiation_mSv: 0,
   }
 
   function toPct(val: number, max: number): number {
@@ -433,8 +348,17 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const foodPct   = toPct(res.food_kg,   init.food_kg)
   const energyPct = toPct(res.energy_kWh, init.energy_kWh)
 
+  // ── Crew mood derived from resources ──────────────────────────────────────
+
+  const crewStatus: 'happy' | 'worried' | 'scared' = (() => {
+    const min = Math.min(oxygenPct, waterPct, foodPct, energyPct)
+    if (min < 15) return 'scared'
+    if (min < 35) return 'worried'
+    return 'happy'
+  })()
+
   // ── Initialize simulation on mount ────────────────────────────────────────
-  // Only initialize if the mission hasn't already been started by BaseConfigurationScreen
+
   useEffect(() => {
     if (!missionStarted) {
       initializeMission()
@@ -442,114 +366,11 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Phaser initialization ─────────────────────────────────────────────────
-
-  useEffect(() => {
-    if (!canvasRef.current) {
-      setPhaserError('Canvas container not ready')
-      return
-    }
-    
-    if (gameRef.current) {
-      return
-    }
-
-    try {
-      setLoadingProgress(10)
-      const config = createPhaserConfig(canvasRef.current, 800, 600, planetType)
-      setLoadingProgress(30)
-      
-      // Create the game instance
-      gameRef.current = new Phaser.Game(config)
-      setLoadingProgress(60)
-
-      // Wait for scene to be ready
-      gameRef.current.events.once('ready', () => {
-        setLoadingProgress(80)
-        const scene = gameRef.current?.scene.getScene('MainGameScene') as MainGameScene | undefined
-        
-        if (scene) {
-          const isActive = gameRef.current?.scene.isActive('MainGameScene')
-          
-          if (isActive) {
-            scene.scene.restart({ planetId: planetType })
-          } else {
-            scene.scene.start('MainGameScene', { planetId: planetType })
-          }
-          setLoadingProgress(100)
-        } else {
-          setPhaserError('Scene initialization failed')
-        }
-      })
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error'
-      setPhaserError(`Phaser failed to initialize: ${message}`)
-    }
-
-    return () => {
-      gameRef.current?.destroy(true)
-      gameRef.current = null
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // ── EventBus: Phaser → React ──────────────────────────────────────────────
-
-  useEffect(() => {
-    function onSceneReady(): void {
-      setSceneReady(true)
-    }
-
-    function onNearBuilding(d: { buildingId: string | null }): void {
-      setNearBuildingId(d.buildingId)
-    }
-
-    function onPlayerInteracted(d: { buildingId: string }): void {
-      setOpenBuildingId(d.buildingId)
-      getAudioManager().playSound('click')
-    }
-
-    function onPauseRequested(): void {
-      handlePause()
-    }
-
-    EventBus.on('scene-ready', onSceneReady)
-    EventBus.on('near-building', onNearBuilding)
-    EventBus.on('player-interacted', onPlayerInteracted)
-    EventBus.on('pause-requested', onPauseRequested)
-
-    return () => {
-      EventBus.off('scene-ready', onSceneReady)
-      EventBus.off('near-building', onNearBuilding)
-      EventBus.off('player-interacted', onPlayerInteracted)
-      EventBus.off('pause-requested', onPauseRequested)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // ── EventBus: React → Phaser (resource sync) ──────────────────────────────
-
-  useEffect(() => {
-    if (!sceneReady) return
-    EventBus.emit('resources-updated', {
-      oxygen: oxygenPct,
-      water: waterPct,
-      food: foodPct,
-      energy: energyPct,
-    })
-  }, [sceneReady, oxygenPct, waterPct, foodPct, energyPct])
-
-  useEffect(() => {
-    if (!sceneReady) return
-    EventBus.emit('day-advanced', { day: currentMissionDay })
-  }, [sceneReady, currentMissionDay])
-
   // ── Mission outcome handler ───────────────────────────────────────────────
 
   useEffect(() => {
     if (missionOutcome === 'success' || missionOutcome === 'partial') {
       getAudioManager().playSound('level_complete')
-      // Unlock next level from levelId (e.g. 'level-3' → unlock 'level-4')
       if (levelId) {
         completeLevel(levelId)
         const match = levelId.match(/level-(\d+)/)
@@ -558,210 +379,305 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           unlockLevel(`level-${nextNum}`)
         }
       }
+      setGamePhase('won')
       navigate(`/level-complete/${missionId ?? levelId ?? ''}`)
     } else if (missionOutcome === 'failure') {
       getAudioManager().playSound('game_over')
-      navigate('/game/game-over')
+      setGamePhase('failed')
     }
   }, [missionOutcome, navigate, missionId, levelId, completeLevel, unlockLevel])
+
+  // ── Fault state sound ─────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (activeFaultStates.length > 0 && gamePhase === 'playing') {
+      getAudioManager().playSound('event_alert')
+    }
+  }, [activeFaultStates.length, gamePhase])
+
+  // ── Esc key → pause ───────────────────────────────────────────────────────
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === 'Escape') {
+        if (gamePhase === 'playing') {
+          setGamePhase('paused')
+          getAudioManager().playSound('click')
+        } else if (gamePhase === 'paused') {
+          setGamePhase('playing')
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [gamePhase])
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
   const handleAdvanceDay = useCallback((): void => {
     getAudioManager().playSound('day_advance')
     advanceDay()
-    EventBus.emit('day-advanced', { day: currentMissionDay + 1 })
-  }, [advanceDay, currentMissionDay])
+  }, [advanceDay])
 
   const handleEmergencyRation = useCallback((): void => {
     getAudioManager().playSound('click')
     emergencyRation()
   }, [emergencyRation])
 
-  function handlePause(): void {
+  const handleBuildingClick = useCallback((buildingId: string): void => {
+    if (gamePhase !== 'playing') return
     getAudioManager().playSound('click')
-    setIsPaused(true)
-    navigate(`/game/pause/${missionId ?? levelId ?? ''}`)
-  }
+    setOpenBuildingId(buildingId)
+  }, [gamePhase])
 
-  function handleResumeFromPause(): void {
-    setIsPaused(false)
-  }
+  // ── Cinematic intro ────────────────────────────────────────────────────────
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
-  // Error fallback UI
-  if (phaserError) {
+  if (gamePhase === 'intro') {
     return (
-      <div className="relative w-full h-screen overflow-hidden bg-[#0A0E1A] flex flex-col items-center justify-center gap-6 p-8">
-        <div className="text-6xl mb-4">⚠️</div>
-        <h1 className="text-2xl font-bold text-[#EF4444] text-center">
-          WebGL Not Supported
-        </h1>
-        <p className="text-white/60 text-sm text-center max-w-md leading-relaxed">
-          Your browser does not support WebGL, which is required to run the game.
-          Please use a modern browser like Chrome, Firefox, Edge, or Safari 15+.
-        </p>
-        <div className="flex gap-3 mt-4">
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-[#1FC8C0] hover:bg-[#17a8a0] text-black font-bold text-sm rounded-xl transition-colors"
-          >
-            Try Again
-          </button>
-          <button
-            onClick={() => navigate('/missions')}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-sm rounded-xl transition-colors"
-          >
-            Back to Missions
-          </button>
-        </div>
-        <details className="mt-6 text-xs text-white/30 max-w-md">
-          <summary className="cursor-pointer hover:text-white/50">Technical details</summary>
-          <p className="mt-2 font-mono text-[10px]">{phaserError}</p>
-        </details>
-      </div>
+      <CinematicIntro
+        planetId={planetId}
+        commanderName={commanderName || 'Commander'}
+        onComplete={() => setGamePhase('playing')}
+      />
     )
   }
 
+  // ── Critical failure screen ────────────────────────────────────────────────
+
+  if (gamePhase === 'failed') {
+    return (
+      <CriticalFailureScreen
+        faultStates={[...activeFaultStates]}
+        dayReached={currentMissionDay}
+        resources={res}
+        initialResources={init}
+        onRetry={() => {
+          initializeMission()
+          setGamePhase('intro')
+        }}
+        onBackToMap={() => navigate('/missions')}
+      />
+    )
+  }
+
+  // ── Main gameplay view ─────────────────────────────────────────────────────
+
+  const firstEventId = activeEventIds.length > 0 ? activeEventIds[0] : null
+
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#0A0E1A]">
-      {/* Phaser canvas container */}
+    <div
+      style={{
+        position: 'relative',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        background: planetId === 'mars' ? '#1a0808' : '#050810',
+      }}
+    >
+      {/* ── 3D world (fills entire screen) ─────────────────────────────────── */}
       <div
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ zIndex: 1, background: '#0A0E1A' }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        <HabitatWorld
+          planetId={planetId}
+          resources={res}
+          initialResources={init}
+          crewStatus={crewStatus}
+          commanderName={commanderName || 'Commander'}
+          onBuildingClick={handleBuildingClick}
+        />
+      </div>
+
+      {/* ── React overlays ─────────────────────────────────────────────────── */}
+
+      {/* Resource HUD — top left */}
+      <ResourceHUD
+        oxygen={res.oxygen_kg}
+        water={res.water_kg}
+        food={res.food_kg}
+        energy={res.energy_kWh}
+        maxOxygen={init.oxygen_kg}
+        maxWater={init.water_kg}
+        maxFood={init.food_kg}
+        maxEnergy={init.energy_kWh}
       />
 
-      {/* Loading overlay with progress */}
-      {!sceneReady && (
-        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#0A0E1A]">
-          <div className="text-4xl mb-4 animate-bounce">🚀</div>
-          <p className="text-white/60 text-sm font-semibold tracking-widest uppercase">
-            Deploying Habitat…
+      {/* Mission alert banner — top right */}
+      <MissionAlertBanner eventId={firstEventId} day={currentMissionDay} />
+
+      {/* Task corner — bottom right */}
+      <TaskCorner
+        currentResources={res}
+        initialResources={init}
+        currentDay={currentMissionDay}
+        totalDays={missionDurationDays}
+        activeEventIds={activeEventIds}
+        activeFaultStates={[...activeFaultStates]}
+      />
+
+      {/* Bottom action bar */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          background: 'rgba(10,14,26,0.85)',
+          backdropFilter: 'blur(12px)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          padding: '10px 16px',
+        }}
+      >
+        {/* Advance day */}
+        <button
+          onClick={handleAdvanceDay}
+          aria-label="Advance one day"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: '#1FC8C0',
+            color: 'black',
+            fontWeight: 900,
+            fontSize: 13,
+            fontFamily: 'Nunito, sans-serif',
+            border: 'none',
+            borderRadius: 12,
+            padding: '10px 18px',
+            cursor: 'pointer',
+            boxShadow: '0 0 14px rgba(31,200,192,0.4)',
+          }}
+        >
+          ⏭️ Next Day
+        </button>
+
+        {/* Planet + day indicator */}
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', fontFamily: 'Nunito, sans-serif', marginBottom: 2 }}>
+            {planetId === 'moon' ? '🌙 Moon' : '🔴 Mars'}
           </p>
-          <p className="text-white/30 text-xs mt-2 mb-4">
-            {planetType === 'moon' ? '🌙 Lunar Base' : '🔴 Mars Base'}
-            {mission ? ` — ${mission.title}` : ''}
+          <p style={{ color: 'white', fontSize: 12, fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
+            Day {currentMissionDay} / {missionDurationDays}
           </p>
-          {/* Progress bar */}
-          {loadingProgress > 0 && (
-            <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#1FC8C0] rounded-full transition-all duration-300"
-                style={{ width: `${loadingProgress}%` }}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Right controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={handleEmergencyRation}
+            aria-label="Emergency ration mode"
+            title="Halve food consumption for one day"
+            style={{
+              fontSize: 13,
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              background: 'rgba(245,166,35,0.15)',
+              border: '1px solid rgba(245,166,35,0.4)',
+              color: '#F5A623',
+              borderRadius: 10,
+              padding: '9px 12px',
+              cursor: 'pointer',
+            }}
+          >
+            🍱 Ration
+          </button>
+          <button
+            onClick={() => {
+              getAudioManager().playSound('click')
+              setGamePhase('paused')
+            }}
+            aria-label="Pause game"
+            style={{
+              color: 'rgba(255,255,255,0.5)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 22,
+              lineHeight: 1,
+              padding: '2px 4px',
+            }}
+          >
+            ⏸
+          </button>
+          <button
+            onClick={() => navigate('/missions')}
+            aria-label="Return to mission map"
+            style={{
+              color: 'rgba(255,255,255,0.3)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 18,
+              lineHeight: 1,
+              padding: '2px 4px',
+            }}
+          >
+            🗺️
+          </button>
+        </div>
+      </div>
+
+      {/* ── Keyboard hint ──────────────────────────────────────────────────── */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          bottom: 54,
+          right: 14,
+          zIndex: 19,
+          fontSize: 9,
+          color: 'rgba(255,255,255,0.2)',
+          textAlign: 'right',
+          fontFamily: 'Nunito, sans-serif',
+          lineHeight: 1.6,
+          pointerEvents: 'none',
+        }}
+      >
+        <p>Click buildings to interact</p>
+        <p>Drag to orbit camera</p>
+        <p>Esc — Pause</p>
+      </div>
+
+      {/* ── Building panel modal ────────────────────────────────────────────── */}
+      {openBuildingId !== null && (
+        <BuildingPanel
+          buildingId={openBuildingId}
+          oxygenPct={oxygenPct}
+          waterPct={waterPct}
+          foodPct={foodPct}
+          energyPct={energyPct}
+          activeEventIds={activeEventIds}
+          onResolveEvent={resolveEvent}
+          onEmergencyRation={handleEmergencyRation}
+          onAdvanceDay={handleAdvanceDay}
+          onClose={() => setOpenBuildingId(null)}
+        />
       )}
 
-      {/* React overlays (only shown when scene is ready) */}
-      {sceneReady && (
-        <>
-          {/* Resource HUD — top-left */}
-          <ResourceHUD
-            oxygen={oxygenPct}
-            water={waterPct}
-            food={foodPct}
-            energy={energyPct}
-          />
-
-          {/* Mission alert — top-right */}
-          <MissionAlert
-            activeEventIds={activeEventIds}
-            missionDay={currentMissionDay}
-            totalDays={missionDurationDays}
-          />
-
-          {/* Virtual joystick — bottom-left */}
-          <VirtualJoystick />
-
-          {/* Interact prompt — center-bottom */}
-          <InteractPrompt nearBuildingId={nearBuildingId} />
-
-          {/* Bottom action bar */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between gap-2 bg-black/70 backdrop-blur-sm border-t border-white/10 px-4 py-2">
-            {/* Advance day */}
-            <button
-              onClick={handleAdvanceDay}
-              className="flex items-center gap-2 bg-[#1FC8C0] hover:bg-[#17a8a0] text-black font-black text-xs px-4 py-2 rounded-xl transition-colors"
-              aria-label="Advance one day"
-            >
-              ⏭️ Next Day
-            </button>
-
-            {/* Mission title */}
-            <div className="text-center">
-              <p className="text-[9px] text-white/40 uppercase tracking-widest">
-                {planetType === 'moon' ? '🌙 Moon' : '🔴 Mars'}
-              </p>
-              {mission && (
-                <p className="text-[10px] text-white/60 font-semibold truncate max-w-[140px]">
-                  {mission.title}
-                </p>
-              )}
-            </div>
-
-            {/* Right controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleEmergencyRation}
-                className="text-xs bg-[#F59E0B]/20 hover:bg-[#F59E0B]/30 border border-[#F59E0B]/40 text-[#F59E0B] font-bold px-2 py-1.5 rounded-lg transition-colors"
-                title="Emergency Ration — halve food consumption"
-                aria-label="Emergency ration"
-              >
-                🍱 Ration
-              </button>
-              <button
-                onClick={handlePause}
-                className="text-white/50 hover:text-white transition-colors text-xl leading-none"
-                aria-label="Pause game"
-              >
-                ⏸
-              </button>
-              <button
-                onClick={() => navigate('/missions')}
-                className="text-white/30 hover:text-white/60 transition-colors text-base leading-none"
-                aria-label="Return to mission map"
-              >
-                🔧
-              </button>
-            </div>
-          </div>
-
-          {/* Keyboard shortcuts hint */}
-          <div className="absolute bottom-14 right-3 z-20 text-[8px] text-white/25 text-right pointer-events-none">
-            <p>WASD / Arrow keys — Move</p>
-            <p>E — Interact</p>
-            <p>Esc — Pause</p>
-          </div>
-
-          {/* Building panel (modal) */}
-          {openBuildingId !== null && (
-            <BuildingPanel
-              buildingId={openBuildingId}
-              oxygen={oxygenPct}
-              water={waterPct}
-              food={foodPct}
-              energy={energyPct}
-              activeEventIds={activeEventIds}
-              onResolveEvent={resolveEvent}
-              onClose={() => setOpenBuildingId(null)}
-              onAstroAI={() => {}}
-            />
-          )}
-
-          {/* Pause indicator (when paused mid-navigation) */}
-          {isPaused && (
-            <div
-              className="absolute inset-0 z-25 bg-black/40 flex items-center justify-center"
-              onClick={handleResumeFromPause}
-            >
-              <p className="text-white/40 text-xs">Tap to resume</p>
-            </div>
-          )}
-        </>
+      {/* ── Pause overlay ───────────────────────────────────────────────────── */}
+      {gamePhase === 'paused' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 60,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          {/* Inline pause wrapper so PauseMenuOverlay reads URL params correctly */}
+          <PauseMenuOverlay />
+        </div>
       )}
     </div>
   )

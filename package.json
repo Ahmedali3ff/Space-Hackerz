@@ -16,6 +16,10 @@
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "@react-three/postprocessing": "^3.2.2",
+    "@types/three": "^0.187.0",
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "express": "^5.3.0",
@@ -25,10 +29,12 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.6",
     "recharts": "^2.15.4",
+    "three": "^0.187.0",
     "zod": "^3.25.76",
     "zustand": "^4.5.7"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",

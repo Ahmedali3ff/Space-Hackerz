@@ -23,6 +23,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       'src/game/**',
+      'src/game3d/**',
     ],
   },
 })
