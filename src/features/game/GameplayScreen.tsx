@@ -8,14 +8,18 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMissionControl } from '@/hooks/useMissionControl'
 import { useMissionStore } from '@store/mission-store'
 import { useGameProgressStore } from '@store/game-progress-store'
+import { useChallengeStore } from '@store/challenge-store'
 import { getAudioManager } from '@/services/audio-manager'
 import { getEventDefinition } from '@/features/events/event-registry'
+import { CHALLENGES } from '@/game3d/challenges/challenge-definitions'
 
 import { HabitatWorld } from '@/game3d/components/HabitatWorld'
 import { CinematicIntro } from '@/game3d/components/CinematicIntro'
 import { ResourceHUD } from './ResourceHUD'
 import { TaskCorner } from './TaskCorner'
 import { MissionAlertBanner } from './MissionAlertBanner'
+import { ChallengeWidget } from './ChallengeWidget'
+import { EventBus } from '@/game/EventBus'
 import { CriticalFailureScreen } from './CriticalFailureScreen'
 import { PauseMenuOverlay } from './PauseMenuOverlay'
 
@@ -111,6 +115,26 @@ function BuildingPanel({
   const label = info?.label ?? buildingId
   const tip = info?.tip ?? 'This module is part of the habitat system.'
 
+  // Challenge for this building
+  const activeChallenges = useChallengeStore((s) => s.activeChallenges)
+  const completeChallenge = useChallengeStore((s) => s.completeChallenge)
+  const [completedReward, setCompletedReward] = useState<string | null>(null)
+
+  const activeChallenge = activeChallenges.find((ac) => {
+    const def = CHALLENGES.find((c) => c.id === ac.challengeId)
+    return def?.targetBuildingId === buildingId
+  })
+  const challengeDef = activeChallenge !== undefined
+    ? CHALLENGES.find((c) => c.id === activeChallenge.challengeId)
+    : undefined
+
+  function handleCompleteChallenge(): void {
+    if (activeChallenge === undefined || challengeDef === undefined) return
+    getAudioManager().playSound('level_complete')
+    completeChallenge(activeChallenge.challengeId)
+    setCompletedReward(challengeDef.reward)
+  }
+
   const resourceValue = ((): { label: string; value: number; color: string } | null => {
     if (!info) return null
     switch (info.resourceLabel) {
@@ -176,6 +200,65 @@ function BuildingPanel({
             ✕
           </button>
         </div>
+
+        {/* Challenge card for this building */}
+        {challengeDef !== undefined && completedReward === null && (
+          <div
+            style={{
+              background: 'rgba(245,166,35,0.08)',
+              border: '1px solid rgba(245,166,35,0.5)',
+              borderRadius: 12,
+              padding: '12px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
+            <p style={{ color: '#F5A623', fontSize: 11, fontWeight: 900, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
+              {challengeDef.title}
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11, fontFamily: 'Nunito, sans-serif', lineHeight: 1.45, margin: 0 }}>
+              {challengeDef.description}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontFamily: 'Nunito, sans-serif' }}>
+              <span style={{ color: 'rgba(255,255,255,0.45)' }}>⏳ {activeChallenge!.daysRemaining} day{activeChallenge!.daysRemaining !== 1 ? 's' : ''} left</span>
+            </div>
+            <p style={{ color: '#EF4444', fontSize: 10, fontFamily: 'Nunito, sans-serif', margin: 0 }}>⚠️ {challengeDef.consequence}</p>
+            <button
+              onClick={handleCompleteChallenge}
+              style={{
+                background: '#FFD700',
+                color: '#000',
+                fontWeight: 900,
+                fontSize: 13,
+                fontFamily: 'Nunito, sans-serif',
+                border: 'none',
+                borderRadius: 10,
+                padding: '10px 0',
+                cursor: 'pointer',
+                width: '100%',
+              }}
+            >
+              {challengeDef.actionLabel}
+            </button>
+          </div>
+        )}
+
+        {/* Challenge reward message */}
+        {completedReward !== null && (
+          <div
+            style={{
+              background: 'rgba(16,185,129,0.12)',
+              border: '1px solid rgba(16,185,129,0.4)',
+              borderRadius: 10,
+              padding: '10px 14px',
+            }}
+          >
+            <p style={{ color: '#10B981', fontSize: 12, fontWeight: 700, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
+              ✅ {completedReward}
+            </p>
+          </div>
+        )}
 
         {/* Resource reading */}
         {resourceValue !== null && (
@@ -300,6 +383,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
   const [gamePhase, setGamePhase] = useState<GamePhase>('intro')
   const [openBuildingId, setOpenBuildingId] = useState<string | null>(null)
+  const [highlightedBuildingId, setHighlightedBuildingId] = useState<string | null>(null)
 
   const {
     missionStarted,
@@ -319,6 +403,11 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
   const initialResources = useMissionStore((s) => s.initialResources)
   const { completeLevel, unlockLevel } = useGameProgressStore()
+  // Use getState() inside callbacks to always get fresh values
+  const tickDay = useChallengeStore((s) => s.tickDay)
+  const failChallenge = useChallengeStore((s) => s.failChallenge)
+  const triggerChallenge = useChallengeStore((s) => s.triggerChallenge)
+  const clearChallenges = useChallengeStore((s) => s.clearAll)
 
   const planetId: 'moon' | 'mars' = selectedPlanetId === 'mars' ? 'mars' : 'moon'
 
@@ -363,6 +452,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     if (!missionStarted) {
       initializeMission()
     }
+    // Clear challenges whenever game (re)initializes
+    clearChallenges()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -384,6 +475,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     } else if (missionOutcome === 'failure') {
       getAudioManager().playSound('game_over')
       setGamePhase('failed')
+      navigate(`/game-over/${missionId ?? levelId ?? ''}`)
     }
   }, [missionOutcome, navigate, missionId, levelId, completeLevel, unlockLevel])
 
@@ -412,12 +504,76 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   }, [gamePhase])
 
-  // ── Actions ───────────────────────────────────────────────────────────────
+  // ── Highlight building from ChallengeWidget ────────────────────────────────
 
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    function onHighlight(payload: { buildingId: string }): void {
+      setHighlightedBuildingId(payload.buildingId)
+      if (timer !== null) clearTimeout(timer)
+      timer = setTimeout(() => setHighlightedBuildingId(null), 8000)
+    }
+    EventBus.on('highlight-building', onHighlight)
+    return () => {
+      EventBus.off('highlight-building', onHighlight)
+      if (timer !== null) clearTimeout(timer)
+    }
+  }, [])
+
+  // ── Actions ───────────────────────────────────────────────────────────────
   const handleAdvanceDay = useCallback((): void => {
     getAudioManager().playSound('day_advance')
     advanceDay()
-  }, [advanceDay])
+
+    // Tick challenge timers
+    tickDay()
+
+    // Fail expired challenges (check before tick takes effect — daysRemaining <= 1 means it'll hit 0 or below)
+    useChallengeStore.getState().activeChallenges.forEach((ac) => {
+      if (ac.daysRemaining <= 1) {
+        failChallenge(ac.challengeId)
+      }
+    })
+
+    // Trigger resource-based and day-threshold challenges
+    if (currentResources !== null && initialResources !== null) {
+      const oxyPct = initialResources.oxygen_kg > 0
+        ? (currentResources.oxygen_kg / initialResources.oxygen_kg) * 100
+        : 100
+      const waterPct = initialResources.water_kg > 0
+        ? (currentResources.water_kg / initialResources.water_kg) * 100
+        : 100
+
+      CHALLENGES.forEach((ch) => {
+        if (ch.triggerCondition === 'low_oxygen' && oxyPct < (ch.triggerValue ?? 60)) {
+          triggerChallenge(ch.id, currentMissionDay)
+        }
+        if (ch.triggerCondition === 'low_water' && waterPct < (ch.triggerValue ?? 55)) {
+          triggerChallenge(ch.id, currentMissionDay)
+        }
+        if (ch.triggerCondition === 'day_threshold' && currentMissionDay >= (ch.triggerValue ?? 999)) {
+          triggerChallenge(ch.id, currentMissionDay)
+        }
+      })
+
+      // 25% chance random challenge each day
+      if (Math.random() < 0.25) {
+        const fresh = useChallengeStore.getState()
+        const avail = CHALLENGES.filter(
+          (c) =>
+            c.triggerCondition === 'random' &&
+            fresh.activeChallenges.find((a) => a.challengeId === c.id) === undefined &&
+            !fresh.completedIds.includes(c.id),
+        )
+        if (avail.length > 0) {
+          const pick = avail[Math.floor(Math.random() * avail.length)]
+          if (pick !== undefined) {
+            triggerChallenge(pick.id, currentMissionDay)
+          }
+        }
+      }
+    }
+  }, [advanceDay, tickDay, failChallenge, triggerChallenge, currentResources, initialResources, currentMissionDay])
 
   const handleEmergencyRation = useCallback((): void => {
     getAudioManager().playSound('click')
@@ -453,9 +609,10 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         initialResources={init}
         onRetry={() => {
           initializeMission()
+          clearChallenges()
           setGamePhase('intro')
         }}
-        onBackToMap={() => navigate('/missions')}
+        onBackToMap={() => navigate('/campaign-map')}
       />
     )
   }
@@ -489,13 +646,14 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           initialResources={init}
           crewStatus={crewStatus}
           commanderName={commanderName || 'Commander'}
+          highlightedBuildingId={highlightedBuildingId}
           onBuildingClick={handleBuildingClick}
         />
       </div>
 
       {/* ── React overlays ─────────────────────────────────────────────────── */}
 
-      {/* Resource HUD — top left */}
+      {/* Resource HUD — fixed top-left */}
       <ResourceHUD
         oxygen={oxygenPct}
         water={waterPct}
@@ -503,10 +661,13 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         energy={energyPct}
       />
 
-      {/* Mission alert banner — top right */}
+      {/* Challenge Widget — fixed below ResourceHUD */}
+      <ChallengeWidget onOpenBuilding={setOpenBuildingId} />
+
+      {/* Mission alert banner — fixed top-right, offset from pause button */}
       <MissionAlertBanner eventId={firstEventId} day={currentMissionDay} />
 
-      {/* Task corner — bottom right */}
+      {/* Task corner — fixed bottom-right above action bar */}
       <TaskCorner
         currentResources={res}
         initialResources={init}
@@ -534,7 +695,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
       {/* Virtual joystick — fixed bottom-left */}
       <div
         className="sh-joystick-outer"
-        style={{ position: 'fixed', bottom: '32px', left: '32px', zIndex: 50 }}
+        style={{ position: 'fixed', bottom: '16px', left: '16px', zIndex: 50 }}
         aria-label="Movement joystick"
       >
         <div className="sh-joystick-inner">
@@ -550,8 +711,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
       <button
         style={{
           position: 'fixed',
-          bottom: '32px',
-          right: '32px',
+          bottom: '16px',
+          right: '16px',
           zIndex: 50,
           width: '52px',
           height: '52px',
@@ -570,103 +731,66 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         🔧
       </button>
 
-      {/* Bottom action bar */}
-      <div
+      {/* Advance Day button — fixed bottom-center */}
+      <button
+        onClick={handleAdvanceDay}
+        aria-label="Advance one day"
         style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
+          position: 'fixed',
+          bottom: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 50,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-          background: 'rgba(10,14,26,0.85)',
-          backdropFilter: 'blur(12px)',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          padding: '10px 16px',
+          gap: 6,
+          background: '#1FC8C0',
+          color: 'black',
+          fontWeight: 900,
+          fontSize: 13,
+          fontFamily: 'Nunito, sans-serif',
+          border: 'none',
+          borderRadius: 12,
+          padding: '10px 18px',
+          cursor: 'pointer',
+          boxShadow: '0 0 14px rgba(31,200,192,0.4)',
         }}
       >
-        {/* Advance day */}
-        <button
-          onClick={handleAdvanceDay}
-          aria-label="Advance one day"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: '#1FC8C0',
-            color: 'black',
-            fontWeight: 900,
-            fontSize: 13,
-            fontFamily: 'Nunito, sans-serif',
-            border: 'none',
-            borderRadius: 12,
-            padding: '10px 18px',
-            cursor: 'pointer',
-            boxShadow: '0 0 14px rgba(31,200,192,0.4)',
-          }}
-        >
-          ⏭️ Next Day
-        </button>
+        ⏭️ Day {currentMissionDay}/{missionDurationDays} → Next
+      </button>
 
-        {/* Planet + day indicator */}
-        <div style={{ textAlign: 'center', flex: 1 }}>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', fontFamily: 'Nunito, sans-serif', marginBottom: 2 }}>
-            {planetId === 'moon' ? '🌙 Moon' : '🔴 Mars'}
-          </p>
-          <p style={{ color: 'white', fontSize: 12, fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
-            Day {currentMissionDay} / {missionDurationDays}
-          </p>
-        </div>
-
-        {/* Right controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={handleEmergencyRation}
-            aria-label="Emergency ration mode"
-            title="Halve food consumption for one day"
-            style={{
-              fontSize: 13,
-              fontFamily: 'Nunito, sans-serif',
-              fontWeight: 700,
-              background: 'rgba(245,166,35,0.15)',
-              border: '1px solid rgba(245,166,35,0.4)',
-              color: '#F5A623',
-              borderRadius: 10,
-              padding: '9px 12px',
-              cursor: 'pointer',
-            }}
-          >
-            🍱 Ration
-          </button>
-          {/* Pause button moved to fixed top-right overlay */}
-          <button
-            onClick={() => navigate('/missions')}
-            aria-label="Return to mission map"
-            style={{
-              color: 'rgba(255,255,255,0.3)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 18,
-              lineHeight: 1,
-              padding: '2px 4px',
-            }}
-          >
-            🗺️
-          </button>
-        </div>
-      </div>
+      {/* Emergency ration — fixed above tools button */}
+      <button
+        onClick={handleEmergencyRation}
+        aria-label="Emergency ration mode"
+        title="Halve food consumption for one day"
+        style={{
+          position: 'fixed',
+          bottom: '80px',
+          right: '16px',
+          zIndex: 50,
+          fontSize: 12,
+          fontFamily: 'Nunito, sans-serif',
+          fontWeight: 700,
+          background: 'rgba(245,166,35,0.2)',
+          border: '1px solid rgba(245,166,35,0.6)',
+          color: '#F5A623',
+          borderRadius: 10,
+          padding: '8px 10px',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        🍱 Ration
+      </button>
 
       {/* ── Keyboard hint ──────────────────────────────────────────────────── */}
       <div
         aria-hidden="true"
         style={{
-          position: 'absolute',
-          bottom: 54,
-          right: 14,
+          position: 'fixed',
+          bottom: 90,
+          right: 80,
           zIndex: 19,
           fontSize: 9,
           color: 'rgba(255,255,255,0.2)',

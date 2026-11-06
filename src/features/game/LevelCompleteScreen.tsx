@@ -114,14 +114,14 @@ export function LevelCompleteScreen(_props: LevelCompleteScreenProps): JSX.Eleme
   }, [])
 
   function handlePlayAgain(): void {
-    navigate('/configure-base')
+    navigate(`/game/${missionId ?? 'level-1'}`)
   }
 
   function handleExploreCampaign(): void {
     if (missionId) {
       completeMission(missionId, starsEarned)
     }
-    navigate('/game/campaign')
+    navigate('/campaign-map')
   }
 
   function handleViewReport(): void {

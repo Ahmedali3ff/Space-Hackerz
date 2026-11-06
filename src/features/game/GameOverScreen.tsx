@@ -70,14 +70,14 @@ export function GameOverScreen(_props: GameOverScreenProps): JSX.Element {
 
   function handleTryAgain(): void {
     if (currentMissionId) {
-      navigate(`/game/cinematic/${currentMissionId}`)
+      navigate(`/game/${currentMissionId}`)
     } else {
-      navigate('/game/campaign')
+      navigate('/campaign-map')
     }
   }
 
   function handleReturnToCampaign(): void {
-    navigate('/game/campaign')
+    navigate('/campaign-map')
   }
 
   return (

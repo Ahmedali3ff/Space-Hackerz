@@ -9,6 +9,7 @@ interface HabitatDomeProps {
   readonly name: string
   readonly status: 'nominal' | 'warning' | 'critical'
   readonly color?: string
+  readonly highlighted?: boolean
   readonly onClick: () => void
 }
 
@@ -17,10 +18,12 @@ export function HabitatDome({
   name,
   status,
   color = '#E5E7EB',
+  highlighted = false,
   onClick,
 }: HabitatDomeProps): JSX.Element {
   const glowRef = useRef<THREE.Mesh>(null)
   const groupRef = useRef<THREE.Group>(null)
+  const highlightRef = useRef<THREE.Mesh>(null)
   const [hovered, setHovered] = useState(false)
 
   const statusColor =
@@ -41,6 +44,18 @@ export function HabitatDome({
         new THREE.Vector3(target, target, target),
         0.12,
       )
+    }
+    if (highlightRef.current) {
+      // Pulsing gold ring when highlighted
+      const mat = highlightRef.current.material as THREE.MeshStandardMaterial
+      mat.emissiveIntensity = highlighted
+        ? 1.5 + Math.sin(state.clock.elapsedTime * 5) * 1.2
+        : 0
+      highlightRef.current.visible = highlighted
+      // Rotate the ring
+      if (highlighted) {
+        highlightRef.current.rotation.z += 0.04
+      }
     }
   })
 
@@ -102,6 +117,23 @@ export function HabitatDome({
           color={statusColor}
           emissive={statusColor}
           emissiveIntensity={1.2}
+        />
+      </mesh>
+
+      {/* Gold highlight ring — visible when building is targeted by a challenge */}
+      <mesh
+        ref={highlightRef}
+        position={[0, 1.5, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+        visible={highlighted}
+      >
+        <torusGeometry args={[2.1, 0.12, 8, 40]} />
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={highlighted ? 1.5 : 0}
+          transparent
+          opacity={highlighted ? 0.9 : 0}
         />
       </mesh>
 

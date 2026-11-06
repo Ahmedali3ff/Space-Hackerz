@@ -23,6 +23,7 @@ export interface HabitatWorldProps {
   readonly initialResources: ResourceSnapshot
   readonly crewStatus: 'happy' | 'worried' | 'scared'
   readonly commanderName: string
+  readonly highlightedBuildingId?: string | null
   readonly onBuildingClick: (buildingId: string) => void
 }
 
@@ -44,7 +45,8 @@ function SceneContent({
   crewStatus,
   commanderName,
   onBuildingClick,
-}: HabitatWorldProps): JSX.Element {
+  highlightedId,
+}: HabitatWorldProps & { readonly highlightedId: string | null | undefined }): JSX.Element {
   const oxygenStatus = getStatus(resources.oxygen_kg, initialResources.oxygen_kg)
   const waterStatus = getStatus(resources.water_kg, initialResources.water_kg)
   const foodStatus = getStatus(resources.food_kg, initialResources.food_kg)
@@ -117,6 +119,7 @@ function SceneContent({
         name="Life Support"
         status={oxygenStatus}
         color="#E0F2FE"
+        highlighted={highlightedId === 'life-support'}
         onClick={() => onBuildingClick('life-support')}
       />
       <HabitatDome
@@ -124,6 +127,7 @@ function SceneContent({
         name="Command Center"
         status="nominal"
         color="#F0FDF4"
+        highlighted={highlightedId === 'command-center'}
         onClick={() => onBuildingClick('command-center')}
       />
       <HabitatDome
@@ -131,6 +135,7 @@ function SceneContent({
         name="Water Recycling"
         status={waterStatus}
         color="#EFF6FF"
+        highlighted={highlightedId === 'water-recycling'}
         onClick={() => onBuildingClick('water-recycling')}
       />
       <HabitatDome
@@ -138,6 +143,7 @@ function SceneContent({
         name="Greenhouse"
         status={foodStatus}
         color="#F0FFF4"
+        highlighted={highlightedId === 'greenhouse'}
         onClick={() => onBuildingClick('greenhouse')}
       />
 
@@ -146,16 +152,19 @@ function SceneContent({
         position={[-11, 0, 0]}
         energyPct={energyPct}
         status={energyStatus}
+        highlighted={highlightedId === 'solar-panels'}
         onClick={() => onBuildingClick('solar-panels')}
       />
       <PowerGenerator
         position={[6, 0, -4]}
         energyPct={energyPct}
         status={energyStatus}
+        highlighted={highlightedId === 'power-room'}
         onClick={() => onBuildingClick('power-room')}
       />
       <SatelliteDish
         position={[6, 0, 4]}
+        highlighted={highlightedId === 'communications'}
         onClick={() => onBuildingClick('communications')}
       />
 
@@ -245,7 +254,7 @@ export function HabitatWorld(props: HabitatWorldProps): JSX.Element {
       }}
     >
       <Suspense fallback={null}>
-        <SceneContent {...props} />
+        <SceneContent {...props} highlightedId={props.highlightedBuildingId ?? null} />
       </Suspense>
     </Canvas>
   )

@@ -75,11 +75,11 @@ export function TaskCorner({
     <div
       aria-label="Mission objectives"
       style={{
-        position: 'absolute',
-        bottom: 80,
+        position: 'fixed',
+        bottom: 90,
         right: 16,
         zIndex: 20,
-        width: 235,
+        width: 230,
         background: 'rgba(10,14,26,0.88)',
         border: `1px solid ${hasCritical ? '#EF4444' : 'rgba(31,200,192,0.4)'}`,
         borderRadius: 14,

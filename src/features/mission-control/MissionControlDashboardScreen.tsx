@@ -123,7 +123,7 @@ export function MissionControlDashboardScreen(): JSX.Element {
   function handleLaunch(): void {
     // Ensure the planet is set in the store before navigating
     selectPlanet(PLANET_ID_MAP[selectedPlanet])
-    navigate('/game/campaign')
+    navigate('/game/level-1')
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────

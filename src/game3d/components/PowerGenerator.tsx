@@ -8,6 +8,7 @@ interface PowerGeneratorProps {
   readonly position: readonly [number, number, number]
   readonly energyPct: number
   readonly status: 'nominal' | 'warning' | 'critical'
+  readonly highlighted?: boolean
   readonly onClick: () => void
 }
 
@@ -15,9 +16,11 @@ export function PowerGenerator({
   position,
   energyPct,
   status,
+  highlighted = false,
   onClick,
 }: PowerGeneratorProps): JSX.Element {
   const boltRef = useRef<THREE.Mesh>(null)
+  const highlightRef = useRef<THREE.Mesh>(null)
   const statusColor =
     status === 'nominal' ? '#1FC8C0' : status === 'warning' ? '#F5A623' : '#EF4444'
   const glowIntensity = 0.5 + (energyPct / 100) * 1.5
@@ -27,6 +30,16 @@ export function PowerGenerator({
       const mat = boltRef.current.material as THREE.MeshStandardMaterial
       mat.emissiveIntensity =
         glowIntensity + Math.sin(state.clock.elapsedTime * 3) * 0.3
+    }
+    if (highlightRef.current) {
+      const mat = highlightRef.current.material as THREE.MeshStandardMaterial
+      mat.emissiveIntensity = highlighted
+        ? 1.5 + Math.sin(state.clock.elapsedTime * 5) * 1.2
+        : 0
+      highlightRef.current.visible = highlighted
+      if (highlighted) {
+        highlightRef.current.rotation.z += 0.04
+      }
     }
   })
 
@@ -79,6 +92,23 @@ export function PowerGenerator({
           color={statusColor}
           emissive={statusColor}
           emissiveIntensity={1.2}
+        />
+      </mesh>
+
+      {/* Gold highlight ring */}
+      <mesh
+        ref={highlightRef}
+        position={[0, 1.0, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+        visible={highlighted}
+      >
+        <torusGeometry args={[1.2, 0.1, 8, 32]} />
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={highlighted ? 1.5 : 0}
+          transparent
+          opacity={highlighted ? 0.9 : 0}
         />
       </mesh>
 

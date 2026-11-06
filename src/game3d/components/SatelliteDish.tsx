@@ -6,15 +6,27 @@ import * as THREE from 'three'
 
 interface SatelliteDishProps {
   readonly position: readonly [number, number, number]
+  readonly highlighted?: boolean
   readonly onClick: () => void
 }
 
-export function SatelliteDish({ position, onClick }: SatelliteDishProps): JSX.Element {
+export function SatelliteDish({ position, highlighted = false, onClick }: SatelliteDishProps): JSX.Element {
   const dishRef = useRef<THREE.Mesh>(null)
+  const highlightRef = useRef<THREE.Mesh>(null)
 
   useFrame((state) => {
     if (dishRef.current) {
       dishRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.4
+    }
+    if (highlightRef.current) {
+      const mat = highlightRef.current.material as THREE.MeshStandardMaterial
+      mat.emissiveIntensity = highlighted
+        ? 1.5 + Math.sin(state.clock.elapsedTime * 5) * 1.2
+        : 0
+      highlightRef.current.visible = highlighted
+      if (highlighted) {
+        highlightRef.current.rotation.z += 0.04
+      }
     }
   })
 
@@ -72,6 +84,23 @@ export function SatelliteDish({ position, onClick }: SatelliteDishProps): JSX.El
           color="#1FC8C0"
           emissive="#1FC8C0"
           emissiveIntensity={1.5}
+        />
+      </mesh>
+
+      {/* Gold highlight ring */}
+      <mesh
+        ref={highlightRef}
+        position={[0, 2.5, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+        visible={highlighted}
+      >
+        <torusGeometry args={[1.4, 0.1, 8, 32]} />
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={highlighted ? 1.5 : 0}
+          transparent
+          opacity={highlighted ? 0.9 : 0}
         />
       </mesh>
 

@@ -210,7 +210,7 @@ export function MainMenuScreen(): JSX.Element {
           }}
         >
           <button
-            onClick={() => navigate('/missions')}
+            onClick={() => navigate('/game-settings')}
             aria-label="Settings"
             style={{
               width: 44,
@@ -294,7 +294,7 @@ export function MainMenuScreen(): JSX.Element {
             position: 'absolute',
             right: '10%',
             bottom: '10%',
-            zIndex: 2,
+            zIndex: 3,
           }}
         >
           <NasaKidAstronaut pose="standing" size={220} />
@@ -304,7 +304,7 @@ export function MainMenuScreen(): JSX.Element {
         <div
           style={{
             position: 'relative',
-            zIndex: 1,
+            zIndex: 10,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
