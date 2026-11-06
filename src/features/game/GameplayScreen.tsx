@@ -497,14 +497,10 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
       {/* Resource HUD — top left */}
       <ResourceHUD
-        oxygen={res.oxygen_kg}
-        water={res.water_kg}
-        food={res.food_kg}
-        energy={res.energy_kWh}
-        maxOxygen={init.oxygen_kg}
-        maxWater={init.water_kg}
-        maxFood={init.food_kg}
-        maxEnergy={init.energy_kWh}
+        oxygen={oxygenPct}
+        water={waterPct}
+        food={foodPct}
+        energy={energyPct}
       />
 
       {/* Mission alert banner — top right */}
@@ -519,6 +515,60 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         activeEventIds={activeEventIds}
         activeFaultStates={[...activeFaultStates]}
       />
+
+      {/* ── Fixed HUD overlays ───────────────────────────────────────────── */}
+
+      {/* Pause button — fixed top-right */}
+      <button
+        className="sh-pause-btn"
+        style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 50 }}
+        onClick={() => {
+          getAudioManager().playSound('click')
+          setGamePhase('paused')
+        }}
+        aria-label="Pause game"
+      >
+        ⏸
+      </button>
+
+      {/* Virtual joystick — fixed bottom-left */}
+      <div
+        className="sh-joystick-outer"
+        style={{ position: 'fixed', bottom: '32px', left: '32px', zIndex: 50 }}
+        aria-label="Movement joystick"
+      >
+        <div className="sh-joystick-inner">
+          {/* Direction indicators */}
+          <div style={{ position: 'absolute', top: '-28px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>▲</div>
+          <div style={{ position: 'absolute', bottom: '-28px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>▼</div>
+          <div style={{ position: 'absolute', left: '-28px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>◀</div>
+          <div style={{ position: 'absolute', right: '-28px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>▶</div>
+        </div>
+      </div>
+
+      {/* Tools button — fixed bottom-right */}
+      <button
+        style={{
+          position: 'fixed',
+          bottom: '32px',
+          right: '32px',
+          zIndex: 50,
+          width: '52px',
+          height: '52px',
+          borderRadius: '50%',
+          background: '#1E3A6E',
+          border: '2px solid rgba(59,111,232,0.5)',
+          color: 'white',
+          fontSize: '20px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        aria-label="Tools"
+      >
+        🔧
+      </button>
 
       {/* Bottom action bar */}
       <div
@@ -591,24 +641,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           >
             🍱 Ration
           </button>
-          <button
-            onClick={() => {
-              getAudioManager().playSound('click')
-              setGamePhase('paused')
-            }}
-            aria-label="Pause game"
-            style={{
-              color: 'rgba(255,255,255,0.5)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 22,
-              lineHeight: 1,
-              padding: '2px 4px',
-            }}
-          >
-            ⏸
-          </button>
+          {/* Pause button moved to fixed top-right overlay */}
           <button
             onClick={() => navigate('/missions')}
             aria-label="Return to mission map"

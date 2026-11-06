@@ -1,5 +1,6 @@
 // src/features/game/MissionAlertBanner.tsx
 // Top-right event notification banner for the 3D gameplay view.
+// Updated to Space Hackerz pixel-perfect style.
 import { useState, useEffect } from 'react'
 import { getEventDefinition } from '@/features/events/event-registry'
 
@@ -43,74 +44,69 @@ export function MissionAlertBanner({
       role="alert"
       aria-live="assertive"
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 16,
         right: 72,
-        zIndex: 20,
-        background: isCritical ? 'rgba(239,68,68,0.92)' : 'rgba(180,83,9,0.92)',
-        border: `1px solid ${isCritical ? '#EF4444' : '#F59E0B'}`,
+        zIndex: 50,
+        background: 'rgba(139,69,19,0.9)',
+        border: '1px solid rgba(245,166,35,0.6)',
         borderRadius: 16,
         padding: '12px 16px',
-        maxWidth: 290,
-        backdropFilter: 'blur(8px)',
+        maxWidth: 240,
         display: 'flex',
-        alignItems: 'flex-start',
-        gap: 10,
+        flexDirection: 'column',
+        gap: 6,
         animation: 'alertSlideIn 0.4s ease',
       }}
     >
-      <span style={{ fontSize: 24, flexShrink: 0 }}>
-        {isCritical ? '🚨' : '⛈️'}
-      </span>
-      <div style={{ flex: 1 }}>
+      {/* Icon + title row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 20, flexShrink: 0 }}>
+          {isCritical ? '🚨' : '⛈️'}
+        </span>
         <p
           style={{
             color: 'white',
             fontWeight: 700,
-            fontSize: 13,
+            fontSize: 14,
             fontFamily: 'Nunito, sans-serif',
-            marginBottom: 2,
+            margin: 0,
           }}
         >
           {isCritical ? 'CRITICAL ALERT!' : 'New Event!'}
         </p>
-        <p
-          style={{
-            color: 'rgba(255,255,255,0.9)',
-            fontSize: 12,
-            fontFamily: 'Nunito, sans-serif',
-            marginBottom: 2,
-          }}
-        >
-          {event.title}
-        </p>
-        <p
-          style={{
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: 11,
-            fontFamily: 'Nunito, sans-serif',
-          }}
-        >
-          Click a building to respond
-        </p>
+        {!isCritical && (
+          <button
+            onClick={() => setDismissed(true)}
+            aria-label="Dismiss alert"
+            style={{
+              color: 'rgba(255,255,255,0.5)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 16,
+              padding: 0,
+              lineHeight: 1,
+              marginLeft: 'auto',
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
-      {!isCritical && (
-        <button
-          onClick={() => setDismissed(true)}
-          aria-label="Dismiss alert"
-          style={{
-            color: 'rgba(255,255,255,0.5)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 18,
-            padding: 0,
-            lineHeight: 1,
-          }}
-        >
-          ✕
-        </button>
-      )}
+
+      {/* Description text */}
+      <p
+        style={{
+          color: '#FFD9A0',
+          fontSize: 13,
+          fontFamily: 'Nunito, sans-serif',
+          lineHeight: 1.5,
+          margin: 0,
+        }}
+      >
+        {event.title}
+      </p>
 
       <style>{`
         @keyframes alertSlideIn {
