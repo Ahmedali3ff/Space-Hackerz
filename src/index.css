@@ -450,3 +450,154 @@ html[data-reduce-motion='true'] *::after {
     animation: none !important;
   }
 }
+
+/* ── Space Hackerz design tokens ── */
+:root {
+  --sh-bg-deep:       #050A1A;
+  --sh-bg-card:       #0D1B3E;
+  --sh-bg-sidebar:    #0A1628;
+  --sh-blue:          #3B6FE8;
+  --sh-blue-light:    #7EB8F7;
+  --sh-gold:          #FFB800;
+  --sh-teal:          #00D4FF;
+  --sh-orange:        #F5A623;
+  --sh-bar-water:     #3B9BFF;
+  --sh-bar-food:      #4CAF50;
+  --sh-bar-oxygen:    #A855F7;
+  --sh-bar-energy:    #FFB800;
+  --sh-pause-btn:     #1E3A6E;
+}
+
+/* Star field background */
+.sh-bg {
+  background: radial-gradient(ellipse at 30% 50%, #0A1628 0%, #050A1A 70%, #020508 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.sh-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 5% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 15% 25%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 28% 8%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 42% 55%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(2px 2px at 55% 18%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 68% 72%, rgba(255,255,255,0.65) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 78% 12%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 45%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 95% 80%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(2px 2px at 35% 88%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 72% 35%, rgba(255,255,255,0.55) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 18% 65%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 42%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 83% 58%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(2px 2px at 10% 90%, rgba(255,255,255,0.6) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Space Hackerz card */
+.sh-card {
+  background: #0D1B3E;
+  border-radius: 20px;
+  border: 1px solid rgba(59, 111, 232, 0.3);
+}
+
+/* Gold button */
+.sh-btn-gold {
+  background: linear-gradient(135deg, #F5A623 0%, #FFB800 100%);
+  border-radius: 9999px;
+  color: #1A0F00;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(255,184,0,0.4);
+}
+.sh-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(255,184,0,0.6); }
+
+/* Blue button */
+.sh-btn-blue {
+  background: linear-gradient(135deg, #3B6FE8 0%, #1E4FC2 100%);
+  border-radius: 9999px;
+  color: white;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(59,111,232,0.4);
+}
+
+/* Resource bar container */
+.sh-resource-bar {
+  height: 14px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+}
+.sh-resource-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+
+/* Pause button circle */
+.sh-pause-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #1E3A6E;
+  border: 2px solid rgba(59,111,232,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+}
+
+/* Virtual joystick */
+.sh-joystick-outer {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(59,111,232,0.18);
+  border: 2px solid rgba(59,111,232,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.sh-joystick-inner {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(59,111,232,0.55);
+  border: 2px solid rgba(59,111,232,0.9);
+}
+
+@keyframes sh-star-in {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+@keyframes sh-confetti-fall {
+  from { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+@keyframes sh-pulse-gold {
+  0%, 100% { box-shadow: 0 0 20px rgba(255,184,0,0.4); }
+  50%       { box-shadow: 0 0 40px rgba(255,184,0,0.8); }
+}
+@keyframes sh-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes sh-orbit {
+  from { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}

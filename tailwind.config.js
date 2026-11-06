@@ -102,6 +102,15 @@ export default {
         'text-b': '#6B7280',
         'text-m': '#9CA3AF',
         'border-light': '#E5E7EB',
+        // ── Space Hackerz dark-gameplay color tokens ──
+        'sh-bg-deep':    '#050A1A',
+        'sh-bg-card':    '#0D1B3E',
+        'sh-bg-sidebar': '#0A1628',
+        'sh-blue':       '#3B6FE8',
+        'sh-blue-light': '#7EB8F7',
+        'sh-gold':       '#FFB800',
+        'sh-teal':       '#00D4FF',
+        'sh-orange':     '#F5A623',
       },
       fontFamily: {
         display: ['"Space Grotesk"', ...fontFallback],
