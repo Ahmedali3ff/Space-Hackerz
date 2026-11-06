@@ -32,6 +32,8 @@ const MISSION_ROUTES: readonly string[] = [
   '/configure-base',
   '/mission',
   '/missions',
+  '/campaign-map',
+  '/game/campaign',
 ]
 
 interface NavTabProps {
@@ -86,7 +88,11 @@ export function TopNavBar({
     path.startsWith('/select') ||
     path.startsWith('/configure') ||
     path.startsWith('/mission') ||
-    path.startsWith('/debrief')
+    path.startsWith('/debrief') ||
+    path.startsWith('/game/') ||
+    path.startsWith('/intro/') ||
+    path.startsWith('/level-complete/') ||
+    path.startsWith('/game-over/')
   const isDiscoveriesActive = path === '/discoveries' || path.startsWith('/discoveries')
   const isSpacecraftActive = path === '/spaceship' || path.startsWith('/spaceship')
   const isExplorersActive = path === '/explorers' || path.startsWith('/explorers')

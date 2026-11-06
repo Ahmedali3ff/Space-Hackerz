@@ -189,6 +189,19 @@ export function MissionsOverviewScreen(_props: MissionsOverviewScreenProps): JSX
             </div>
           </div>
 
+          {/* ── Campaign mode entry ── */}
+          <div className="mb-8 flex justify-start">
+            <PrimaryButton
+              variant="hint"
+              size="md"
+              onClick={() => navigate('/campaign-map')}
+              ariaLabel="Play Campaign Mode — go to interactive campaign map"
+            >
+              <Rocket size={18} aria-hidden="true" />
+              Play Campaign Mode →
+            </PrimaryButton>
+          </div>
+
           {/* ── Mission grid ── */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {MISSIONS.map((mission) => {

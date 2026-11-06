@@ -112,6 +112,21 @@ function RequireMissionStarted({ children }: { readonly children: ReactNode }): 
   return <>{children}</>
 }
 
+/**
+ * Guards game-play routes that require an active or recently-started mission.
+ * Uses missionStarted so the guard remains true even briefly after advancing days.
+ * Redirects to "/missions" (campaign hub) rather than "/" so the player can
+ * pick a mission and re-enter the game naturally.
+ */
+function RequireGameActive({ children }: { readonly children: ReactNode }): JSX.Element {
+  const missionStarted = useMissionStore((s) => s.missionStarted)
+
+  if (!missionStarted) {
+    return <Navigate to="/missions" replace />
+  }
+  return <>{children}</>
+}
+
 // ── Router ────────────────────────────────────────────────────────────────────
 
 export function AppRouter(): JSX.Element {
@@ -257,8 +272,26 @@ export function AppRouter(): JSX.Element {
           </Suspense>
         }
       />
+      {/* Alias: /campaign-map → CampaignMapScreen */}
+      <Route
+        path="/campaign-map"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <CampaignMapScreen />
+          </Suspense>
+        }
+      />
       <Route
         path="/game/cinematic/:missionId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <CinematicIntroScreen />
+          </Suspense>
+        }
+      />
+      {/* Alias: /intro/:levelId → CinematicIntroScreen */}
+      <Route
+        path="/intro/:missionId"
         element={
           <Suspense fallback={<LoadingScreen />}>
             <CinematicIntroScreen />
@@ -268,6 +301,17 @@ export function AppRouter(): JSX.Element {
       <Route
         path="/game/play/:missionId"
         element={
+          <RequireGameActive>
+            <Suspense fallback={<LoadingScreen />}>
+              <GameplayScreen />
+            </Suspense>
+          </RequireGameActive>
+        }
+      />
+      {/* Alias: /game/:levelId → GameplayScreen */}
+      <Route
+        path="/game/:levelId"
+        element={
           <Suspense fallback={<LoadingScreen />}>
             <GameplayScreen />
           </Suspense>
@@ -276,9 +320,11 @@ export function AppRouter(): JSX.Element {
       <Route
         path="/game/event/:missionId/:eventId"
         element={
-          <Suspense fallback={<LoadingScreen />}>
-            <GameEventModal />
-          </Suspense>
+          <RequireGameActive>
+            <Suspense fallback={<LoadingScreen />}>
+              <GameEventModal />
+            </Suspense>
+          </RequireGameActive>
         }
       />
       <Route
@@ -292,6 +338,17 @@ export function AppRouter(): JSX.Element {
       <Route
         path="/game/level-complete/:missionId"
         element={
+          <RequireMissionStarted>
+            <Suspense fallback={<LoadingScreen />}>
+              <LevelCompleteScreen />
+            </Suspense>
+          </RequireMissionStarted>
+        }
+      />
+      {/* Alias: /level-complete/:levelId → LevelCompleteScreen */}
+      <Route
+        path="/level-complete/:missionId"
+        element={
           <Suspense fallback={<LoadingScreen />}>
             <LevelCompleteScreen />
           </Suspense>
@@ -299,6 +356,17 @@ export function AppRouter(): JSX.Element {
       />
       <Route
         path="/game/game-over"
+        element={
+          <RequireMissionStarted>
+            <Suspense fallback={<LoadingScreen />}>
+              <GameOverScreen />
+            </Suspense>
+          </RequireMissionStarted>
+        }
+      />
+      {/* Alias: /game-over/:levelId → GameOverScreen */}
+      <Route
+        path="/game-over/:levelId"
         element={
           <Suspense fallback={<LoadingScreen />}>
             <GameOverScreen />

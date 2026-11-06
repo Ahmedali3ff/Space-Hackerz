@@ -5,7 +5,7 @@
 //            sr-only h1 'ASTRA Mission Control', 'Explore'/'Survive'/'Learn' text.
 
 import { useNavigate } from 'react-router-dom'
-import { Rocket, Planet, Brain, Flask } from '@phosphor-icons/react'
+import { Rocket, Planet, Brain, Flask, ArrowRight } from '@phosphor-icons/react'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenTransition } from '@/components/layout/ScreenTransition'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
@@ -38,10 +38,34 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
   const commanderName = useMissionProgressStore((s) => s.commanderName)
   const setCommanderName = useMissionProgressStore((s) => s.setCommanderName)
 
+  const isReturningPlayer = commanderName.trim().length > 0
+  const displayName = commanderName.trim()
+
   return (
     <AppShell title="Space+ Mission Control" variant="light">
       <ScreenTransition routeKey="/">
         <div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center px-6 py-16">
+          {/* ── Welcome back card for returning players ── */}
+          {isReturningPlayer && (
+            <Card className="mx-auto w-full max-w-lg text-center mb-6 bg-spaceplus-accent-tealLight border-spaceplus-accent-teal/30">
+              <p className="text-sm font-semibold text-spaceplus-text-heading mb-1">
+                Welcome back, {displayName}! 👋
+              </p>
+              <p className="text-xs text-spaceplus-text-secondary mb-4">
+                Ready to continue your cosmic journey?
+              </p>
+              <PrimaryButton
+                variant="hint"
+                size="md"
+                onClick={() => navigate('/campaign-map')}
+                ariaLabel="Continue Mission — go to campaign map"
+              >
+                <ArrowRight size={20} aria-hidden="true" />
+                Continue Mission
+              </PrimaryButton>
+            </Card>
+          )}
+
           {/* ── Main card ── */}
           <Card className="mx-auto w-full max-w-lg text-center">
             {/* Rocket logo */}
@@ -97,7 +121,7 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
             </div>
 
             {/* CTA — PRESERVED: 'Begin Mission' button text + ariaLabel + navigation */}
-            <div className="mt-8">
+            <div className="mt-6">
               <PrimaryButton
                 variant="hint"
                 size="lg"
@@ -106,6 +130,19 @@ export function OnboardingScreen(_props: OnboardingScreenProps): JSX.Element {
               >
                 <Rocket size={22} aria-hidden="true" />
                 Begin Mission
+              </PrimaryButton>
+            </div>
+
+            {/* Campaign entry */}
+            <div className="mt-3">
+              <PrimaryButton
+                variant="secondary"
+                size="md"
+                onClick={() => navigate('/campaign-map')}
+                ariaLabel="Play Campaign Mode — go to campaign map"
+              >
+                <ArrowRight size={20} aria-hidden="true" />
+                Play Campaign Mode →
               </PrimaryButton>
             </div>
 
