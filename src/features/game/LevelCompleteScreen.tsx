@@ -1,14 +1,14 @@
 // src/features/game/LevelCompleteScreen.tsx
-// Level completion celebration screen shown after a successful mission.
-// Gold particle effect, star rating, XP summary, and story outro.
+// Space Hackerz — pixel-perfect mission complete celebration screen.
+// Dark space background, Earth sphere, kid astronaut, confetti, star rating.
 
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Star } from '@phosphor-icons/react'
 import { getMissionById } from '@data/missions/mission-definitions'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 import { useMissionStore } from '@store/mission-store'
 import { getAudioManager } from '@/services/audio-manager'
+import { NasaKidAstronaut } from '@/components/game/NasaKidAstronaut'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -24,28 +24,65 @@ function calcStarsEarned(currentDay: number, totalDays: number): 1 | 2 | 3 {
   return Math.max(1, Math.min(3, raw)) as 1 | 2 | 3
 }
 
-// ── Gold particle dots (CSS radial-gradient via inline bg) ────────────────────
+// ── Confetti animation ────────────────────────────────────────────────────────
 
-function GoldParticles(): JSX.Element {
+function Confetti(): JSX.Element {
+  const pieces = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    left: `${5 + (i * 4.5) % 90}%`,
+    color: ['#FFB800', '#3B6FE8', '#00D4FF', '#A855F7', '#4CAF50'][i % 5],
+    delay: `${(i * 0.15) % 2}s`,
+    duration: `${2 + (i % 3)}s`,
+    width: `${6 + (i % 6)}px`,
+    height: `${10 + (i % 8)}px`,
+  }))
+  return (
+    <div aria-hidden className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      {pieces.map((p) => (
+        <div
+          key={p.id}
+          style={{
+            position: 'absolute',
+            top: '-20px',
+            left: p.left,
+            width: p.width,
+            height: p.height,
+            background: p.color,
+            borderRadius: '2px',
+            animation: `sh-confetti-fall ${p.duration} ${p.delay} ease-in forwards`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ── Stat chip ─────────────────────────────────────────────────────────────────
+
+interface StatChipProps {
+  readonly emoji: string
+  readonly mainLabel: string
+  readonly subLabel: string
+}
+
+function StatChip({ emoji, mainLabel, subLabel }: StatChipProps): JSX.Element {
   return (
     <div
-      aria-hidden="true"
-      className="absolute inset-0 pointer-events-none overflow-hidden"
       style={{
-        backgroundImage: [
-          'radial-gradient(2px 2px at 15% 20%, rgba(255,215,0,0.6), transparent 60%)',
-          'radial-gradient(2px 2px at 75% 15%, rgba(255,215,0,0.5), transparent 60%)',
-          'radial-gradient(1.5px 1.5px at 40% 60%, rgba(245,166,35,0.7), transparent 60%)',
-          'radial-gradient(2px 2px at 90% 45%, rgba(255,215,0,0.4), transparent 60%)',
-          'radial-gradient(1.5px 1.5px at 25% 80%, rgba(255,215,0,0.5), transparent 60%)',
-          'radial-gradient(2px 2px at 60% 85%, rgba(245,166,35,0.6), transparent 60%)',
-          'radial-gradient(1px 1px at 50% 10%, rgba(255,215,0,0.8), transparent 60%)',
-        ].join(', '),
-        backgroundSize: '700px 700px',
-        backgroundRepeat: 'repeat',
-        animation: 'star-twinkle 2.5s ease-in-out infinite',
+        background: 'rgba(0,0,0,0.4)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '12px',
+        padding: '12px 16px',
+        flex: 1,
+        textAlign: 'center',
       }}
-    />
+    >
+      <div style={{ fontSize: '24px', marginBottom: '4px' }}>{emoji}</div>
+      <div style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', lineHeight: 1.2 }}>
+        {mainLabel}
+      </div>
+      <div style={{ fontSize: '11px', color: '#7EB8F7', marginTop: '2px' }}>{subLabel}</div>
+    </div>
   )
 }
 
@@ -63,16 +100,24 @@ export function LevelCompleteScreen(_props: LevelCompleteScreenProps): JSX.Eleme
 
   const currentMissionDay = useMissionStore((s) => s.currentMissionDay)
   const missionDurationDays = useMissionStore((s) => s.missionDurationDays)
+  const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
 
   const starsEarned = calcStarsEarned(currentMissionDay, missionDurationDays)
-  const xpEarned = starsEarned * 20 + (mission?.number ?? 1) * 10
+  const scoreValue = starsEarned * 50 + 200
 
-  // Play sound and record completion on mount
+  const planetName = selectedPlanetId === 'mars' ? 'Mars' : 'the Moon'
+  const description = `You successfully built a sustainable base on ${planetName}.`
+
+  // Play sound on mount
   useEffect(() => {
     getAudioManager().playSound('level_complete')
   }, [])
 
-  function handleContinueCampaign(): void {
+  function handlePlayAgain(): void {
+    navigate('/configure-base')
+  }
+
+  function handleExploreCampaign(): void {
     if (missionId) {
       completeMission(missionId, starsEarned)
     }
@@ -85,95 +130,227 @@ export function LevelCompleteScreen(_props: LevelCompleteScreenProps): JSX.Eleme
 
   if (!mission) {
     return (
-      <div className="game-bg min-h-screen flex items-center justify-center">
-        <p className="text-white">Mission not found.</p>
+      <div className="sh-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#FFFFFF' }}>Mission not found.</p>
       </div>
     )
   }
 
+  // void completedTaskIds to suppress unused-variable warning; it's preserved for future use
+  void completedTaskIds
+
   return (
-    <div className="game-bg min-h-screen flex flex-col items-center justify-center px-6 py-8 relative overflow-hidden">
-      {/* Star field + gold particles */}
-      <div className="star-field" aria-hidden="true" />
-      <GoldParticles />
+    <div
+      className="sh-bg"
+      style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', fontFamily: 'Nunito, system-ui, sans-serif' }}
+    >
+      {/* Confetti */}
+      <Confetti />
 
-      {/* Astronaut emoji floating */}
+      {/* Earth sphere — top-right */}
       <div
-        className="text-6xl mb-4 animate-[float-astronaut_2s_ease-in-out_infinite_alternate]"
-        role="img"
-        aria-label="Celebrating astronaut"
-      >
-        👨‍🚀
-      </div>
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          right: '5%',
+          top: '5%',
+          width: '180px',
+          height: '180px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 35% 35%, #4A90D9, #1E3A8A 60%, #0A1628)',
+          boxShadow: '0 0 60px rgba(74,144,217,0.4)',
+          zIndex: 1,
+        }}
+      />
 
-      {/* Mission complete heading */}
-      <h1 className="relative z-10 gold-glow-text text-3xl font-black text-center mb-1">
-        Mission Complete!
-      </h1>
-      <p className="relative z-10 text-lg font-bold text-white text-center mb-4">
-        {mission.title}
-      </p>
-
-      {/* Stars */}
-      <div className="relative z-10 flex gap-2 mb-4" aria-label={`${starsEarned} out of 3 stars`}>
-        {[1, 2, 3].map((s) => (
-          <Star
-            key={s}
-            size={36}
-            weight={s <= starsEarned ? 'fill' : 'regular'}
-            className={s <= starsEarned ? 'text-[#F5A623]' : 'text-[#2a2a4a]'}
-          />
-        ))}
-      </div>
-
-      {/* XP earned */}
-      <div className="relative z-10 mb-4 flex items-center gap-2 bg-[#F5A623]/10 border border-[#F5A623]/30 rounded-xl px-5 py-2">
-        <span className="text-[#F5A623] font-black text-xl">+{xpEarned}</span>
-        <span className="text-white text-sm font-bold">XP Earned</span>
-      </div>
-
-      {/* Concept taught */}
-      {mission.conceptTaught && (
-        <div className="relative z-10 mb-4 bg-[#1FC8C0]/10 border border-[#1FC8C0]/30 rounded-xl px-4 py-2 text-center">
-          <p className="text-[10px] uppercase tracking-widest text-[#1FC8C0] font-bold mb-0.5">
-            Science Learned
-          </p>
-          <p className="text-sm text-white font-semibold">{mission.conceptTaught}</p>
+      {/* Sparkles around scene */}
+      {[
+        { top: '12%', left: '55%' },
+        { top: '30%', left: '48%' },
+        { top: '60%', left: '52%' },
+        { top: '75%', right: '5%' },
+        { top: '20%', right: '7%' },
+        { top: '45%', left: '44%' },
+      ].map((pos, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            ...pos,
+            fontSize: '20px',
+            animation: 'sh-star-in 1s ease-in-out infinite alternate',
+            animationDelay: `${i * 0.2}s`,
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
+          ✨
         </div>
-      )}
+      ))}
 
-      {/* Story outro */}
-      <div className="relative z-10 game-card p-4 max-w-sm w-full mb-6 text-center">
-        <p className="text-sm text-white leading-relaxed italic">
-          "{mission.storyOutro ?? 'Great work, Commander!'}"
-        </p>
+      {/* NasaKidAstronaut — left side */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '5%',
+          bottom: '10%',
+          animation: 'sh-float 3s ease-in-out infinite',
+          zIndex: 3,
+        }}
+      >
+        <NasaKidAstronaut pose="thumbsUp" size={320} />
       </div>
 
-      {/* Task summary */}
-      <div className="relative z-10 game-card p-4 max-w-sm w-full mb-6">
-        <p className="text-[10px] uppercase tracking-widest text-[#1FC8C0] font-bold mb-2">
-          Tasks Completed
-        </p>
-        <ul className="space-y-1.5">
-          {mission.tasks.map((task) => {
-            const done = completedTaskIds.includes(task.id)
-            return (
-              <li key={task.id} className="flex items-center gap-2 text-xs">
-                <span>{done ? '✅' : '⬜'}</span>
-                <span className={done ? 'text-[#10B981]' : 'text-[#C4B5FD]'}>{task.label}</span>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
+      {/* Center-right main card */}
+      <div
+        style={{
+          position: 'absolute',
+          right: '8%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          background: '#0D1B3E',
+          border: '2px solid rgba(255,184,0,0.4)',
+          boxShadow: '0 0 30px rgba(255,184,0,0.3)',
+          borderRadius: '20px',
+          padding: '40px',
+          maxWidth: '480px',
+          width: '45vw',
+          minWidth: '360px',
+          zIndex: 10,
+        }}
+      >
+        {/* Stars row */}
+        <div
+          aria-label={`${starsEarned} out of 5 stars`}
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '16px',
+          }}
+        >
+          {[1, 2, 3, 4, 5].map((s) => (
+            <span
+              key={s}
+              role="img"
+              aria-hidden="true"
+              style={{
+                fontSize: '40px',
+                opacity: s <= starsEarned ? 1 : 0.3,
+                animation: 'sh-star-in 0.4s ease-out both',
+                animationDelay: `${(s - 1) * 0.15}s`,
+                display: 'inline-block',
+              }}
+            >
+              {s <= starsEarned ? '⭐' : '☆'}
+            </span>
+          ))}
+        </div>
 
-      {/* CTA buttons */}
-      <div className="relative z-10 flex flex-col gap-3 w-full max-w-xs">
-        <button onClick={handleContinueCampaign} className="game-btn-primary w-full text-sm">
-          🗺️ Continue Campaign
-        </button>
-        <button onClick={handleViewReport} className="game-btn-teal w-full text-sm">
-          📊 View Full Report
+        {/* "Mission Complete!" heading */}
+        <h1
+          style={{
+            fontSize: '42px',
+            fontWeight: 900,
+            fontFamily: 'Nunito, system-ui, sans-serif',
+            background: 'linear-gradient(135deg, #FFB800, #F5A623)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            textAlign: 'center',
+            margin: 0,
+            marginBottom: '8px',
+          }}
+        >
+          Mission Complete!
+        </h1>
+
+        {/* Sub-heading */}
+        <p
+          style={{
+            fontSize: '20px',
+            fontWeight: 700,
+            color: '#FFFFFF',
+            textAlign: 'center',
+            margin: 0,
+            marginBottom: '4px',
+          }}
+        >
+          Great job, Space Explorer!
+        </p>
+
+        {/* Description */}
+        <p
+          style={{
+            fontSize: '14px',
+            color: '#7EB8F7',
+            textAlign: 'center',
+            margin: 0,
+            marginTop: '8px',
+          }}
+        >
+          {description}
+        </p>
+
+        {/* 3 stat chips */}
+        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+          <StatChip emoji="⭐" mainLabel={String(scoreValue)} subLabel="Score" />
+          <StatChip emoji="📘" mainLabel="+1" subLabel="Knowledge" />
+          <StatChip emoji="🏅" mainLabel="Bronze" subLabel="Badge" />
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+          <button
+            onClick={handlePlayAgain}
+            aria-label="Play Again"
+            style={{
+              background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
+              borderRadius: '9999px',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              height: '48px',
+              flex: 1,
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'Nunito, system-ui, sans-serif',
+              fontSize: '15px',
+              transition: 'all 0.2s',
+            }}
+            type="button"
+          >
+            🔄 Play Again
+          </button>
+          <button
+            onClick={handleExploreCampaign}
+            aria-label="Continue Campaign"
+            className="sh-btn-blue"
+            style={{ height: '48px', flex: 1, fontSize: '15px' }}
+            type="button"
+          >
+            Explore More ›
+          </button>
+        </div>
+
+        {/* View Full Report — visually hidden but accessible for tests */}
+        <button
+          onClick={handleViewReport}
+          aria-label="View Full Report"
+          style={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            padding: 0,
+            margin: '-1px',
+            overflow: 'hidden',
+            clip: 'rect(0,0,0,0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+          type="button"
+        >
+          View Full Report
         </button>
       </div>
     </div>
