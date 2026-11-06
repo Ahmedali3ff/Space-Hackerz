@@ -7,6 +7,19 @@ export type PlanetId = 'moon' | 'mars'
 
 export type ShieldingLevel = 'low' | 'medium' | 'high'
 
+// ── Landing location ──
+
+export interface Location {
+  readonly id: string
+  readonly name: string
+  readonly planetId: 'moon' | 'mars'
+  readonly latitude: number
+  readonly solarEfficiencyModifier: number // 0.6 to 1.0
+  readonly thermalSwingFactor: number // 1.0 = normal, 1.5 = extreme
+  readonly dustStormProbability: number // 0.0 to 1.0 (Mars only)
+  readonly description: string
+}
+
 export type MissionOutcome = 'success' | 'partial' | 'failure' | 'ongoing'
 
 export type ResourceType = 'oxygen' | 'water' | 'food' | 'energy'

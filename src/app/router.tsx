@@ -153,6 +153,16 @@ export function AppRouter(): JSX.Element {
         }
       />
       <Route
+        path="/select-location"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <ScreenTransition routeKey="/select-location">
+              <LocationSelectionScreen />
+            </ScreenTransition>
+          </Suspense>
+        }
+      />
+      <Route
         path="/select-crew"
         element={
           <Suspense fallback={<LoadingScreen />}>
@@ -200,16 +210,6 @@ export function AppRouter(): JSX.Element {
               </Suspense>
             </RequireMissionStarted>
           </RequireSetup>
-        }
-      />
-      <Route
-        path="/select-location"
-        element={
-          <Suspense fallback={<LoadingScreen />}>
-            <ScreenTransition routeKey="/select-location">
-              <LocationSelectionScreen />
-            </ScreenTransition>
-          </Suspense>
         }
       />
       <Route

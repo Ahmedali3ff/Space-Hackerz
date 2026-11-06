@@ -8,6 +8,7 @@ import {
   POWER_PER_CREW_MEMBER_KW,
   AGRICULTURE_POWER_LOAD_KW,
 } from '@data/nasa/life-support-constants'
+import type { Location } from '@simulation/types'
 
 export interface EnergyModelInput {
   readonly solarIrradiance_W_m2: number // planet base value
@@ -20,6 +21,7 @@ export interface EnergyModelInput {
   readonly currentBattery_kWh: number
   readonly batteryCapacity_kWh: number
   readonly lifeSupportLoad_kWh?: number // optional additional system load
+  readonly location?: Location | null // landing site affects solar efficiency
 }
 
 export interface EnergyModelOutput {
@@ -34,7 +36,8 @@ export interface EnergyModelOutput {
  * Calculates energy production, consumption, and battery balance for one step.
  *
  * Solar production:
- *   solarOutput_kW  = irradiance × solarFactor × dustModifier × panelArea × 0.20 / 1000
+ *   locationModifier = location?.solarEfficiencyModifier ?? 1.0
+ *   solarOutput_kW  = irradiance × solarFactor × dustModifier × locationModifier × panelArea × 0.20 / 1000
  *   solarOutput_kWh = solarOutput_kW × 24
  *
  * Energy consumption:
@@ -51,9 +54,12 @@ export interface EnergyModelOutput {
  * Assumption classifications: ASM-EN-001, ASM-EN-002, ASM-EN-003
  */
 export function calculateEnergyDelta(input: EnergyModelInput): EnergyModelOutput {
+  // Location-based solar efficiency modifier (additive)
+  const locationModifier = input.location?.solarEfficiencyModifier ?? 1.0
+
   // Solar production
   const effectiveIrradiance =
-    input.solarIrradiance_W_m2 * input.solarAvailabilityFactor * input.dustModifier
+    input.solarIrradiance_W_m2 * input.solarAvailabilityFactor * input.dustModifier * locationModifier
   const solarOutput_kW =
     (effectiveIrradiance * input.solarPanelArea_m2 * SOLAR_PANEL_EFFICIENCY) / 1000
   const solarOutput_kWh = solarOutput_kW * 24
