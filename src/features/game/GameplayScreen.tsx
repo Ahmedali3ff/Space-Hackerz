@@ -2,7 +2,7 @@
 // V2 — React Three Fiber 3D habitat gameplay screen.
 // Fully replaces the Phaser-based version. The simulation engine is untouched.
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useMissionControl } from '@/hooks/useMissionControl'
@@ -384,6 +384,10 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const [gamePhase, setGamePhase] = useState<GamePhase>('intro')
   const [openBuildingId, setOpenBuildingId] = useState<string | null>(null)
   const [highlightedBuildingId, setHighlightedBuildingId] = useState<string | null>(null)
+  const [joystickDir, setJoystickDir] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [nearBuilding, setNearBuilding] = useState<string | null>(null)
+  const joystickActiveRef = useRef(false)
+  const joystickStartRef = useRef<{ x: number; y: number } | null>(null)
 
   const {
     missionStarted,
@@ -520,6 +524,23 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     }
   }, [])
 
+  // ── E key — interact with nearby building (placed after handleBuildingClick) ──
+  // This useEffect is intentionally after handleBuildingClick useCallback below
+
+  // ── Trigger a challenge on day 1 so player sees it immediately ────────────
+  useEffect(() => {
+    if (gamePhase === 'playing' && currentMissionDay === 1) {
+      // Trigger harvest-crops challenge right away so player has something to do
+      setTimeout(() => {
+        triggerChallenge('harvest-crops', 1)
+      }, 3000)
+      setTimeout(() => {
+        triggerChallenge('solar-storm', 1)
+      }, 8000)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gamePhase, currentMissionDay])
+
   // ── Actions ───────────────────────────────────────────────────────────────
   const handleAdvanceDay = useCallback((): void => {
     getAudioManager().playSound('day_advance')
@@ -586,6 +607,17 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     setOpenBuildingId(buildingId)
   }, [gamePhase])
 
+  // ── E key — interact with nearby building ──────────────────────────────────
+  useEffect(() => {
+    function onKey(e: KeyboardEvent): void {
+      if (e.key.toLowerCase() === 'e' && nearBuilding && gamePhase === 'playing') {
+        handleBuildingClick(nearBuilding)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [nearBuilding, gamePhase, handleBuildingClick])
+
   // ── Cinematic intro ────────────────────────────────────────────────────────
 
   if (gamePhase === 'intro') {
@@ -647,7 +679,9 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           crewStatus={crewStatus}
           commanderName={commanderName || 'Commander'}
           highlightedBuildingId={highlightedBuildingId}
+          joystickDir={joystickDir}
           onBuildingClick={handleBuildingClick}
+          onNearBuilding={setNearBuilding}
         />
       </div>
 
@@ -692,18 +726,92 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         ⏸
       </button>
 
-      {/* Virtual joystick — fixed bottom-left */}
+      {/* ── Proximity prompt — appears when near a building ───────────────── */}
+      {nearBuilding && gamePhase === 'playing' && (
+        <div style={{
+          position: 'fixed',
+          bottom: 130,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 50,
+          background: 'rgba(10,14,26,0.92)',
+          border: '1.5px solid #1FC8C0',
+          borderRadius: 12,
+          padding: '10px 20px',
+          color: 'white',
+          fontSize: 14,
+          fontFamily: 'Nunito, sans-serif',
+          fontWeight: 700,
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          animation: 'fadeInUp 0.3s ease',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+          onClick={() => handleBuildingClick(nearBuilding)}
+        >
+          <span style={{ fontSize: 18 }}>🔘</span>
+          Press <kbd style={{ background: 'rgba(31,200,192,0.2)', border: '1px solid #1FC8C0', borderRadius: 4, padding: '1px 6px', margin: '0 4px' }}>E</kbd>
+          to enter{' '}
+          <span style={{ color: '#1FC8C0' }}>
+            {nearBuilding.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </span>
+        </div>
+      )}
+
+      {/* Virtual joystick — fixed bottom-left — FUNCTIONAL touch/mouse */}
       <div
         className="sh-joystick-outer"
-        style={{ position: 'fixed', bottom: '16px', left: '16px', zIndex: 50 }}
+        style={{ position: 'fixed', bottom: '16px', left: '16px', zIndex: 50, touchAction: 'none', userSelect: 'none' }}
         aria-label="Movement joystick"
+        onMouseDown={(e) => {
+          joystickActiveRef.current = true
+          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+          joystickStartRef.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+        }}
+        onMouseMove={(e) => {
+          if (!joystickActiveRef.current || !joystickStartRef.current) return
+          const dx = (e.clientX - joystickStartRef.current.x) / 45
+          const dy = (e.clientY - joystickStartRef.current.y) / 45
+          const len = Math.sqrt(dx * dx + dy * dy)
+          const nx = len > 1 ? dx / len : dx
+          const ny = len > 1 ? dy / len : dy
+          setJoystickDir({ x: nx, y: ny })
+        }}
+        onMouseUp={() => { joystickActiveRef.current = false; setJoystickDir({ x: 0, y: 0 }) }}
+        onMouseLeave={() => { if (joystickActiveRef.current) { joystickActiveRef.current = false; setJoystickDir({ x: 0, y: 0 }) } }}
+        onTouchStart={(e) => {
+          void e.touches[0]
+          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+          joystickStartRef.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+          joystickActiveRef.current = true
+        }}
+        onTouchMove={(e) => {
+          if (!joystickStartRef.current) return
+          const t = e.touches[0]
+          const dx = (t.clientX - joystickStartRef.current.x) / 45
+          const dy = (t.clientY - joystickStartRef.current.y) / 45
+          const len = Math.sqrt(dx * dx + dy * dy)
+          const nx = len > 1 ? dx / len : dx
+          const ny = len > 1 ? dy / len : dy
+          setJoystickDir({ x: nx, y: ny })
+          e.preventDefault()
+        }}
+        onTouchEnd={() => { joystickActiveRef.current = false; setJoystickDir({ x: 0, y: 0 }) }}
       >
-        <div className="sh-joystick-inner">
-          {/* Direction indicators */}
-          <div style={{ position: 'absolute', top: '-28px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>▲</div>
-          <div style={{ position: 'absolute', bottom: '-28px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>▼</div>
-          <div style={{ position: 'absolute', left: '-28px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>◀</div>
-          <div style={{ position: 'absolute', right: '-28px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>▶</div>
+        <div
+          className="sh-joystick-inner"
+          style={{
+            transform: `translate(${joystickDir.x * 18}px, ${joystickDir.y * 18}px)`,
+            transition: joystickActiveRef.current ? 'none' : 'transform 0.1s ease',
+          }}
+        >
+          <div style={{ position: 'absolute', top: '-28px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px', pointerEvents: 'none' }}>▲</div>
+          <div style={{ position: 'absolute', bottom: '-28px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px', pointerEvents: 'none' }}>▼</div>
+          <div style={{ position: 'absolute', left: '-28px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px', pointerEvents: 'none' }}>◀</div>
+          <div style={{ position: 'absolute', right: '-28px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.7)', fontSize: '16px', pointerEvents: 'none' }}>▶</div>
         </div>
       </div>
 

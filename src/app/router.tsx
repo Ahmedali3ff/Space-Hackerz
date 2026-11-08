@@ -302,6 +302,15 @@ export function AppRouter(): JSX.Element {
           </Suspense>
         }
       />
+      {/* /game/cinematic/:missionId → alias for CinematicIntroScreen (used by CampaignMapScreen) */}
+      <Route
+        path="/game/cinematic/:missionId"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <CinematicIntroScreen />
+          </Suspense>
+        }
+      />
       {/* /game/:levelId → GameplayScreen */}
       <Route
         path="/game/:levelId"

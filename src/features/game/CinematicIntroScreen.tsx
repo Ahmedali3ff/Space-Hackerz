@@ -73,7 +73,7 @@ export function CinematicIntroScreen(_props: CinematicIntroScreenProps): JSX.Ele
     setMissionDuration(mission.duration)
     setCrewSize(2) // default crew for campaign
     startMissionProgress(mission.id)
-    navigate(`/game/play/${mission.id}`)
+    navigate(`/game/${mission.id}`)
   }
 
   function handleSkipIntro(): void {
@@ -82,7 +82,7 @@ export function CinematicIntroScreen(_props: CinematicIntroScreenProps): JSX.Ele
     setMissionDuration(mission.duration)
     setCrewSize(2)
     startMissionProgress(mission.id)
-    navigate(`/game/play/${mission.id}`)
+    navigate(`/game/${mission.id}`)
   }
 
   if (!mission) {

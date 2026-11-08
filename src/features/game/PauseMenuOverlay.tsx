@@ -18,7 +18,9 @@ interface PauseMenuOverlayProps {
 // ── Main overlay ──────────────────────────────────────────────────────────────
 
 export function PauseMenuOverlay(_props: PauseMenuOverlayProps): JSX.Element {
-  const { missionId } = useParams<{ missionId: string }>()
+  // Supports both /game/:levelId and legacy /game/:missionId param names
+  const params = useParams<{ levelId?: string; missionId?: string }>()
+  const missionId = params.levelId ?? params.missionId
   const navigate = useNavigate()
 
   const { currentMissionDay, missionDurationDays, crewSize } = useMissionControl()
@@ -54,11 +56,12 @@ export function PauseMenuOverlay(_props: PauseMenuOverlayProps): JSX.Element {
 
   function handleRestart(): void {
     getAudioManager().playSound('click')
-    navigate(`/game/cinematic/${missionId ?? ''}`)
+    // Navigate to cinematic intro then gameplay for this level
+    navigate(`/game/cinematic/${missionId ?? 'level-1'}`)
   }
 
   function handleMainMenu(): void {
-    navigate('/missions')
+    navigate('/campaign-map')
   }
 
   function handleVolumeChange(v: number): void {
