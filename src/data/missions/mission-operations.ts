@@ -55,6 +55,7 @@ export const MISSION_OPERATIONS: readonly MissionOperationDefinition[] = [
     puzzles: [{ id: 'oxygen-plan', question: '4 astronauts consume 8 oxygen units per cycle. How much is required for 5 cycles?', options: ['40', '80', '160', '320'], correctOption: '160', correctFeedback: 'Correct: 4 × 8 × 5 = 160 oxygen units.', wrongFeedback: 'Multiply crew × units per crew × cycles.', correctPoints: 100, wrongPoints: -20 }],
     minimumResources: { oxygen: 50, water: 50, food: 50, energy: 50 },
     environmentNote: 'Launch readiness is a systems check: a missing resource becomes a survival problem later.',
+    requiredSequence: ['select-moon', 'check-food', 'check-water', 'check-oxygen', 'check-energy'],
   },
   {
     levelId: 'level-2', missionId: 'm02', title: 'Landing on the Planet',
@@ -79,7 +80,7 @@ export const MISSION_OPERATIONS: readonly MissionOperationDefinition[] = [
       action('generate-oxygen', 'Generate Oxygen', 'Restart the oxygen generator.', 'generate', { oxygen: 10, energy: -5 }),
       action('emergency-oxygen', 'Emergency Oxygen', 'Use reserve canisters: fast relief, high energy cost.', 'emergency', { oxygen: 20, energy: -15 }),
     ],
-    puzzles: [], minimumResources: { oxygen: 60, energy: 10, water: 20, food: 20 }, environmentNote: 'Emergency oxygen buys time but does not repair the failed production system.',
+    puzzles: [{ id: 'oxygen-cycle', question: '6 astronauts consume 12 oxygen units per cycle. How much oxygen is needed for 4 cycles?', options: ['18', '48', '72', '96'], correctOption: '48', correctFeedback: 'Correct: 12 × 4 = 48 oxygen units.', wrongFeedback: 'The 12 units already include the six astronauts. Multiply by four cycles.', correctPoints: 100, wrongPoints: -20 }], minimumResources: { oxygen: 60, energy: 10, water: 20, food: 20 }, environmentNote: 'Emergency oxygen buys time but does not repair the failed production system.', requiredSequence: ['inspect-oxygen', 'repair-filter', 'generate-oxygen', 'emergency-oxygen'],
   },
   {
     levelId: 'level-4', missionId: 'm04', title: 'Power System Failure',
@@ -94,7 +95,7 @@ export const MISSION_OPERATIONS: readonly MissionOperationDefinition[] = [
       action('restore-power', 'Restore Power', 'Return the power network to stable operation.', 'restore', { energy: 15 }),
     ],
     puzzles: [{ id: 'power-priority', question: 'Which system should receive priority power?', options: ['Entertainment', 'Life Support', 'Lighting', 'Laboratory'], correctOption: 'Life Support', correctFeedback: 'Correct: breathable air comes before comfort or research.', wrongFeedback: 'Survival systems must be powered before comfort or research.', correctPoints: 100, wrongPoints: -50 }],
-    minimumResources: { energy: 50, oxygen: 20, water: 20, food: 20 }, environmentNote: 'Power budgeting is a survival decision, not just an engineering task.',
+    minimumResources: { energy: 50, oxygen: 20, water: 20, food: 20 }, environmentNote: 'Power budgeting is a survival decision, not just an engineering task.', requiredSequence: ['inspect-solar', 'activate-backup', 'reduce-consumption', 'repair-solar', 'restore-power'],
   },
   {
     levelId: 'level-5', missionId: 'm05', title: 'Water & Food Management',
@@ -108,7 +109,7 @@ export const MISSION_OPERATIONS: readonly MissionOperationDefinition[] = [
       action('emergency-rationing', 'Emergency Rationing', 'Protect stores while comfort decreases.', 'rationing', { water: 8, food: 8 }),
     ],
     puzzles: [{ id: 'resource-plan', question: 'If recycling saves 30% of 100 water units, how much remains available?', options: ['30', '70', '100', '130'], correctOption: '130', correctFeedback: 'Correct: 100 + 30 recovered units = 130 available.', wrongFeedback: 'Recycling adds 30% of the original 100 units back to supply.', correctPoints: 100, wrongPoints: -30 }],
-    minimumResources: { water: 30, food: 30, oxygen: 20, energy: 15 }, environmentNote: 'Closed-loop systems stretch supplies, but they still need energy and maintenance.',
+    minimumResources: { water: 30, food: 30, oxygen: 20, energy: 15 }, environmentNote: 'Closed-loop systems stretch supplies, but they still need energy and maintenance.', requiredSequence: ['recycle-water', 'activate-hydroponics', 'reduce-water', 'emergency-rationing'],
   },
   {
     levelId: 'level-6', missionId: 'm06', title: 'Environmental Emergency',
@@ -122,7 +123,7 @@ export const MISSION_OPERATIONS: readonly MissionOperationDefinition[] = [
       action('emergency-mode', 'Enter Emergency Mode', 'Slow non-critical operations until visibility returns.', 'emergency', { energy: 8 }),
       action('repair-equipment', 'Repair Equipment', 'Restore the damaged external system.', 'repair', { energy: -8 }),
     ],
-    puzzles: [], minimumResources: { energy: 25, oxygen: 20, water: 20, food: 20 }, environmentNote: 'The same dust can reduce solar input on Mars or contaminate machinery on the Moon.',
+    puzzles: [], minimumResources: { energy: 25, oxygen: 20, water: 20, food: 20 }, environmentNote: 'The same dust can reduce solar input on Mars or contaminate machinery on the Moon.', requiredSequence: ['dust-protection', 'protect-solar', 'reduce-energy', 'emergency-mode', 'repair-equipment'],
   },
   {
     levelId: 'level-7', missionId: 'm07', title: 'Critical System Repair',
@@ -145,7 +146,7 @@ export const MISSION_OPERATIONS: readonly MissionOperationDefinition[] = [
       action('recycle-water', 'Recycle Water', 'Recover water from the habitat loop.', 'water', { water: 15, energy: -5 }), action('repair-equipment', 'Repair Equipment', 'Keep the emergency systems operating.', 'repair', { energy: -7 }),
       action('emergency-mode', 'Emergency Mode', 'Trade comfort for survival time.', 'emergency', { energy: 8 }), action('reduce-consumption', 'Reduce Consumption', 'Power down non-essential loads.', 'conservation', { energy: 10 }),
       action('protect-crew', 'Protect Crew', 'Move the crew into the safest habitat zone.', 'crew', { oxygen: -2, energy: -3 }), action('contact-control', 'Contact Mission Control', 'Transmit a status report and request guidance.', 'contact', { energy: -2 }),
-    ], puzzles: [], minimumResources: { oxygen: 1, water: 1, food: 1, energy: 1 }, environmentNote: 'No single action solves the crisis: prioritize, act, monitor, and adapt.',
+    ], puzzles: [], minimumResources: { oxygen: 1, water: 1, food: 1, energy: 1 }, environmentNote: 'No single action solves the crisis: prioritize, act, monitor, and adapt.', requiredSequence: ['generate-oxygen', 'restore-power', 'recycle-water', 'repair-equipment', 'emergency-mode', 'reduce-consumption', 'protect-crew', 'contact-control'],
   },
 ]
 

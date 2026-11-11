@@ -24,6 +24,7 @@ import { CriticalFailureScreen } from './CriticalFailureScreen'
 import { PauseMenuOverlay } from './PauseMenuOverlay'
 import { MissionOperationsPanel } from './MissionOperationsPanel'
 import { useMissionOperationsStore } from '@store/mission-operations-store'
+import { getMissionOperation } from '@data/missions/mission-operations'
 
 // ── Building info ─────────────────────────────────────────────────────────────
 
@@ -434,6 +435,11 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const clearChallenges = useChallengeStore((s) => s.clearAll)
   const applyOperationAction = useMissionOperationsStore((s) => s.applyAction)
   const tickOperation = useMissionOperationsStore((s) => s.tick)
+  const operationStatus = useMissionOperationsStore((s) => s.status)
+  const operationTaskId = useMissionOperationsStore((s) => s.currentTaskId)
+  const operationTimeRemaining = useMissionOperationsStore((s) => s.timeRemainingSeconds)
+  const operationMission = getMissionOperation(levelId ?? missionId ?? 'level-1')
+  const operationTask = operationMission?.actions.find((action) => action.id === operationTaskId)
 
   const planetId: 'moon' | 'mars' = selectedPlanetId === 'mars' ? 'mars' : 'moon'
 
@@ -562,6 +568,17 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gamePhase, currentMissionDay])
+
+  // The operations clock runs only while the player is inside the habitat.
+  useEffect(() => {
+    if (gamePhase !== 'playing' || operationStatus !== 'active') return
+    const timer = window.setInterval(() => tickOperation(1), 1000)
+    return () => window.clearInterval(timer)
+  }, [gamePhase, operationStatus, tickOperation])
+
+  useEffect(() => {
+    if (operationStatus === 'lost' && gamePhase === 'playing') setShowOperations(true)
+  }, [operationStatus, gamePhase])
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const handleAdvanceDay = useCallback((): void => {
@@ -745,6 +762,16 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         activeEventIds={activeEventIds}
         activeFaultStates={[...activeFaultStates]}
       />
+
+      {operationTask && operationStatus === 'active' && (
+        <div className={`sh-current-task ${operationTimeRemaining < 30 ? 'critical' : ''}`} role="status">
+          <span className="sh-eyebrow">Your current task</span>
+          <strong>{operationTask.label}</strong>
+          <small>Move to the highlighted facility and interact with it</small>
+          <b>⏱ {Math.floor(operationTimeRemaining / 60).toString().padStart(2, '0')}:{(operationTimeRemaining % 60).toString().padStart(2, '0')}</b>
+          <button onClick={() => setShowOperations(true)}>View mission steps</button>
+        </div>
+      )}
 
       {/* ── Fixed HUD overlays ───────────────────────────────────────────── */}
 
