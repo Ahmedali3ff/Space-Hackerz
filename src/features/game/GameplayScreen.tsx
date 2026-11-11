@@ -23,6 +23,7 @@ import { EventBus } from '@/game/EventBus'
 import { CriticalFailureScreen } from './CriticalFailureScreen'
 import { PauseMenuOverlay } from './PauseMenuOverlay'
 import { MissionOperationsPanel } from './MissionOperationsPanel'
+import { useMissionOperationsStore } from '@store/mission-operations-store'
 
 // ── Building info ─────────────────────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ interface BuildingPanelProps {
   readonly onEmergencyRation: () => void
   readonly onAdvanceDay: () => void
   readonly onClose: () => void
+  readonly onFacilityAction: (actionId: string) => void
 }
 
 function BuildingPanel({
@@ -110,6 +112,7 @@ function BuildingPanel({
   onEmergencyRation,
   onAdvanceDay,
   onClose,
+  onFacilityAction,
 }: BuildingPanelProps): JSX.Element {
   const info = BUILDING_INFO[buildingId]
   const icon = info?.icon ?? '🏗️'
@@ -150,6 +153,18 @@ function BuildingPanel({
   const relevantEvents = activeEventIds
     .map((id) => getEventDefinition(id))
     .filter((e): e is NonNullable<typeof e> => e !== undefined)
+
+  const facilityAction: Readonly<Record<string, { id: string; label: string }>> = {
+    'life-support': { id: 'generate-oxygen', label: 'Generate Oxygen' },
+    'water-recycling': { id: 'recycle-water', label: 'Recycle Water' },
+    greenhouse: { id: 'activate-hydroponics', label: 'Activate Hydroponics' },
+    'power-room': { id: 'activate-backup', label: 'Activate Backup Power' },
+    'solar-panels': { id: 'repair-solar', label: 'Repair Solar Panel' },
+    communications: { id: 'stabilize-communication', label: 'Stabilize Communication' },
+    'command-center': { id: 'reduce-consumption', label: 'Reduce Consumption' },
+    airlock: { id: 'inspect-system', label: 'Inspect System' },
+  }
+  const operation = facilityAction[buildingId]
 
   return (
     <div
@@ -336,6 +351,7 @@ function BuildingPanel({
         )}
 
         {/* Quick actions */}
+        {operation && <button onClick={() => { getAudioManager().playSound('success'); onFacilityAction(operation.id) }} style={{ width: '100%', background: 'linear-gradient(135deg,#1FC8C0,#0D9488)', color: 'white', fontWeight: 900, fontSize: 13, fontFamily: 'Nunito,sans-serif', border: 'none', borderRadius: 10, padding: '12px 0', cursor: 'pointer' }}>⚙️ {operation.label}</button>}
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => { getAudioManager().playSound('day_advance'); onAdvanceDay(); onClose() }}
@@ -416,6 +432,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const failChallenge = useChallengeStore((s) => s.failChallenge)
   const triggerChallenge = useChallengeStore((s) => s.triggerChallenge)
   const clearChallenges = useChallengeStore((s) => s.clearAll)
+  const applyOperationAction = useMissionOperationsStore((s) => s.applyAction)
+  const tickOperation = useMissionOperationsStore((s) => s.tick)
 
   const planetId: 'moon' | 'mars' = selectedPlanetId === 'mars' ? 'mars' : 'moon'
 
@@ -610,6 +628,11 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     getAudioManager().playSound('click')
     setOpenBuildingId(buildingId)
   }, [gamePhase])
+
+  const handleFacilityAction = useCallback((actionId: string): void => {
+    applyOperationAction(actionId)
+    tickOperation()
+  }, [applyOperationAction, tickOperation])
 
   // ── E key — interact with nearby building ──────────────────────────────────
   useEffect(() => {
@@ -939,6 +962,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           onEmergencyRation={handleEmergencyRation}
           onAdvanceDay={handleAdvanceDay}
           onClose={() => setOpenBuildingId(null)}
+          onFacilityAction={handleFacilityAction}
         />
       )}
 

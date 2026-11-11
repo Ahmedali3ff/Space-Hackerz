@@ -10,6 +10,8 @@ import { useMissionStore } from '@store/mission-store'
 import { NasaKidAstronaut } from '@/components/game/NasaKidAstronaut'
 import { HowToPlayModal } from './HowToPlayModal'
 import type { PlanetId } from '@simulation/types'
+import { useAuthStore } from '@store/auth-store'
+import { AuthPanel } from '@/features/auth/AuthPanel'
 
 // ── Keyframe injection (orbit ring animation) ─────────────────────────────────
 // Inlined via a <style> tag so no build-step changes are needed.
@@ -152,6 +154,9 @@ export function MainMenuScreen(): JSX.Element {
   const setCrewSize = useMissionStore((s) => s.setCrewSize)
 
   const [showHowToPlay, setShowHowToPlay] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
+  const currentUser = useAuthStore((s) => s.currentUser)
+  const signOut = useAuthStore((s) => s.signOut)
 
   // Resolve local display state — default to 'moon' before store is set
   const activePlanet: PlanetId = selectedPlanetId ?? 'moon'
@@ -168,6 +173,7 @@ export function MainMenuScreen(): JSX.Element {
   }
 
   function handleStartMission(): void {
+    if (!currentUser) { setShowAuth(true); return }
     // Ensure planet is committed to store
     if (selectedPlanetId === null) {
       selectPlanet(activePlanet)
@@ -250,6 +256,10 @@ export function MainMenuScreen(): JSX.Element {
         </div>
 
         {/* ── Left background: large Earth sphere ── */}
+        <div className="sh-account-chip">
+          {currentUser ? <><span>👨‍🚀 {currentUser}</span><button onClick={signOut}>Sign out</button></> : <button onClick={() => setShowAuth(true)}>🔐 Sign in</button>}
+        </div>
+
         <EarthSphere
           size={240}
           style={{
@@ -460,6 +470,7 @@ export function MainMenuScreen(): JSX.Element {
       </div>
 
       {/* How to Play modal */}
+      {showAuth && <AuthPanel onClose={() => setShowAuth(false)} />}
       {showHowToPlay && (
         <HowToPlayModal onClose={() => setShowHowToPlay(false)} />
       )}

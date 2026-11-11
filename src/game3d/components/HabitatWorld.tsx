@@ -16,6 +16,7 @@ import { SatelliteDish } from './SatelliteDish'
 import { PowerGenerator } from './PowerGenerator'
 import { KidAstronaut } from './KidAstronaut'
 import { EarthInSky } from './EarthInSky'
+import { FacilityUnit } from './FacilityUnit'
 import type { ResourceSnapshot } from '@simulation/types'
 
 // ── Building definitions (position + id) ──────────────────────────────────────
@@ -294,10 +295,8 @@ function SceneContent({
         highlighted={highlightedId === 'life-support'} onClick={() => onBuildingClick('life-support')} />
       <HabitatDome position={[0, 0, -5]} name="Command Center" status="nominal" color="#F0FDF4"
         highlighted={highlightedId === 'command-center'} onClick={() => onBuildingClick('command-center')} />
-      <HabitatDome position={[10, 0, 0]} name="Water Recycling" status={waterStatus} color="#EFF6FF"
-        highlighted={highlightedId === 'water-recycling'} onClick={() => onBuildingClick('water-recycling')} />
-      <HabitatDome position={[-6, 0, 4]} name="Greenhouse" status={foodStatus} color="#F0FFF4"
-        highlighted={highlightedId === 'greenhouse'} onClick={() => onBuildingClick('greenhouse')} />
+      <FacilityUnit position={[10, 0, 0]} kind="water" highlighted={highlightedId === 'water-recycling'} onClick={() => onBuildingClick('water-recycling')} />
+      <FacilityUnit position={[-6, 0, 4]} kind="greenhouse" highlighted={highlightedId === 'greenhouse'} onClick={() => onBuildingClick('greenhouse')} />
 
       {/* Special buildings */}
       <SolarArray position={[-11, 0, 0]} energyPct={energyPct} status={energyStatus}
