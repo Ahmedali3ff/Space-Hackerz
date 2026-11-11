@@ -931,18 +931,10 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
       {/* ── Pause overlay ───────────────────────────────────────────────────── */}
       {gamePhase === 'paused' && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 60,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
-          {/* Inline pause wrapper so PauseMenuOverlay reads URL params correctly */}
-          <PauseMenuOverlay />
-        </div>
+        <PauseMenuOverlay
+          onResume={() => setGamePhase('playing')}
+          levelId={levelId ?? missionId ?? 'level-1'}
+        />
       )}
     </div>
   )

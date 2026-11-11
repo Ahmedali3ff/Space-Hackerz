@@ -114,6 +114,7 @@ export function LevelCompleteScreen(_props: LevelCompleteScreenProps): JSX.Eleme
   }, [])
 
   function handlePlayAgain(): void {
+    // Clear any stale mission state then go back to game
     navigate(`/game/${missionId ?? 'level-1'}`)
   }
 
