@@ -256,8 +256,6 @@ function SceneContent({
   readonly onNearBuilding: (id: string | null) => void
 }): JSX.Element {
   const oxygenStatus = getStatus(resources.oxygen_kg, initialResources.oxygen_kg)
-  const waterStatus  = getStatus(resources.water_kg,  initialResources.water_kg)
-  const foodStatus   = getStatus(resources.food_kg,   initialResources.food_kg)
   const energyStatus = getStatus(resources.energy_kWh, initialResources.energy_kWh)
   const energyPct    = initialResources.energy_kWh > 0
     ? (resources.energy_kWh / initialResources.energy_kWh) * 100 : 50
