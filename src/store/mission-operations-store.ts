@@ -4,6 +4,7 @@ import { getMissionOperation } from '@data/missions/mission-operations'
 
 export interface OperationResources { readonly oxygen: number; readonly water: number; readonly food: number; readonly energy: number }
 export interface OperationFeedback { readonly message: string; readonly tone: 'positive' | 'warning' | 'negative' }
+export type OperationStatus = 'active' | 'won' | 'lost'
 
 interface OperationState {
   readonly activeLevelId: string | null
@@ -15,17 +16,20 @@ interface OperationState {
   readonly decisionsMade: number
   readonly actionHistory: readonly string[]
   readonly feedback: OperationFeedback | null
+  readonly status: OperationStatus
+  readonly lossCause: string | null
   start: (levelId: string) => void
   applyAction: (actionId: string) => void
   answerPuzzle: (puzzleId: string, option: string) => void
   tick: (seconds?: number) => void
   clearFeedback: () => void
+  markWon: () => void
   reset: () => void
 }
 
 const INITIAL_RESOURCES: OperationResources = { oxygen: 100, water: 100, food: 100, energy: 100 }
 const clamp = (value: number): number => Math.max(0, Math.min(100, Math.round(value)))
-const emptyState = { activeLevelId: null, resources: INITIAL_RESOURCES, completedObjectiveIds: [], completedPuzzleIds: [], score: 0, missionTimeSeconds: 0, decisionsMade: 0, actionHistory: [], feedback: null } as const
+const emptyState = { activeLevelId: null, resources: INITIAL_RESOURCES, completedObjectiveIds: [], completedPuzzleIds: [], score: 0, missionTimeSeconds: 0, decisionsMade: 0, actionHistory: [], feedback: null, status: 'active' as OperationStatus, lossCause: null }
 
 export const useMissionOperationsStore = create<OperationState>()(persist((set, get) => ({
   ...emptyState,
@@ -47,7 +51,8 @@ export const useMissionOperationsStore = create<OperationState>()(persist((set, 
     for (const key of Object.keys(action.resourceDelta ?? {}) as Array<keyof OperationResources>) resources[key] = clamp(resources[key] + (action.resourceDelta?.[key] ?? 0))
     const completedObjectiveIds = state.completedObjectiveIds.includes(action.objectiveId) ? state.completedObjectiveIds : [...state.completedObjectiveIds, action.objectiveId]
     const positive = completedObjectiveIds.length > previousObjectiveCount
-    set({ resources, completedObjectiveIds, score: state.score + (positive ? 25 : 5), decisionsMade: state.decisionsMade + 1, actionHistory: [...state.actionHistory, actionId], feedback: { message: `${action.label}: ${action.description}`, tone: positive ? 'positive' : 'warning' } })
+    const depleted = (Object.keys(resources) as Array<keyof OperationResources>).find((key) => resources[key] <= 0)
+    set({ resources, completedObjectiveIds, score: state.score + (positive ? 25 : 5), decisionsMade: state.decisionsMade + 1, actionHistory: [...state.actionHistory, actionId], status: depleted ? 'lost' : 'active', lossCause: depleted ? `${depleted[0].toUpperCase()}${depleted.slice(1)} depleted` : null, feedback: depleted ? { message: `MISSION FAILED — ${depleted} reached zero.`, tone: 'negative' } : { message: `${action.label}: ${action.description}`, tone: positive ? 'positive' : 'warning' } })
   },
   answerPuzzle: (puzzleId, option) => {
     const state = get(); const mission = state.activeLevelId ? getMissionOperation(state.activeLevelId) : undefined; const puzzle = mission?.puzzles.find((candidate) => candidate.id === puzzleId)
@@ -57,6 +62,7 @@ export const useMissionOperationsStore = create<OperationState>()(persist((set, 
   },
   tick: (seconds = 10) => set((state) => ({ missionTimeSeconds: state.missionTimeSeconds + seconds, feedback: null })),
   clearFeedback: () => set({ feedback: null }),
+  markWon: () => set({ status: 'won', feedback: { message: 'Mission complete — all objectives secured.', tone: 'positive' } }),
   reset: () => set(emptyState),
 }), { name: 'space-hackerz-mission-operations' }))
 

@@ -20,6 +20,7 @@ export function MissionOperationsPanel({ levelId, onClose }: MissionOperationsPa
   const applyAction = useMissionOperationsStore((store) => store.applyAction)
   const answerPuzzle = useMissionOperationsStore((store) => store.answerPuzzle)
   const reset = useMissionOperationsStore((store) => store.reset)
+  const markWon = useMissionOperationsStore((store) => store.markWon)
   const completeMission = useMissionProgressStore((store) => store.completeMission)
 
   useEffect(() => {
@@ -32,10 +33,13 @@ export function MissionOperationsPanel({ levelId, onClose }: MissionOperationsPa
   const finishMission = (): void => {
     if (!canComplete) return
     getAudioManager().playSound('level_complete')
+    markWon()
     completeMission(mission.missionId, Math.min(3, Math.max(1, Math.round(state.score / 150))))
     onClose()
     navigate(`/level-complete/${mission.missionId}`)
   }
+
+  if (state.status === 'lost') return <div role="dialog" aria-modal="true" className="sh-ops-modal"><section className="sh-ops-card sh-ops-game-over"><span className="sh-eyebrow">Mission failed</span><h2>GAME OVER</h2><p>Cause: <strong>{state.lossCause ?? 'Critical survival condition failed'}</strong></p><p>Mission duration: <strong>{Math.floor(state.missionTimeSeconds / 60).toString().padStart(2, '0')}:{(state.missionTimeSeconds % 60).toString().padStart(2, '0')}</strong></p><p>Score: <strong>{state.score}</strong></p><div className="sh-ops-footer"><button className="sh-ops-reset" onClick={() => { reset(); start(levelId) }}>Retry Mission</button><button className="sh-ops-complete" onClick={() => navigate('/campaign-map')}>Mission Map</button><button className="sh-ops-reset" onClick={onClose}>Review Mission</button></div></section></div>
 
   return (
     <div role="dialog" aria-modal="true" aria-label={`${mission.title} operations`} className="sh-ops-modal" onClick={onClose}>
