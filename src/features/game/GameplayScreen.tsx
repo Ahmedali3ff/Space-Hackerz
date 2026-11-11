@@ -22,6 +22,7 @@ import { ChallengeWidget } from './ChallengeWidget'
 import { EventBus } from '@/game/EventBus'
 import { CriticalFailureScreen } from './CriticalFailureScreen'
 import { PauseMenuOverlay } from './PauseMenuOverlay'
+import { MissionOperationsPanel } from './MissionOperationsPanel'
 
 // ── Building info ─────────────────────────────────────────────────────────────
 
@@ -386,6 +387,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const [highlightedBuildingId, setHighlightedBuildingId] = useState<string | null>(null)
   const [joystickDir, setJoystickDir] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [nearBuilding, setNearBuilding] = useState<string | null>(null)
+  const [showOperations, setShowOperations] = useState(false)
   const joystickActiveRef = useRef(false)
   const joystickStartRef = useRef<{ x: number; y: number } | null>(null)
 
@@ -835,6 +837,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           justifyContent: 'center',
         }}
         aria-label="Tools"
+        onClick={() => { getAudioManager().playSound('click'); setShowOperations(true) }}
       >
         🔧
       </button>
@@ -926,6 +929,13 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           onEmergencyRation={handleEmergencyRation}
           onAdvanceDay={handleAdvanceDay}
           onClose={() => setOpenBuildingId(null)}
+        />
+      )}
+
+      {showOperations && (
+        <MissionOperationsPanel
+          levelId={levelId ?? missionId ?? 'level-1'}
+          onClose={() => setShowOperations(false)}
         />
       )}
 

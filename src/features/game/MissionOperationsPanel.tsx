@@ -1,0 +1,68 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getMissionOperation } from '@data/missions/mission-operations'
+import { useMissionOperationsStore, operationCanComplete } from '@store/mission-operations-store'
+import { useMissionProgressStore } from '@store/mission-progress-store'
+import { useMissionStore } from '@store/mission-store'
+import { getAudioManager } from '@/services/audio-manager'
+
+interface MissionOperationsPanelProps { readonly levelId: string; readonly onClose: () => void }
+
+const resourceLabels = [
+  ['oxygen', 'Oxygen', '#A855F7'], ['water', 'Water', '#3B82F6'], ['food', 'Food', '#22C55E'], ['energy', 'Energy', '#F59E0B'],
+] as const
+
+export function MissionOperationsPanel({ levelId, onClose }: MissionOperationsPanelProps): JSX.Element {
+  const navigate = useNavigate()
+  const mission = getMissionOperation(levelId)
+  const state = useMissionOperationsStore()
+  const start = useMissionOperationsStore((store) => store.start)
+  const applyAction = useMissionOperationsStore((store) => store.applyAction)
+  const answerPuzzle = useMissionOperationsStore((store) => store.answerPuzzle)
+  const reset = useMissionOperationsStore((store) => store.reset)
+  const completeMission = useMissionProgressStore((store) => store.completeMission)
+
+  useEffect(() => {
+    if (state.activeLevelId !== levelId) start(levelId)
+  }, [levelId, state.activeLevelId, start])
+
+  if (!mission) return <div role="dialog" aria-modal="true" className="sh-ops-modal"><div className="sh-ops-card"><p>Mission data unavailable.</p><button onClick={onClose}>Close</button></div></div>
+
+  const canComplete = operationCanComplete(levelId, state)
+  const finishMission = (): void => {
+    if (!canComplete) return
+    getAudioManager().playSound('level_complete')
+    completeMission(mission.missionId, Math.min(3, Math.max(1, Math.round(state.score / 150))))
+    onClose()
+    navigate(`/level-complete/${mission.missionId}`)
+  }
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={`${mission.title} operations`} className="sh-ops-modal" onClick={onClose}>
+      <section className="sh-ops-card" onClick={(event) => event.stopPropagation()}>
+        <header className="sh-ops-header">
+          <div><span className="sh-eyebrow">Mission operations · {mission.levelId.replace('level-', 'Level ')}</span><h2>{mission.title}</h2></div>
+          <button className="sh-icon-btn" onClick={onClose} aria-label="Close operations">×</button>
+        </header>
+        <p className="sh-ops-situation">{mission.situation}</p>
+        <p className="sh-ops-context">{mission.scientificContext}</p>
+        <div className="sh-ops-stats">
+          <span>Score <strong>{state.score}</strong></span><span>Time <strong>{Math.floor(state.missionTimeSeconds / 60).toString().padStart(2, '0')}:{(state.missionTimeSeconds % 60).toString().padStart(2, '0')}</strong></span><span>Decisions <strong>{state.decisionsMade}</strong></span>
+        </div>
+        <div className="sh-ops-resources" aria-label="Mission operation resources">
+          {resourceLabels.map(([key, label, color]) => <div key={key}><div className="sh-ops-resource-label"><span>{label}</span><strong>{state.resources[key]}%</strong></div><div className="sh-ops-resource-track"><span style={{ width: `${state.resources[key]}%`, background: state.resources[key] < 15 ? '#EF4444' : color }} /></div></div>)}
+        </div>
+        <p className="sh-ops-objective"><strong>Objective:</strong> {mission.objective}</p>
+        <div className="sh-ops-actions">
+          {mission.actions.map((action) => {
+            const done = state.completedObjectiveIds.includes(action.objectiveId)
+            return <button key={action.id} disabled={done} className={done ? 'sh-ops-action done' : 'sh-ops-action'} onClick={() => { getAudioManager().playSound('click'); if (action.id === 'select-moon' || action.id === 'select-mars') useMissionStore.getState().selectPlanet(action.id === 'select-mars' ? 'mars' : 'moon'); applyAction(action.id); state.tick() }}><span>{done ? '✓' : '→'} {action.label}</span><small>{done ? 'Completed' : action.description}</small></button>
+          })}
+        </div>
+        {mission.puzzles.map((puzzle) => <div className="sh-ops-puzzle" key={puzzle.id}><span className="sh-eyebrow">Scientific challenge</span><p>{puzzle.question}</p><div className="sh-ops-options">{puzzle.options.map((option) => <button key={option} disabled={state.completedPuzzleIds.includes(puzzle.id)} onClick={() => { getAudioManager().playSound('click'); answerPuzzle(puzzle.id, option) }}>{option}</button>)}</div></div>)}
+        {state.feedback && <div role="status" className={`sh-ops-feedback ${state.feedback.tone}`}>{state.feedback.tone === 'positive' ? '✓ ' : state.feedback.tone === 'negative' ? '⚠ ' : '• '}{state.feedback.message}</div>}
+        <div className="sh-ops-footer"><button className="sh-ops-reset" onClick={() => { reset(); start(levelId) }}>Restart Operations</button><button className="sh-ops-complete" disabled={!canComplete} onClick={finishMission}>{canComplete ? 'Complete Mission' : 'Complete objectives to finish'}</button></div>
+      </section>
+    </div>
+  )
+}
