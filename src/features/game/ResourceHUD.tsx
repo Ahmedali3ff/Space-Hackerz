@@ -27,6 +27,7 @@ export function ResourceHUD({ water, food, oxygen, energy }: ResourceHUDProps): 
   return (
     <div
       aria-label="Resource status"
+      className="sh-resource-hud"
       style={{
         position: 'fixed',
         top: 16,

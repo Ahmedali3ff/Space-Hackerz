@@ -74,6 +74,7 @@ export function TaskCorner({
   return (
     <div
       aria-label="Mission objectives"
+      className="sh-task-corner"
       style={{
         position: 'fixed',
         bottom: 90,

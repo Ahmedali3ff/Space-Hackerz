@@ -615,6 +615,15 @@ html[data-reduce-motion='true'] *::after {
 .sh-ops-complete { border: 0; background: linear-gradient(135deg, #1FC8C0, #0D9488); }
 .sh-ops-complete:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 640px) { .sh-ops-card { padding: 16px; border-radius: 16px; } .sh-ops-resources { grid-template-columns: repeat(2, 1fr); } .sh-ops-actions { grid-template-columns: 1fr; } .sh-ops-stats { flex-wrap: wrap; } }
+@media (max-width: 640px) {
+  .sh-resource-hud { top: 8px !important; left: 8px !important; width: min(174px, calc(100vw - 16px)) !important; padding: 9px !important; gap: 7px !important; border-radius: 14px !important; }
+  .sh-resource-hud span { font-size: 11px !important; }
+  .sh-resource-hud > div > div:first-child { margin-bottom: 3px !important; }
+  .sh-resource-bar { height: 8px !important; }
+  .sh-task-corner { right: 8px !important; bottom: 82px !important; width: min(184px, calc(100vw - 16px)) !important; }
+  .sh-joystick-outer { width: 86px !important; height: 86px !important; bottom: 8px !important; left: 8px !important; }
+  .sh-pause-btn { top: 8px !important; right: 8px !important; width: 44px !important; height: 44px !important; }
+}
 
 @keyframes sh-star-in {
   from { transform: scale(0) rotate(-30deg); opacity: 0; }
