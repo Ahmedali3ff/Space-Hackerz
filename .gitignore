@@ -8,3 +8,4 @@ coverage/
 space-plus.db
 
 .vercel
+.env*
