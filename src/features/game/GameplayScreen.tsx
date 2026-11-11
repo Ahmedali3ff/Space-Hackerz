@@ -387,7 +387,9 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const [highlightedBuildingId, setHighlightedBuildingId] = useState<string | null>(null)
   const [joystickDir, setJoystickDir] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [nearBuilding, setNearBuilding] = useState<string | null>(null)
-  const [showOperations, setShowOperations] = useState(false)
+  // Show the mission operations brief as soon as a level starts. The player
+  // should never have to discover the actual objectives behind a utility icon.
+  const [showOperations, setShowOperations] = useState(true)
   const joystickActiveRef = useRef(false)
   const joystickStartRef = useRef<{ x: number; y: number } | null>(null)
 
@@ -624,11 +626,19 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
   if (gamePhase === 'intro') {
     return (
-      <CinematicIntro
-        planetId={planetId}
-        commanderName={commanderName || 'Commander'}
-        onComplete={() => setGamePhase('playing')}
-      />
+      <div style={{ position: 'relative', minHeight: '100vh' }}>
+        <CinematicIntro
+          planetId={planetId}
+          commanderName={commanderName || 'Commander'}
+          onComplete={() => setGamePhase('playing')}
+        />
+        {showOperations && (
+          <MissionOperationsPanel
+            levelId={levelId ?? missionId ?? 'level-1'}
+            onClose={() => setShowOperations(false)}
+          />
+        )}
+      </div>
     )
   }
 

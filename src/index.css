@@ -597,6 +597,8 @@ html[data-reduce-motion='true'] *::after {
 .sh-ops-resource-track { height: 6px; overflow: hidden; border-radius: 10px; background: rgba(255,255,255,.1); }
 .sh-ops-resource-track span { display: block; height: 100%; border-radius: inherit; transition: width .3s ease; }
 .sh-ops-objective { padding: 12px; border-left: 3px solid #F5A623; background: rgba(245,166,35,.08); color: rgba(255,255,255,.82); font-size: 12px; line-height: 1.5; }
+.sh-ops-crew { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; }
+.sh-ops-crew span { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }.sh-ops-crew small { color: rgba(255,255,255,.5); font-size: 10px; }.sh-ops-crew > div { display: flex; gap: 4px; }.sh-ops-crew button { width: 28px; height: 28px; border: 1px solid rgba(255,255,255,.2); border-radius: 7px; color: white; background: rgba(255,255,255,.06); cursor: pointer; }.sh-ops-crew button.selected { border-color: #1FC8C0; background: #1FC8C0; color: #04111f; font-weight: 900; }
 .sh-ops-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .sh-ops-action, .sh-ops-options button, .sh-ops-reset, .sh-ops-complete { border-radius: 11px; padding: 11px 12px; color: white; font-family: inherit; font-weight: 800; cursor: pointer; }
 .sh-ops-action { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border: 1px solid rgba(59,111,232,.4); background: rgba(59,111,232,.13); text-align: left; }

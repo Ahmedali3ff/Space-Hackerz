@@ -22,6 +22,8 @@ export function MissionOperationsPanel({ levelId, onClose }: MissionOperationsPa
   const reset = useMissionOperationsStore((store) => store.reset)
   const markWon = useMissionOperationsStore((store) => store.markWon)
   const completeMission = useMissionProgressStore((store) => store.completeMission)
+  const crewSize = useMissionStore((store) => store.crewSize)
+  const setCrewSize = useMissionStore((store) => store.setCrewSize)
 
   useEffect(() => {
     if (state.activeLevelId !== levelId) start(levelId)
@@ -57,6 +59,7 @@ export function MissionOperationsPanel({ levelId, onClose }: MissionOperationsPa
           {resourceLabels.map(([key, label, color]) => <div key={key}><div className="sh-ops-resource-label"><span>{label}</span><strong>{state.resources[key]}%</strong></div><div className="sh-ops-resource-track"><span style={{ width: `${state.resources[key]}%`, background: state.resources[key] < 15 ? '#EF4444' : color }} /></div></div>)}
         </div>
         <p className="sh-ops-objective"><strong>Objective:</strong> {mission.objective}</p>
+        {mission.levelId === 'level-1' && <div className="sh-ops-crew"><span><strong>Crew size</strong><small>More crew means higher daily consumption.</small></span><div>{[1, 2, 3, 4, 5, 6].map((size) => <button key={size} className={crewSize === size ? 'selected' : ''} onClick={() => setCrewSize(size)}>{size}</button>)}</div></div>}
         <div className="sh-ops-actions">
           {mission.actions.map((action) => {
             const done = state.completedObjectiveIds.includes(action.objectiveId)
