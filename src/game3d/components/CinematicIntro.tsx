@@ -19,6 +19,11 @@ interface CinematicIntroProps {
 
 type Phase = 'blackout' | 'title' | 'landing' | 'walkout' | 'dialog' | 'ready'
 
+const PLANET_BRIEFING = {
+  moon: { name: 'LUNAR BASE ALPHA', code: 'LUNA // SECTOR 07', atmosphere: 'No atmosphere', risk: 'Radiation + vacuum', objective: 'Stabilize life support before the next lunar night.' },
+  mars: { name: 'MARS COLONY ONE', code: 'MARS // SOL 001', atmosphere: 'CO₂ / thin air', risk: 'Dust storm window', objective: 'Build a resilient habitat and protect the crew.' },
+} as const
+
 interface DialogEntry {
   readonly speaker: string
   readonly emoji: string
@@ -218,6 +223,7 @@ export function CinematicIntro({
     dialogIdx >= 0 && dialogIdx < dialogs.length ? dialogs[dialogIdx] : null
 
   const bgColor = planetId === 'mars' ? '#1a0808' : '#050810'
+  const briefing = PLANET_BRIEFING[planetId]
 
   return (
     <div
@@ -272,6 +278,25 @@ export function CinematicIntro({
           </>
         )}
       </Canvas>
+
+      <div className="sh-cinematic-topbar">
+        <span className="sh-cinematic-brand">SPACE HACKERZ / MISSION CONTROL</span>
+        <span className="sh-cinematic-live"><i /> LIVE TRANSMISSION</span>
+      </div>
+
+      {phase !== 'blackout' && (
+        <aside className="sh-cinematic-briefing" aria-label="Mission briefing">
+          <span className="sh-cinematic-kicker">MISSION BRIEFING · 2047</span>
+          <h2>{briefing.name}</h2>
+          <p className="sh-cinematic-code">{briefing.code}</p>
+          <div className="sh-cinematic-metrics">
+            <span><small>ATMOSPHERE</small><b>{briefing.atmosphere}</b></span>
+            <span><small>RISK PROFILE</small><b>{briefing.risk}</b></span>
+          </div>
+          <div className="sh-cinematic-objective"><small>PRIMARY OBJECTIVE</small><strong>{briefing.objective}</strong></div>
+          <p className="sh-cinematic-crew">CREW MANIFEST <b>03</b> · COMMANDER <b>{commanderName || 'UNASSIGNED'}</b></p>
+        </aside>
+      )}
 
       {/* ── Black overlay — fades out ────────────────────────────────────── */}
       <div

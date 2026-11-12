@@ -92,6 +92,7 @@ export function TaskCorner({
       }}
     >
       {/* Header */}
+      <div className="sh-task-corner-title">MISSION TELEMETRY <span>DAY {currentDay} / {totalDays}</span></div>
       <div
         style={{
           borderBottom: '1px solid rgba(255,255,255,0.1)',

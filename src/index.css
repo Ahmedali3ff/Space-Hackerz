@@ -655,3 +655,80 @@ html[data-reduce-motion='true'] *::after {
   from { transform: rotate(0deg) translateX(60px) rotate(0deg); }
   to   { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
 }
+
+/* Judge-facing visual polish: clear hierarchy, glass telemetry panels, no HUD collisions. */
+.sh-resource-hud {
+  background: linear-gradient(160deg, rgba(11, 29, 62, .96), rgba(5, 13, 31, .92)) !important;
+  border-color: rgba(91, 220, 255, .35) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .38), inset 0 1px rgba(255,255,255,.08) !important;
+  backdrop-filter: blur(18px);
+}
+.sh-resource-hud-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: -2px 0 2px; color: rgba(255,255,255,.58);
+  font: 900 10px/1 'Nunito', sans-serif; letter-spacing: .14em;
+}
+.sh-live-pill, .sh-cinematic-live {
+  display: inline-flex; align-items: center; gap: 5px; color: #72f5cf;
+  font: 900 9px 'Nunito', sans-serif; letter-spacing: .08em;
+}
+.sh-live-pill i, .sh-cinematic-live i { width: 6px; height: 6px; border-radius: 50%; background: #40e7ad; box-shadow: 0 0 9px #40e7ad; }
+.sh-task-corner {
+  bottom: 150px !important; width: 270px !important;
+  background: linear-gradient(160deg, rgba(12, 21, 42, .96), rgba(5, 10, 24, .94)) !important;
+  border-color: rgba(31, 200, 192, .45) !important;
+  box-shadow: 0 18px 50px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.07) !important;
+}
+.sh-task-corner-title {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px 0; color: #1fc8c0;
+  font: 900 10px 'Nunito', sans-serif; letter-spacing: .12em;
+}
+.sh-task-corner-title span { color: rgba(255,255,255,.55); font-size: 9px; letter-spacing: .04em; }
+.sh-current-task {
+  top: 18px !important; width: min(360px, calc(100vw - 560px)) !important;
+  background: linear-gradient(135deg, rgba(8,25,49,.97), rgba(4,13,29,.95)) !important;
+  box-shadow: 0 14px 40px rgba(0,0,0,.42), 0 0 25px rgba(31,200,192,.08) !important;
+}
+.sh-world-label {
+  background: rgba(5, 13, 28, .88); border: 1px solid; border-radius: 999px;
+  padding: 5px 10px; color: white; font: 900 10px 'Nunito', sans-serif;
+  letter-spacing: .02em; white-space: nowrap; pointer-events: none;
+  box-shadow: 0 5px 18px rgba(0,0,0,.28); backdrop-filter: blur(8px);
+}
+.sh-cinematic-topbar {
+  position: absolute; top: 22px; left: 28px; right: 28px; z-index: 25;
+  display: flex; justify-content: space-between; align-items: center;
+  color: rgba(255,255,255,.62); font: 900 10px 'Nunito', sans-serif; letter-spacing: .14em;
+}
+.sh-cinematic-brand { color: rgba(255,255,255,.8); }
+.sh-cinematic-briefing {
+  position: absolute; top: 23%; right: 30px; z-index: 24; width: min(310px, calc(100vw - 40px));
+  padding: 18px; border: 1px solid rgba(111, 221, 255, .3); border-radius: 18px;
+  background: linear-gradient(150deg, rgba(8,19,39,.84), rgba(7,10,26,.68));
+  box-shadow: 0 20px 60px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.1);
+  backdrop-filter: blur(16px); color: white; animation: cinFadeInUp .8s ease;
+}
+.sh-cinematic-kicker { color: #1fc8c0; font: 900 10px 'Nunito', sans-serif; letter-spacing: .14em; }
+.sh-cinematic-briefing h2 { margin: 8px 0 2px; font: 900 25px/1.05 'Nunito', sans-serif; }
+.sh-cinematic-code { margin: 0 0 15px; color: rgba(255,255,255,.48); font: 800 10px 'Nunito', sans-serif; letter-spacing: .16em; }
+.sh-cinematic-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sh-cinematic-metrics span { padding: 9px; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; background: rgba(255,255,255,.04); }
+.sh-cinematic-metrics small, .sh-cinematic-objective small { display: block; color: rgba(255,255,255,.45); font: 900 9px 'Nunito', sans-serif; letter-spacing: .09em; }
+.sh-cinematic-metrics b { display: block; margin-top: 5px; color: #d9f7ff; font: 800 11px 'Nunito', sans-serif; }
+.sh-cinematic-objective { margin-top: 9px; padding: 11px; border-left: 3px solid #f5a623; background: rgba(245,166,35,.1); }
+.sh-cinematic-objective strong { display: block; margin-top: 5px; font: 700 12px/1.4 'Nunito', sans-serif; }
+.sh-cinematic-crew { margin: 13px 0 0; color: rgba(255,255,255,.48); font: 900 9px 'Nunito', sans-serif; letter-spacing: .08em; }
+.sh-cinematic-crew b { color: white; }
+@media (max-width: 900px) {
+  .sh-current-task { top: 70px !important; width: min(360px, calc(100vw - 250px)) !important; }
+  .sh-cinematic-briefing { top: auto; right: 16px; bottom: 18px; width: min(330px, calc(100vw - 32px)); }
+}
+@media (max-width: 640px) {
+  .sh-task-corner { right: 8px !important; bottom: 148px !important; width: min(210px, calc(100vw - 16px)) !important; }
+  .sh-current-task { top: 62px !important; left: 8px !important; transform: none !important; width: calc(100vw - 16px) !important; min-width: 0 !important; }
+  .sh-cinematic-topbar { top: 14px; left: 14px; right: 14px; }
+  .sh-cinematic-brand { font-size: 8px; }
+  .sh-cinematic-briefing { bottom: 14px; padding: 14px; }
+  .sh-cinematic-briefing h2 { font-size: 20px; }
+}

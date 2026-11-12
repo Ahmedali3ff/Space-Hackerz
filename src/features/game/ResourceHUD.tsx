@@ -43,6 +43,10 @@ export function ResourceHUD({ water, food, oxygen, energy }: ResourceHUDProps): 
         gap: 12,
       }}
     >
+      <div className="sh-resource-hud-header">
+        <span>HABITAT STATUS</span>
+        <span className="sh-live-pill"><i /> LIVE</span>
+      </div>
       {rows.map((row) => {
         const pct = Math.round(Math.max(0, Math.min(100, row.value)))
         const isCritical = pct < 15
