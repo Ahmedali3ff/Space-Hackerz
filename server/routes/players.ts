@@ -2,6 +2,7 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import type { PlayerRecord, XPResult } from '../types/api.types.js'
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 
 export const playersRouter = Router()
 
@@ -32,62 +33,59 @@ function getLevelForXP(xp: number): LevelDef {
 
 // ── Ensure default player row exists ────────────────────────────────────────────
 
-function ensurePlayer(): PlayerRecord {
+function ensurePlayer(accountId = 'legacy'): PlayerRecord {
   const existing = db
     .prepare('SELECT * FROM players WHERE id = ?')
-    .get('player-1') as PlayerRecord | undefined
+    .get(accountId === 'legacy' ? 'player-1' : `player-${accountId}`) as PlayerRecord | undefined
 
   if (existing !== undefined) return existing
 
   db.prepare(`
     INSERT OR IGNORE INTO players (id, name, total_xp, current_level, commander_title, total_stars)
-    VALUES ('player-1', 'Commander', 0, 1, 'Space Cadet', 0)
-  `).run()
+    VALUES (?, 'Commander', 0, 1, 'Space Cadet', 0)
+  `).run(accountId === 'legacy' ? 'player-1' : `player-${accountId}`)
 
   return db
     .prepare('SELECT * FROM players WHERE id = ?')
-    .get('player-1') as PlayerRecord
+    .get(accountId === 'legacy' ? 'player-1' : `player-${accountId}`) as PlayerRecord
 }
 
 // ── GET / — return single player ────────────────────────────────────────────────
 
-playersRouter.get('/', (_req: Request, res: Response): void => {
-  const player = ensurePlayer()
+playersRouter.get('/', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
+  const player = ensurePlayer(req.userId ?? 'legacy')
   res.json(player)
 })
 
 // ── POST / — upsert player name ──────────────────────────────────────────────────
 
-playersRouter.post('/', (req: Request, res: Response): void => {
+playersRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const name = (req.body as { name?: unknown }).name
   if (typeof name !== 'string' || name.trim().length === 0) {
     res.status(400).json({ error: 'name is required' })
     return
   }
 
-  db.prepare(`
-    INSERT INTO players (id, name, updated_at)
-    VALUES ('player-1', ?, datetime('now'))
-    ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at
-  `).run(name.trim())
+  const playerId = `player-${req.userId as string}`
+  db.prepare('UPDATE players SET name = ?, updated_at = datetime(\'now\') WHERE id = ?').run(name.trim(), playerId)
 
   const updated = db
     .prepare('SELECT * FROM players WHERE id = ?')
-    .get('player-1') as PlayerRecord
+    .get(playerId) as PlayerRecord
 
   res.json(updated)
 })
 
 // ── PATCH /xp — add XP and recompute level ───────────────────────────────────────
 
-playersRouter.patch('/xp', (req: Request, res: Response): void => {
+playersRouter.patch('/xp', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const amount = (req.body as { amount?: unknown }).amount
   if (typeof amount !== 'number' || !isFinite(amount)) {
     res.status(400).json({ error: 'amount must be a finite number' })
     return
   }
 
-  const player = ensurePlayer()
+  const player = ensurePlayer(req.userId ?? 'legacy')
   const prevLevel = player.current_level
   const newXP = player.total_xp + amount
   const levelDef = getLevelForXP(newXP)
@@ -95,8 +93,8 @@ playersRouter.patch('/xp', (req: Request, res: Response): void => {
   db.prepare(`
     UPDATE players
     SET total_xp = ?, current_level = ?, commander_title = ?, updated_at = datetime('now')
-    WHERE id = 'player-1'
-  `).run(newXP, levelDef.level, levelDef.title)
+    WHERE id = ?
+  `).run(newXP, levelDef.level, levelDef.title, player.id)
 
   const result: XPResult = {
     newXP,

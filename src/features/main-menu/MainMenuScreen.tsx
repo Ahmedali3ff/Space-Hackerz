@@ -4,6 +4,7 @@ import { useMissionStore } from '@store/mission-store'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 import { HowToPlayModal } from './HowToPlayModal'
 import type { PlanetId } from '@simulation/types'
+import { apiClient, setAuthToken } from '@/services/api-client'
 
 const PLANETS: readonly { id: PlanetId; label: string; code: string }[] = [
   { id: 'mars', label: 'MARS', code: 'M-01' },
@@ -19,19 +20,35 @@ export function MainMenuScreen(): JSX.Element {
   const setCommanderName = useMissionProgressStore((state) => state.setCommanderName)
   const [name, setName] = useState(commanderName)
   const [showHowToPlay, setShowHowToPlay] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [authBusy, setAuthBusy] = useState(false)
   const activePlanet: PlanetId = selectedPlanetId ?? 'mars'
 
   useEffect(() => {
     if (selectedPlanetId === null) selectPlanet('mars')
   }, [selectedPlanetId, selectPlanet])
 
-  function beginMission(): void {
+  async function beginMission(): Promise<void> {
     const cleanName = name.trim()
-    if (!cleanName) return
-    setCommanderName(cleanName)
+    if (!cleanName && authMode === 'register') return
+    if (!email.trim() || password.length < 6) { setAuthError('Enter a valid email and a password with at least 6 characters.'); return }
+    if (authMode === 'register' && cleanName.length < 2) { setAuthError('Enter your explorer name.'); return }
+    setAuthBusy(true); setAuthError('')
+    const response = authMode === 'register' ? await apiClient.register({ name: cleanName, email: email.trim(), password }) : await apiClient.login({ email: email.trim(), password })
+    if (!response) { setAuthError('Unable to connect or invalid account details.'); setAuthBusy(false); return }
+    setAuthToken(response.token)
+    const player = response.account.player
+    useMissionProgressStore.getState().switchAccount(response.account.id, player)
+    const rows = await apiClient.getMyMissionProgress()
+    if (rows) useMissionProgressStore.getState().hydrateMissions(rows)
+    setCommanderName(player?.name ?? cleanName)
     if (selectedPlanetId === null) selectPlanet(activePlanet)
     setCrewSize(4)
     navigate('/mission-hub')
+    setAuthBusy(false)
   }
 
   return (
@@ -88,11 +105,15 @@ export function MainMenuScreen(): JSX.Element {
 
         <div className="sh-home-cta">
           <p>TOUCH DOWN ON {activePlanet === 'mars' ? 'MARS' : 'THE MOON'}:<br /><strong>YOUR HABITAT AWAITS YOUR COMMAND.</strong></p>
-          <label htmlFor="explorer-name">NAME OF EXPLORER</label>
+          <div className="sh-auth-tabs"><button type="button" className={authMode === 'register' ? 'active' : ''} onClick={() => setAuthMode('register')}>CREATE ACCOUNT</button><button type="button" className={authMode === 'login' ? 'active' : ''} onClick={() => setAuthMode('login')}>SIGN IN</button></div>
+          {authMode === 'register' && <label htmlFor="explorer-name">NAME OF EXPLORER</label>}
           <div className="sh-name-row">
-            <input id="explorer-name" value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') beginMission() }} placeholder="ENTER YOUR NAME" maxLength={24} autoComplete="off" />
-            <button type="button" onClick={beginMission} disabled={name.trim().length === 0}>LET&apos;S DIVE <span>↗</span></button>
+            {authMode === 'register' && <input id="explorer-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="ENTER YOUR NAME" maxLength={24} autoComplete="name" />}
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="EMAIL" autoComplete="email" />
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void beginMission() }} placeholder="PASSWORD" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} />
+            <button type="button" onClick={() => void beginMission()} disabled={authBusy}>{authBusy ? 'CONNECTING…' : 'LET’S DIVE'} <span>↗</span></button>
           </div>
+          {authError && <p className="sh-auth-error" role="alert">{authError}</p>}
         </div>
       </section>
 

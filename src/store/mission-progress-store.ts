@@ -10,6 +10,7 @@ import type { MissionDefinition } from '@data/missions/mission-definitions'
 import type { MissionProgress, MissionStatus } from '@data/missions/mission-progress'
 import { getLevelForXP, getXPForMission } from '@data/levels/level-definitions'
 import { apiClient } from '@/services/api-client'
+import type { PlayerRecord } from '@/services/api-client'
 
 // ── State shape ───────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ export interface MissionProgressState {
   readonly commanderTitle: string
   readonly currentMissionId: string | null
   readonly commanderName: string
+  readonly accountId: string | null
 }
 
 // ── Actions shape ─────────────────────────────────────────────────────────────
@@ -34,6 +36,8 @@ export interface MissionProgressActions {
   getMissionStatus: (missionId: string) => MissionStatus
   getCurrentMission: () => MissionDefinition | null
   resetProgress: () => void
+  switchAccount: (accountId: string, player: PlayerRecord | null) => void
+  hydrateMissions: (rows: ReadonlyArray<{ mission_id: string; status: string; tasks_complete: string; stars_earned: number; completed_at: string | null }>) => void
 }
 
 export type MissionProgressStore = MissionProgressState & MissionProgressActions
@@ -62,6 +66,7 @@ const INITIAL_STATE: MissionProgressState = {
   commanderTitle: 'Space Cadet',
   currentMissionId: 'm01',
   commanderName: '',
+  accountId: null,
 }
 
 /** Exported for test resets — use useMissionProgressStore.setState({ ...INITIAL_PROGRESS_STATE }) in beforeEach */
@@ -78,6 +83,29 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
         set({ commanderName: name })
         // Fire-and-forget: sync name to backend (app works without server)
         apiClient.upsertPlayer(name).then(() => {}).catch(() => {})
+      },
+
+      switchAccount: (accountId, player): void => {
+        set({ ...INITIAL_STATE, missions: buildInitialMissions(), accountId, commanderName: player?.name ?? '', totalStars: player?.total_stars ?? 0, totalXP: player?.total_xp ?? 0, currentLevel: player?.current_level ?? 1, commanderTitle: player?.commander_title ?? 'Space Cadet' })
+      },
+
+      hydrateMissions: (rows): void => {
+        set((state) => {
+          const missions = { ...state.missions }
+          for (const row of rows) {
+            const existing = missions[row.mission_id]
+            if (!existing) continue
+            missions[row.mission_id] = { ...existing, status: row.status as MissionStatus, completedTaskIds: JSON.parse(row.tasks_complete || '[]') as string[], earnedStars: row.stars_earned, completedAt: row.completed_at ?? undefined }
+          }
+          for (const mission of MISSIONS) {
+            if (missions[mission.id]?.status === 'completed') {
+              const next = MISSIONS.find((candidate) => candidate.unlockRequirement === mission.id)
+              if (next && missions[next.id]?.status === 'locked') missions[next.id] = { ...missions[next.id], status: 'active' }
+            }
+          }
+          const totalStars = Object.values(missions).reduce((sum, mission) => sum + (mission.status === 'completed' ? mission.earnedStars : 0), 0)
+          return { missions, totalStars }
+        })
       },
 
       startMission: (missionId: string): void => {
@@ -175,7 +203,7 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
 
         apiClient
           .saveMissionProgress({
-            playerId: 'player-1',
+            playerId: `player-${get().accountId ?? 'legacy'}`,
             missionId,
             status: 'completed',
             tasksComplete: [],

@@ -54,12 +54,16 @@ export interface LeaderboardEntry {
   current_level: number
   commander_title: string
 }
+export interface AuthResponse { token: string; account: { id: string; player: PlayerRecord | null } }
 
 // ── Base URL ──────────────────────────────────────────────────────────────────
 
 const BASE =
   (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL ??
-  'http://localhost:3001'
+  ((import.meta as { env?: { PROD?: boolean } }).env?.PROD ? '/api' : 'http://localhost:3001')
+
+export function setAuthToken(token: string): void { localStorage.setItem('space-hackerz-auth-token', token) }
+export function clearAuthToken(): void { localStorage.removeItem('space-hackerz-auth-token') }
 
 // ── Fetch helper ──────────────────────────────────────────────────────────────
 
@@ -67,7 +71,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | nul
   try {
     const res = await fetch(`${BASE}${path}`, {
       ...options,
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('space-hackerz-auth-token') ? { Authorization: `Bearer ${localStorage.getItem('space-hackerz-auth-token')}` } : {}), ...options?.headers },
     })
     if (!res.ok) return null
     return res.json() as Promise<T>
@@ -80,6 +84,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | nul
 // ── API client ────────────────────────────────────────────────────────────────
 
 export const apiClient = {
+  register: (data: { name: string; email: string; password: string }): Promise<AuthResponse | null> => apiFetch<AuthResponse>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: { email: string; password: string }): Promise<AuthResponse | null> => apiFetch<AuthResponse>('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   getPlayer: (): Promise<PlayerRecord | null> =>
     apiFetch<PlayerRecord>('/api/players'),
 
@@ -109,4 +115,6 @@ export const apiClient = {
 
   getLeaderboard: (): Promise<LeaderboardEntry[] | null> =>
     apiFetch<LeaderboardEntry[]>('/api/scores/leaderboard'),
+
+  getMyMissionProgress: (): Promise<Array<{ mission_id: string; status: string; tasks_complete: string; stars_earned: number; completed_at: string | null }> | null> => apiFetch('/api/missions/me'),
 }

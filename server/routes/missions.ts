@@ -2,13 +2,14 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import type { MissionProgressRecord, MissionProgressPayload } from '../types/api.types.js'
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 
 export const missionsRouter = Router()
 
 // ── GET /:playerId — return all mission progress rows for that player ────────────
 
-missionsRouter.get('/:playerId', (req: Request, res: Response): void => {
-  const { playerId } = req.params
+missionsRouter.get('/me', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
+  const playerId = `player-${req.userId as string}`
   const rows = db
     .prepare('SELECT * FROM mission_progress WHERE player_id = ?')
     .all(playerId) as MissionProgressRecord[]
@@ -17,10 +18,11 @@ missionsRouter.get('/:playerId', (req: Request, res: Response): void => {
 
 // ── POST / — upsert mission progress, sync total_stars on player ─────────────────
 
-missionsRouter.post('/', (req: Request, res: Response): void => {
+missionsRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const body = req.body as Partial<MissionProgressPayload>
 
-  const { playerId, missionId, status, tasksComplete, starsEarned, completedAt } = body
+  const { missionId, status, tasksComplete, starsEarned, completedAt } = body
+  const playerId = `player-${req.userId as string}`
 
   if (
     typeof playerId !== 'string' ||

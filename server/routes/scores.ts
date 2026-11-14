@@ -2,12 +2,13 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import type { MissionRunPayload, LeaderboardEntry } from '../types/api.types.js'
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 
 export const scoresRouter = Router()
 
 // ── POST / — insert a mission run record ─────────────────────────────────────────
 
-scoresRouter.post('/', (req: Request, res: Response): void => {
+scoresRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const body = req.body as Partial<MissionRunPayload>
 
   const {
@@ -23,6 +24,7 @@ scoresRouter.post('/', (req: Request, res: Response): void => {
     outcome,
     eventsResolved,
   } = body
+  const authenticatedPlayerId = `player-${req.userId as string}`
 
   if (
     typeof id !== 'string' ||
@@ -47,7 +49,7 @@ scoresRouter.post('/', (req: Request, res: Response): void => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
-    playerId,
+    authenticatedPlayerId,
     missionId,
     planetId,
     crewSize,
