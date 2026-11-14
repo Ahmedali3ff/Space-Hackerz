@@ -28,6 +28,7 @@ import { useMissionOperationsStore } from '@store/mission-operations-store'
 import { getMissionOperation } from '@data/missions/mission-operations'
 import { getDefaultBaseConfig } from '@/utils/default-config'
 import { usePreferencesStore } from '@store/preferences-store'
+import { AstroAIPanel } from '@/features/mission-control/AstroAIPanel'
 
 // ── Building info ─────────────────────────────────────────────────────────────
 
@@ -421,6 +422,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   // Show the mission operations brief as soon as a level starts. The player
   // should never have to discover the actual objectives behind a utility icon.
   const [showOperations, setShowOperations] = useState(true)
+  const [showAstro, setShowAstro] = useState(false)
   const joystickActiveRef = useRef(false)
   const joystickStartRef = useRef<{ x: number; y: number } | null>(null)
 
@@ -726,6 +728,11 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   // ── Main gameplay view ─────────────────────────────────────────────────────
 
   const firstEventId = activeEventIds.length > 0 ? activeEventIds[0] : null
+  const liveOxygen = operationLevelId !== null ? operationResources.oxygen : oxygenPct
+  const liveWater = operationLevelId !== null ? operationResources.water : waterPct
+  const liveFood = operationLevelId !== null ? operationResources.food : foodPct
+  const liveEnergy = operationLevelId !== null ? operationResources.energy : energyPct
+  const lowestResource = Math.min(liveOxygen, liveWater, liveFood, liveEnergy)
 
   return (
     <div
@@ -746,7 +753,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           height: '100%',
         }}
       >
-        <HabitatWorld
+      <HabitatWorld
           planetId={planetId}
           resources={res}
           initialResources={init}
@@ -756,7 +763,31 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           joystickDir={joystickDir}
           onBuildingClick={handleBuildingClick}
           onNearBuilding={setNearBuilding}
-        />
+      />
+      </div>
+
+      <div className="sh-game-brandbar" aria-label="Space Hackerz game interface">
+        <img src="/assets/icons/space-hackerz-mark.svg" alt="" aria-hidden="true" />
+        <span>SPACE<br /><b>HACKERZ</b></span>
+      </div>
+
+      <div className="sh-game-ai-card" role="button" tabIndex={0} onClick={() => setShowAstro(true)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setShowAstro(true) }}>
+        <div className="sh-game-ai-avatar">✦</div><div><strong>Astro-AI</strong><p>{lowestResource < 35 ? `Resource levels are unstable. Check the ${liveOxygen === lowestResource ? 'life support' : 'habitat'} systems.` : 'Habitat systems are stable. Continue the active mission task.'}</p></div>
+      </div>
+
+      {lowestResource < 35 || firstEventId !== null ? <div className="sh-game-alert"><b>!</b><span>{firstEventId !== null ? 'ENVIRONMENTAL ALERT' : 'OXYGEN / SYSTEMS LOW'}<small>Review habitat systems immediately</small></span></div> : null}
+
+      <div className="sh-game-crew-card"><div className="sh-crew-portrait">◉</div><div><strong>CREW STATUS</strong><span>Health <b>{crewStatus === 'happy' ? '100' : crewStatus === 'worried' ? '70' : '45'}%</b></span><span>Morale <b>{crewStatus === 'happy' ? '90' : '65'}%</b></span><span>Energy <b>{liveEnergy}%</b></span></div></div>
+
+      <div className="sh-game-map-card"><strong>MISSION MAP</strong><div className="sh-radar"><i /><b /><em /></div><small>◉ HABITAT · {planetId.toUpperCase()}</small></div>
+
+      <div className="sh-game-actionbar" aria-label="Mission actions">
+        <button type="button" onClick={() => setShowOperations(true)}><span>⌂</span><b>Build</b></button>
+        <button type="button" onClick={() => { triggerChallenge('harvest-crops', currentMissionDay); setShowOperations(true) }}><span>⚗</span><b>Research</b></button>
+        <button type="button" onClick={() => { if (nearBuilding) handleBuildingClick(nearBuilding); else setShowOperations(true) }}><span>⬆</span><b>Upgrade</b></button>
+        <button type="button" onClick={() => setShowOperations(false)}><span>⌁</span><b>Explore</b></button>
+        <button type="button" onClick={() => setOpenBuildingId(nearBuilding ?? 'command-center')}><span>♟</span><b>Manage</b></button>
+        <button className="end-turn" type="button" onClick={handleAdvanceDay}><span>»</span><b>End Turn</b></button>
       </div>
 
       {/* ── React overlays ─────────────────────────────────────────────────── */}
@@ -1031,6 +1062,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           onClose={() => setShowOperations(false)}
         />
       )}
+
+      {showAstro ? <div className="sh-game-astro-modal" role="dialog" aria-modal="true"><button type="button" aria-label="Close Astro AI" onClick={() => setShowAstro(false)}>×</button><AstroAIPanel /></div> : null}
 
       {/* ── Pause overlay ───────────────────────────────────────────────────── */}
       {gamePhase === 'paused' && (
