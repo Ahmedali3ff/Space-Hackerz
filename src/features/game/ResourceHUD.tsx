@@ -23,6 +23,9 @@ export function ResourceHUD({ water, food, oxygen, energy }: ResourceHUDProps): 
     { icon: '🫁', label: 'Oxygen', value: oxygen, fillColor: '#A855F7' },
     { icon: '⚡', label: 'Energy', value: energy, fillColor: '#FFB800' },
   ]
+  const lowest = Math.min(water, food, oxygen, energy)
+  const habitatState = lowest < 15 ? 'CRITICAL' : lowest < 35 ? 'WARNING' : 'STABLE'
+  const stateColor = lowest < 15 ? '#e56857' : lowest < 35 ? '#d99a45' : '#49bda9'
 
   return (
     <div
@@ -45,7 +48,7 @@ export function ResourceHUD({ water, food, oxygen, energy }: ResourceHUDProps): 
     >
       <div className="sh-resource-hud-header">
         <span>HABITAT STATUS</span>
-        <span className="sh-live-pill"><i /> LIVE</span>
+        <span className="sh-live-pill" style={{ color: stateColor }}><i style={{ background: stateColor, boxShadow: `0 0 9px ${stateColor}` }} /> {habitatState}</span>
       </div>
       {rows.map((row) => {
         const pct = Math.round(Math.max(0, Math.min(100, row.value)))

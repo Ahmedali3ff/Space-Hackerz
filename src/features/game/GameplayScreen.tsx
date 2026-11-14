@@ -444,6 +444,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const applyOperationAction = useMissionOperationsStore((s) => s.applyAction)
   const tickOperation = useMissionOperationsStore((s) => s.tick)
   const operationStatus = useMissionOperationsStore((s) => s.status)
+  const operationResources = useMissionOperationsStore((s) => s.resources)
+  const operationLevelId = useMissionOperationsStore((s) => s.activeLevelId)
   const operationTaskId = useMissionOperationsStore((s) => s.currentTaskId)
   const operationTimeRemaining = useMissionOperationsStore((s) => s.timeRemainingSeconds)
   const operationMission = getMissionOperation(levelId ?? missionId ?? 'level-1')
@@ -755,10 +757,10 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
       {/* Resource HUD — fixed top-left */}
       <ResourceHUD
-        oxygen={oxygenPct}
-        water={waterPct}
-        food={foodPct}
-        energy={energyPct}
+        oxygen={operationLevelId !== null ? operationResources.oxygen : oxygenPct}
+        water={operationLevelId !== null ? operationResources.water : waterPct}
+        food={operationLevelId !== null ? operationResources.food : foodPct}
+        energy={operationLevelId !== null ? operationResources.energy : energyPct}
       />
 
       {/* Challenge Widget — fixed below ResourceHUD */}
