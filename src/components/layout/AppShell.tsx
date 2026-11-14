@@ -18,9 +18,9 @@ interface AppShellProps {
 
 export function AppShell({ children, hudSlot, title }: AppShellProps): JSX.Element {
   return (
-    <div className="relative min-h-screen w-full bg-[#F4F7FA]">
+    <div className="sh-site-shell relative min-h-screen w-full">
       {/* Top navigation bar */}
-      <header className="sticky top-0 z-30">
+      <header className="sticky top-0 z-30 sh-site-header">
         <TopNavBar hudSlot={hudSlot} />
       </header>
 

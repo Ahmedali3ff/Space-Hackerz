@@ -23,6 +23,7 @@ import { EventBus } from '@/game/EventBus'
 import { CriticalFailureScreen } from './CriticalFailureScreen'
 import { PauseMenuOverlay } from './PauseMenuOverlay'
 import { MissionOperationsPanel } from './MissionOperationsPanel'
+import { ACTION_BUILDINGS } from './MissionOperationsPanel'
 import { useMissionOperationsStore } from '@store/mission-operations-store'
 import { getMissionOperation } from '@data/missions/mission-operations'
 
@@ -100,6 +101,7 @@ interface BuildingPanelProps {
   readonly onAdvanceDay: () => void
   readonly onClose: () => void
   readonly onFacilityAction: (actionId: string) => void
+  readonly operationTaskId: string | null
 }
 
 function BuildingPanel({
@@ -114,6 +116,7 @@ function BuildingPanel({
   onAdvanceDay,
   onClose,
   onFacilityAction,
+  operationTaskId,
 }: BuildingPanelProps): JSX.Element {
   const info = BUILDING_INFO[buildingId]
   const icon = info?.icon ?? '🏗️'
@@ -165,7 +168,10 @@ function BuildingPanel({
     'command-center': { id: 'reduce-consumption', label: 'Reduce Consumption' },
     airlock: { id: 'inspect-system', label: 'Inspect System' },
   }
-  const operation = facilityAction[buildingId]
+  const taskBuildingId = operationTaskId !== null ? ACTION_BUILDINGS[operationTaskId] : undefined
+  const operation = taskBuildingId === buildingId
+    ? { id: operationTaskId as string, label: 'Perform Current Mission Task' }
+    : facilityAction[buildingId]
 
   return (
     <div
@@ -402,6 +408,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const [gamePhase, setGamePhase] = useState<GamePhase>('intro')
   const [openBuildingId, setOpenBuildingId] = useState<string | null>(null)
   const [highlightedBuildingId, setHighlightedBuildingId] = useState<string | null>(null)
+  const [pendingFacilityActionId, setPendingFacilityActionId] = useState<string | null>(null)
   const [joystickDir, setJoystickDir] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [nearBuilding, setNearBuilding] = useState<string | null>(null)
   // Show the mission operations brief as soon as a level starts. The player
@@ -540,8 +547,9 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
-    function onHighlight(payload: { buildingId: string }): void {
+    function onHighlight(payload: { buildingId: string; actionId?: string }): void {
       setHighlightedBuildingId(payload.buildingId)
+      if (payload.actionId !== undefined) setPendingFacilityActionId(payload.actionId)
       if (timer !== null) clearTimeout(timer)
       timer = setTimeout(() => setHighlightedBuildingId(null), 8000)
     }
@@ -649,6 +657,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const handleFacilityAction = useCallback((actionId: string): void => {
     applyOperationAction(actionId)
     tickOperation()
+    setPendingFacilityActionId(null)
   }, [applyOperationAction, tickOperation])
 
   // ── E key — interact with nearby building ──────────────────────────────────
@@ -990,6 +999,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           onAdvanceDay={handleAdvanceDay}
           onClose={() => setOpenBuildingId(null)}
           onFacilityAction={handleFacilityAction}
+          operationTaskId={pendingFacilityActionId ?? operationTaskId}
         />
       )}
 

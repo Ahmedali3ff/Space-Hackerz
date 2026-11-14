@@ -28,4 +28,15 @@ describe('mission operations', () => {
     expect(state.score).toBe(0)
     expect(state.feedback?.tone).toBe('negative')
   })
+
+  it('loses every operation when its three minute timer expires', () => {
+    const store = useMissionOperationsStore.getState()
+    store.start('level-8')
+    store.tick(180)
+
+    const state = useMissionOperationsStore.getState()
+    expect(state.timeRemainingSeconds).toBe(0)
+    expect(state.status).toBe('lost')
+    expect(state.lossCause).toBe('Mission timer expired')
+  })
 })

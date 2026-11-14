@@ -101,7 +101,7 @@ export function TopNavBar({
   const displayName = commanderName.trim().length > 0 ? commanderName : null
 
   return (
-    <nav className={barClass} aria-label="Space Hackerz navigation">
+    <nav className={`${barClass} sh-top-nav`} aria-label="Space Hackerz navigation">
       {/* ── Left: Logo + wordmark ── */}
       <NavLink
         to="/missions"
