@@ -31,7 +31,7 @@ export function MainMenuScreen(): JSX.Element {
     setCommanderName(cleanName)
     if (selectedPlanetId === null) selectPlanet(activePlanet)
     setCrewSize(4)
-    navigate('/configure-base')
+    navigate('/mission-hub')
   }
 
   return (

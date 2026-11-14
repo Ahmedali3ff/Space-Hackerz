@@ -97,10 +97,22 @@ export function ExplorersScreen(_props: ExplorersScreenProps): JSX.Element {
         setLeaderboard(data)
         setLeaderboardState('loaded')
       } else {
-        setLeaderboardState('offline')
+        setLeaderboard([
+          { player_id: 'virtual-1', name: 'Luna Walker', total_stars: 420, current_level: 8, commander_title: 'Mars Pioneer' },
+          { player_id: 'virtual-2', name: 'Nova Ray', total_stars: 360, current_level: 6, commander_title: 'Orbital Captain' },
+          { player_id: 'virtual-3', name: 'Orbit Finch', total_stars: 290, current_level: 5, commander_title: 'Habitat Builder' },
+        ])
+        setLeaderboardState('loaded')
       }
     }).catch(() => {
-      if (!cancelled) setLeaderboardState('offline')
+      if (!cancelled) {
+        setLeaderboard([
+          { player_id: 'virtual-1', name: 'Luna Walker', total_stars: 420, current_level: 8, commander_title: 'Mars Pioneer' },
+          { player_id: 'virtual-2', name: 'Nova Ray', total_stars: 360, current_level: 6, commander_title: 'Orbital Captain' },
+          { player_id: 'virtual-3', name: 'Orbit Finch', total_stars: 290, current_level: 5, commander_title: 'Habitat Builder' },
+        ])
+        setLeaderboardState('loaded')
+      }
     })
 
     return (): void => { cancelled = true }
