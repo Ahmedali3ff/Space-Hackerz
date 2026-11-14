@@ -4,7 +4,7 @@
 
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Rocket, Eye, EyeClosed } from '@phosphor-icons/react'
+import { Eye, EyeClosed } from '@phosphor-icons/react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 
@@ -108,19 +108,14 @@ export function TopNavBar({
         className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FC8C0] rounded-lg flex-shrink-0"
         aria-label="Space Hackerz — missions overview"
       >
-        <span
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1FC8C0] flex-shrink-0"
-          aria-hidden="true"
-        >
-          <Rocket size={18} weight="fill" color="#fff" />
-        </span>
+        <img className="sh-brand-logo" src="/assets/icons/space-hackerz-mark.svg" alt="" aria-hidden="true" />
         <span className="font-bold text-lg leading-none">
           {title !== undefined ? (
             <span className="text-[#1A1D2E]">{title}</span>
           ) : (
             <>
-              <span className="text-[#1A1D2E]">Space</span>
-              <span className="text-[#1FC8C0]">Hackerz</span>
+              <span className="text-[#12345A]">Space</span>
+              <span className="text-[#11B8C5]"> HackerZ</span>
             </>
           )}
         </span>

@@ -63,7 +63,7 @@ export function MainMenuScreen(): JSX.Element {
       <div className="sh-home-stars" aria-hidden="true" />
       <div className="sh-home-grid" aria-hidden="true" />
       <header className="sh-home-nav">
-        <div className="sh-home-brand"><span className="sh-brand-mark">✦</span> SPACE HACKERZ</div>
+        <div className="sh-home-brand"><img className="sh-home-logo" src="/assets/icons/space-hackerz-mark.svg" alt="" aria-hidden="true" /> <span>SPACE HACKERZ</span></div>
         <nav aria-label="Main navigation">
           <button className="active">HOME</button>
           <button type="button" onClick={() => setShowHowToPlay(true)}>ABOUT US</button>

@@ -13,7 +13,7 @@ interface PreferencesState {
 
 export const usePreferencesStore = create<PreferencesState>()(persist((set) => ({
   language: 'en',
-  theme: 'dark',
+  theme: 'light',
   setLanguage: (language) => set({ language }),
   setTheme: (theme) => set({ theme }),
 }), { name: 'space-hackerz-preferences-v1' }))
