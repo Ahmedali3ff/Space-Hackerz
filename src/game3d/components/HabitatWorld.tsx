@@ -71,6 +71,9 @@ function PlayerController({ joystickDir, onPositionChange, onNearBuilding, statu
   const facing = useRef(0) // Y rotation
   const keysRef = useRef<Set<string>>(new Set())
   const lastNearRef = useRef<string | null>(null)
+  const lookYawRef = useRef(0)
+  const lookPitchRef = useRef(0.2)
+  const lookDragRef = useRef(false)
   const { camera } = useThree()
 
   const SPEED = 6
@@ -81,9 +84,19 @@ function PlayerController({ joystickDir, onPositionChange, onNearBuilding, statu
   useEffect(() => {
     const down = (e: KeyboardEvent) => { keysRef.current.add(e.key.toLowerCase()) }
     const up   = (e: KeyboardEvent) => { keysRef.current.delete(e.key.toLowerCase()) }
+    const mouseDown = (e: MouseEvent): void => { if (e.button === 0) lookDragRef.current = true }
+    const mouseUp = (): void => { lookDragRef.current = false }
+    const mouseMove = (e: MouseEvent): void => {
+      if (!lookDragRef.current) return
+      lookYawRef.current -= e.movementX * 0.006
+      lookPitchRef.current = Math.max(-0.25, Math.min(0.65, lookPitchRef.current - e.movementY * 0.004))
+    }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup',   up)
-    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up) }
+    window.addEventListener('mousedown', mouseDown)
+    window.addEventListener('mouseup', mouseUp)
+    window.addEventListener('mousemove', mouseMove)
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('mousedown', mouseDown); window.removeEventListener('mouseup', mouseUp); window.removeEventListener('mousemove', mouseMove) }
   }, [])
 
   useFrame((_, delta) => {
@@ -112,7 +125,11 @@ function PlayerController({ joystickDir, onPositionChange, onNearBuilding, statu
       const len = Math.sqrt(dx * dx + dz * dz)
       dx /= len; dz /= len
 
-      // Update facing angle
+      // Movement is relative to the camera direction; mouse controls the look.
+      const localX = dx
+      const localZ = dz
+      dx = localX * Math.cos(lookYawRef.current) + localZ * Math.sin(lookYawRef.current)
+      dz = -localX * Math.sin(lookYawRef.current) + localZ * Math.cos(lookYawRef.current)
       facing.current = Math.atan2(dx, dz)
       groupRef.current.rotation.y = facing.current
 
@@ -145,13 +162,13 @@ function PlayerController({ joystickDir, onPositionChange, onNearBuilding, statu
 
     // Third-person camera follow
     const behind = new THREE.Vector3(
-      Math.sin(facing.current) * CAMERA_DISTANCE,
-      CAMERA_HEIGHT,
-      Math.cos(facing.current) * CAMERA_DISTANCE,
+      Math.sin(lookYawRef.current) * CAMERA_DISTANCE,
+      CAMERA_HEIGHT + lookPitchRef.current * 4,
+      Math.cos(lookYawRef.current) * CAMERA_DISTANCE,
     )
     const targetCamPos = pos.current.clone().add(behind)
     camera.position.lerp(targetCamPos, 0.08)
-    const lookTarget = pos.current.clone().add(new THREE.Vector3(0, 1.5, 0))
+    const lookTarget = pos.current.clone().add(new THREE.Vector3(0, 1.5 + lookPitchRef.current * 2, 0))
     camera.lookAt(lookTarget)
 
     // Notify parent of position

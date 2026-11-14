@@ -1,6 +1,7 @@
 // src/features/game/ResourceHUD.tsx
 // Top-left HUD overlay — four resource bars for the 3D gameplay view.
 // Updated to Space Hackerz pixel-perfect style.
+import { usePreferencesStore } from '@store/preferences-store'
 
 interface ResourceHUDProps {
   readonly water: number    // 0-100 percentage
@@ -17,11 +18,13 @@ interface ResourceRow {
 }
 
 export function ResourceHUD({ water, food, oxygen, energy }: ResourceHUDProps): JSX.Element {
+  const language = usePreferencesStore((state) => state.language)
+  const arabic = language === 'ar'
   const rows: readonly ResourceRow[] = [
-    { icon: '💧', label: 'Water',  value: water,  fillColor: '#3B9BFF' },
-    { icon: '🍖', label: 'Food',   value: food,   fillColor: '#4CAF50' },
-    { icon: '🫁', label: 'Oxygen', value: oxygen, fillColor: '#A855F7' },
-    { icon: '⚡', label: 'Energy', value: energy, fillColor: '#FFB800' },
+    { icon: '💧', label: arabic ? 'الماء' : 'Water', value: water, fillColor: '#3B9BFF' },
+    { icon: '🍖', label: arabic ? 'الغذاء' : 'Food', value: food, fillColor: '#4CAF50' },
+    { icon: '🫁', label: arabic ? 'الأكسجين' : 'Oxygen', value: oxygen, fillColor: '#A855F7' },
+    { icon: '⚡', label: arabic ? 'الطاقة' : 'Energy', value: energy, fillColor: '#FFB800' },
   ]
   const lowest = Math.min(water, food, oxygen, energy)
   const habitatState = lowest < 15 ? 'CRITICAL' : lowest < 35 ? 'WARNING' : 'STABLE'
@@ -47,7 +50,7 @@ export function ResourceHUD({ water, food, oxygen, energy }: ResourceHUDProps): 
       }}
     >
       <div className="sh-resource-hud-header">
-        <span>HABITAT STATUS</span>
+        <span>{arabic ? 'حالة المستعمرة' : 'HABITAT STATUS'}</span>
         <span className="sh-live-pill" style={{ color: stateColor }}><i style={{ background: stateColor, boxShadow: `0 0 9px ${stateColor}` }} /> {habitatState}</span>
       </div>
       {rows.map((row) => {

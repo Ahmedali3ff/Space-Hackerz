@@ -1,171 +1,36 @@
-// src/features/settings/GameSettingsScreen.tsx
-// Simple settings placeholder with back navigation.
-
 import { useNavigate } from 'react-router-dom'
 import { getAudioManager } from '@/services/audio-manager'
 import { useState } from 'react'
+import { usePreferencesStore } from '@store/preferences-store'
 
 export function GameSettingsScreen(): JSX.Element {
   const navigate = useNavigate()
+  const language = usePreferencesStore((state) => state.language)
+  const theme = usePreferencesStore((state) => state.theme)
+  const setLanguage = usePreferencesStore((state) => state.setLanguage)
+  const setTheme = usePreferencesStore((state) => state.setTheme)
   const [volume, setVolume] = useState(0.8)
   const [muted, setMuted] = useState(false)
+  const isArabic = language === 'ar'
+  const copy = isArabic
+    ? { title: 'الإعدادات', subtitle: 'خصص تجربة الاستكشاف', appearance: 'المظهر', language: 'اللغة', theme: 'الوضع', light: 'فاتح', dark: 'داكن', audio: 'الصوت', volume: 'مستوى الصوت', mute: 'كتم كل الأصوات', back: 'رجوع', mouse: 'اسحب بالماوس للنظر · الأسهم للتحرك' }
+    : { title: 'Settings', subtitle: 'Customize your exploration experience', appearance: 'Appearance', language: 'Language', theme: 'Theme', light: 'Light', dark: 'Dark', audio: 'Audio', volume: 'Volume', mute: 'Mute all sounds', back: 'Back', mouse: 'Drag with the mouse to look · Arrow keys to move' }
 
-  function handleVolumeChange(v: number): void {
-    setVolume(v)
-    getAudioManager().setVolume(v)
-  }
-
-  function handleMuteToggle(): void {
-    const next = !muted
-    setMuted(next)
-    getAudioManager().setMuted(next)
-  }
+  function handleVolumeChange(value: number): void { setVolume(value); getAudioManager().setVolume(value) }
+  function handleMuteToggle(): void { const next = !muted; setMuted(next); getAudioManager().setMuted(next) }
 
   return (
-    <div
-      className="sh-bg"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Nunito, sans-serif',
-      }}
-    >
-      <div
-        style={{
-          background: 'rgba(13,27,62,0.95)',
-          border: '1px solid rgba(59,111,232,0.35)',
-          borderRadius: 20,
-          padding: '40px 36px',
-          width: '100%',
-          maxWidth: 420,
-          margin: '0 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-        }}
-      >
-        {/* Header */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>⚙️</div>
-          <h1
-            style={{
-              color: 'white',
-              fontSize: 28,
-              fontWeight: 900,
-              margin: 0,
-              fontFamily: 'Nunito, sans-serif',
-            }}
-          >
-            Settings
-          </h1>
-          <p style={{ color: '#7EB8F7', fontSize: 14, marginTop: 6 }}>
-            Adjust your game preferences
-          </p>
+    <main className="sh-settings-page" dir={isArabic ? 'rtl' : 'ltr'}>
+      <section className="sh-settings-card">
+        <div className="sh-settings-header"><span className="sh-settings-icon">⚙</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>
+        <div className="sh-settings-section"><span className="sh-settings-label">{copy.appearance}</span>
+          <div className="sh-settings-row"><div><strong>{copy.language}</strong><small>{isArabic ? 'العربية' : 'English'}</small></div><div className="sh-segmented"><button type="button" className={language === 'en' ? 'selected' : ''} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'ar' ? 'selected' : ''} onClick={() => setLanguage('ar')}>عربي</button></div></div>
+          <div className="sh-settings-row"><div><strong>{copy.theme}</strong><small>{theme === 'light' ? copy.light : copy.dark}</small></div><div className="sh-segmented"><button type="button" className={theme === 'light' ? 'selected' : ''} onClick={() => setTheme('light')}>☀ {copy.light}</button><button type="button" className={theme === 'dark' ? 'selected' : ''} onClick={() => setTheme('dark')}>☾ {copy.dark}</button></div></div>
+          <p className="sh-control-tip">🖱 {copy.mouse}</p>
         </div>
-
-        {/* Audio section */}
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: 14,
-            padding: '16px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
-          }}
-        >
-          <p
-            style={{
-              color: '#1FC8C0',
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              margin: 0,
-            }}
-          >
-            🔊 Audio
-          </p>
-
-          {/* Volume */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label
-              htmlFor="settings-volume"
-              style={{ color: 'white', fontSize: 13, fontWeight: 600 }}
-            >
-              Volume: {Math.round(volume * 100)}%
-            </label>
-            <input
-              id="settings-volume"
-              type="range"
-              min={0}
-              max={1}
-              step={0.05}
-              value={volume}
-              onChange={(e) => handleVolumeChange(Number(e.target.value))}
-              style={{ accentColor: '#1FC8C0', width: '100%' }}
-              aria-label="Master volume"
-            />
-          </div>
-
-          {/* Mute toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Mute All Sounds</span>
-            <button
-              onClick={handleMuteToggle}
-              role="switch"
-              aria-checked={muted}
-              aria-label="Mute all sounds"
-              style={{
-                width: 44,
-                height: 24,
-                borderRadius: 12,
-                background: muted ? '#7C3AED' : 'rgba(255,255,255,0.15)',
-                border: 'none',
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'background 0.2s',
-              }}
-            >
-              <span
-                style={{
-                  display: 'block',
-                  width: 18,
-                  height: 18,
-                  borderRadius: '50%',
-                  background: 'white',
-                  position: 'absolute',
-                  top: 3,
-                  left: muted ? 23 : 3,
-                  transition: 'left 0.2s',
-                }}
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* Back button */}
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Go back"
-          style={{
-            background: '#1FC8C0',
-            color: 'black',
-            fontWeight: 900,
-            fontSize: 15,
-            fontFamily: 'Nunito, sans-serif',
-            border: 'none',
-            borderRadius: 12,
-            padding: '14px 0',
-            cursor: 'pointer',
-            width: '100%',
-          }}
-        >
-          ← Back
-        </button>
-      </div>
-    </div>
+        <div className="sh-settings-section"><span className="sh-settings-label">{copy.audio}</span><label className="sh-volume-label" htmlFor="settings-volume">{copy.volume}: {Math.round(volume * 100)}%</label><input id="settings-volume" type="range" min={0} max={1} step={0.05} value={volume} onChange={(event) => handleVolumeChange(Number(event.target.value))} /><div className="sh-settings-row"><strong>{copy.mute}</strong><button className={`sh-switch ${muted ? 'on' : ''}`} type="button" role="switch" aria-checked={muted} onClick={handleMuteToggle}><span /></button></div></div>
+        <button className="sh-settings-back" type="button" onClick={() => navigate(-1)}>← {copy.back}</button>
+      </section>
+    </main>
   )
 }

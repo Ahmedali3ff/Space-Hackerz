@@ -27,6 +27,7 @@ import { ACTION_BUILDINGS } from './MissionOperationsPanel'
 import { useMissionOperationsStore } from '@store/mission-operations-store'
 import { getMissionOperation } from '@data/missions/mission-operations'
 import { getDefaultBaseConfig } from '@/utils/default-config'
+import { usePreferencesStore } from '@store/preferences-store'
 
 // ── Building info ─────────────────────────────────────────────────────────────
 
@@ -409,6 +410,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   }>()
   const missionId = missionIdParam ?? levelId
   const navigate = useNavigate()
+  const arabic = usePreferencesStore((state) => state.language) === 'ar'
 
   const [gamePhase, setGamePhase] = useState<GamePhase>('intro')
   const [openBuildingId, setOpenBuildingId] = useState<string | null>(null)
@@ -795,9 +797,9 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         <div className={`sh-current-task ${operationTimeRemaining < 30 ? 'critical' : ''}`} role="status">
           <span className="sh-eyebrow">Your current task</span>
           <strong>{operationTask.label}</strong>
-          <small>Move to the highlighted facility and interact with it</small>
+          <small>{arabic ? 'تحرك إلى المنشأة المضيئة وتفاعل معها' : 'Move to the highlighted facility and interact with it'}</small>
           <b>⏱ {Math.floor(operationTimeRemaining / 60).toString().padStart(2, '0')}:{(operationTimeRemaining % 60).toString().padStart(2, '0')}</b>
-          <button onClick={() => setShowOperations(true)}>View mission steps</button>
+          <button onClick={() => setShowOperations(true)}>{arabic ? 'عرض خطوات المهمة' : 'View mission steps'}</button>
         </div>
       )}
 
@@ -999,8 +1001,9 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
           pointerEvents: 'none',
         }}
       >
-        <p>Click buildings to interact</p>
-        <p>Drag to orbit camera</p>
+        <p>{arabic ? 'اضغط على المباني للتفاعل' : 'Click buildings to interact'}</p>
+        <p>{arabic ? 'اسحب بالماوس للنظر' : 'Drag mouse to look'}</p>
+        <p>{arabic ? 'الأسهم / WASD للتحرك' : 'Arrow keys / WASD to move'}</p>
         <p>Esc — Pause</p>
       </div>
 

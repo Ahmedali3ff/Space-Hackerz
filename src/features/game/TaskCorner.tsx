@@ -2,6 +2,7 @@
 // Bottom-right objectives widget — shows mission objectives + active threats.
 import type { ResourceSnapshot } from '@simulation/types'
 import { getEventDefinition } from '@/features/events/event-registry'
+import { usePreferencesStore } from '@store/preferences-store'
 
 interface TaskCornerProps {
   readonly currentResources: ResourceSnapshot
@@ -27,37 +28,38 @@ export function TaskCorner({
   activeEventIds,
   activeFaultStates,
 }: TaskCornerProps): JSX.Element {
+  const arabic = usePreferencesStore((state) => state.language) === 'ar'
   function pct(v: number, max: number): number {
     return max > 0 ? (v / max) * 100 : 0
   }
 
   const objectives: readonly Objective[] = [
     {
-      label: 'Survive all days',
+      label: arabic ? 'إكمال كل الأيام' : 'Survive all days',
       value: (currentDay / totalDays) * 100,
       threshold: 0,
       isComplete: currentDay >= totalDays,
     },
     {
-      label: 'Oxygen > 15%',
+      label: arabic ? 'الأكسجين > 15%' : 'Oxygen > 15%',
       value: pct(currentResources.oxygen_kg, initialResources.oxygen_kg),
       threshold: 15,
       isComplete: false,
     },
     {
-      label: 'Water > 10%',
+      label: arabic ? 'الماء > 10%' : 'Water > 10%',
       value: pct(currentResources.water_kg, initialResources.water_kg),
       threshold: 10,
       isComplete: false,
     },
     {
-      label: 'Food > 10%',
+      label: arabic ? 'الغذاء > 10%' : 'Food > 10%',
       value: pct(currentResources.food_kg, initialResources.food_kg),
       threshold: 10,
       isComplete: false,
     },
     {
-      label: 'Energy > 5%',
+      label: arabic ? 'الطاقة > 5%' : 'Energy > 5%',
       value: pct(currentResources.energy_kWh, initialResources.energy_kWh),
       threshold: 5,
       isComplete: false,
@@ -92,7 +94,7 @@ export function TaskCorner({
       }}
     >
       {/* Header */}
-      <div className="sh-task-corner-title">MISSION TELEMETRY</div>
+      <div className="sh-task-corner-title">{arabic ? 'بيانات المهمة' : 'MISSION TELEMETRY'}</div>
       <div
         style={{
           borderBottom: '1px solid rgba(255,255,255,0.1)',
