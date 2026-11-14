@@ -9,6 +9,8 @@ import { useMissionProgressStore } from '@store/mission-progress-store'
 import { useMissionStore } from '@store/mission-store'
 import { getAudioManager } from '@/services/audio-manager'
 import { NasaKidAstronaut } from '@/components/game/NasaKidAstronaut'
+import { getMissionOperation } from '@/data/missions/mission-operations'
+import { OPERATION_TIME_LIMIT_SECONDS, useMissionOperationsStore } from '@store/mission-operations-store'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -18,10 +20,25 @@ interface LevelCompleteScreenProps {
 
 // ── Star calculation (mirrors MissionControlScreen formula) ──────────────────
 
-function calcStarsEarned(currentDay: number, totalDays: number): 1 | 2 | 3 {
-  if (totalDays === 0) return 1
-  const raw = Math.ceil((currentDay / totalDays) * 3)
-  return Math.max(1, Math.min(3, raw)) as 1 | 2 | 3
+function calcStarsEarned(
+  missionId: string,
+  completedObjectiveIds: readonly string[],
+  completedPuzzleIds: readonly string[],
+  failedPuzzleIds: readonly string[],
+  timeRemainingSeconds: number,
+  score: number,
+): 1 | 2 | 3 {
+  const operation = getMissionOperation(missionId)
+  if (!operation) return 1
+  const objectiveIds = new Set(operation.actions.map((action) => action.objectiveId))
+  const objectiveRatio = objectiveIds.size === 0 ? 0 : completedObjectiveIds.filter((id) => objectiveIds.has(id)).length / objectiveIds.size
+  const puzzleRatio = operation.puzzles.length === 0 ? 1 : completedPuzzleIds.filter((id) => !failedPuzzleIds.includes(id)).length / operation.puzzles.length
+  const cleanRun = failedPuzzleIds.length === 0
+  const fastFinish = timeRemainingSeconds >= OPERATION_TIME_LIMIT_SECONDS * 0.5
+
+  if (objectiveRatio === 1 && puzzleRatio === 1 && cleanRun && fastFinish && score >= 150) return 3
+  if (objectiveRatio === 1 && puzzleRatio === 1 && cleanRun) return 2
+  return 1
 }
 
 // ── Confetti animation ────────────────────────────────────────────────────────
@@ -98,12 +115,15 @@ export function LevelCompleteScreen(_props: LevelCompleteScreenProps): JSX.Eleme
     (s) => s.missions[missionId ?? '']?.completedTaskIds ?? [],
   )
 
-  const currentMissionDay = useMissionStore((s) => s.currentMissionDay)
-  const missionDurationDays = useMissionStore((s) => s.missionDurationDays)
   const selectedPlanetId = useMissionStore((s) => s.selectedPlanetId)
+  const completedObjectiveIds = useMissionOperationsStore((s) => s.completedObjectiveIds)
+  const completedPuzzleIds = useMissionOperationsStore((s) => s.completedPuzzleIds)
+  const failedPuzzleIds = useMissionOperationsStore((s) => s.failedPuzzleIds)
+  const operationTimeRemaining = useMissionOperationsStore((s) => s.timeRemainingSeconds)
+  const operationScore = useMissionOperationsStore((s) => s.score)
 
-  const starsEarned = calcStarsEarned(currentMissionDay, missionDurationDays)
-  const scoreValue = starsEarned * 50 + 200
+  const starsEarned = calcStarsEarned(missionId ?? '', completedObjectiveIds, completedPuzzleIds, failedPuzzleIds, operationTimeRemaining, operationScore)
+  const scoreValue = Math.max(200, operationScore + starsEarned * 50)
 
   const planetName = selectedPlanetId === 'mars' ? 'Mars' : 'the Moon'
   const description = `You successfully built a sustainable base on ${planetName}.`
@@ -223,7 +243,7 @@ export function LevelCompleteScreen(_props: LevelCompleteScreenProps): JSX.Eleme
       >
         {/* Stars row */}
         <div
-          aria-label={`${starsEarned} out of 5 stars`}
+          aria-label={`${starsEarned} out of 3 stars`}
           style={{
             display: 'flex',
             justifyContent: 'center',

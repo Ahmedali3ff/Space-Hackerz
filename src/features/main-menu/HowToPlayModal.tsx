@@ -1,6 +1,5 @@
 // src/features/main-menu/HowToPlayModal.tsx
-// Full-screen dark overlay modal for game instructions.
-// Triggered by the ❓ button on MainMenuScreen.
+// Full-screen dark overlay modal for the SPACE HACKERZ mission brief.
 
 import React from 'react'
 
@@ -82,7 +81,7 @@ export function HowToPlayModal({ onClose }: HowToPlayModalProps): JSX.Element {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="How to Play"
+      aria-label="About Space HackerZ"
       onClick={handleOverlayClick}
       style={{
         position: 'fixed',
@@ -126,11 +125,11 @@ export function HowToPlayModal({ onClose }: HowToPlayModalProps): JSX.Element {
               fontFamily: 'Nunito, sans-serif',
             }}
           >
-            How to Play
+            About Space HackerZ
           </h2>
           <button
             onClick={onClose}
-            aria-label="Close How to Play"
+            aria-label="Close About Space HackerZ"
             style={{
               width: 36,
               height: 36,
@@ -151,43 +150,39 @@ export function HowToPlayModal({ onClose }: HowToPlayModalProps): JSX.Element {
           </button>
         </div>
 
-        {/* Section 1: Controls */}
+        {/* Section 1: Identity */}
         <HowToSection
-          heading="🎮 Controls"
+          heading="🚀 Our mission"
           bullets={[
-            { emoji: '🕹️', text: 'Move your astronaut with the joystick (left side)' },
-            { emoji: '🖱️', text: 'Click on buildings to interact' },
-            { emoji: '⏸', text: 'Pause button (top right) to pause' },
+            { emoji: '🌍', text: 'SPACE HACKERZ is an interactive survival simulator about life beyond Earth.' },
+            { emoji: '🧑‍🚀', text: 'You command the crew, protect the habitat, and make the decisions that keep it alive.' },
           ]}
         />
 
-        {/* Section 2: Your Mission */}
+        {/* Section 2: Experience */}
         <HowToSection
-          heading="🎯 Your Mission"
+          heading="🧪 Real systems, real consequences"
           bullets={[
-            { emoji: '⚠️', text: 'Keep your crew alive! Manage 4 resources:' },
-            { emoji: '💧', text: 'Water  🍖 Food  🫁 Oxygen  ⚡ Energy' },
-            { emoji: '💀', text: 'If any resource hits 0% → Mission FAILED!' },
+            { emoji: '💧', text: 'Water, food, oxygen, and energy change with every decision.' },
+            { emoji: '⚠️', text: 'A rushed or incorrect action can create a real mission failure.' },
           ]}
         />
 
-        {/* Section 3: Buildings */}
+        {/* Section 3: Player role */}
         <HowToSection
-          heading="🏗️ Interact with Buildings"
+          heading="🎯 Your role"
           bullets={[
-            { emoji: '🚶', text: 'Walk near a building → "Press E or Click" prompt appears' },
-            { emoji: '🔧', text: 'Open the building panel → take action to fix problems' },
-            { emoji: '⚡', text: 'React fast to events → "New Mission!" alerts' },
+            { emoji: '🕹️', text: 'Explore the habitat, walk to facilities, and interact with the system you need.' },
+            { emoji: '🔧', text: 'Complete each task in order before the mission timer reaches zero.' },
           ]}
         />
 
-        {/* Section 4: Days & Time */}
+        {/* Section 4: Progress */}
         <HowToSection
-          heading="📅 Days & Time"
+          heading="🏆 Progress is earned"
           bullets={[
-            { emoji: '▶️', text: 'Press "Advance Day" to progress time' },
-            { emoji: '📉', text: 'Each day consumes resources' },
-            { emoji: '🏆', text: 'Survive until the mission end day to WIN!' },
+            { emoji: '⭐', text: 'Your stars depend on completed objectives, correct decisions, and remaining time.' },
+            { emoji: '📡', text: 'Every explorer builds an individual mission record.' },
           ]}
         />
 
@@ -202,7 +197,7 @@ export function HowToPlayModal({ onClose }: HowToPlayModalProps): JSX.Element {
             marginTop: 8,
           }}
         >
-          Got it! Let's Go 🚀
+          Enter Mission Control 🚀
         </button>
       </div>
     </div>

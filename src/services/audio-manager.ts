@@ -32,15 +32,41 @@ interface OscillatorParams {
   readonly gainPeak: number   // 0–1
 }
 
+interface ToneStep extends OscillatorParams {
+  readonly delay: number
+}
+
 const SOUND_PARAMS: Record<SoundKey, OscillatorParams> = {
-  click:          { type: 'sine',     frequency: 880,  duration: 0.06, gainPeak: 0.18 },
-  ui_hover:       { type: 'sine',     frequency: 660,  duration: 0.04, gainPeak: 0.10 },
-  success:        { type: 'triangle', frequency: 523,  duration: 0.35, gainPeak: 0.25 },
-  failure:        { type: 'sawtooth', frequency: 200,  duration: 0.45, gainPeak: 0.22 },
-  event_alert:    { type: 'square',   frequency: 440,  duration: 0.30, gainPeak: 0.20 },
-  day_advance:    { type: 'sine',     frequency: 392,  duration: 0.12, gainPeak: 0.14 },
-  level_complete: { type: 'triangle', frequency: 659,  duration: 0.60, gainPeak: 0.30 },
-  game_over:      { type: 'sawtooth', frequency: 150,  duration: 0.80, gainPeak: 0.28 },
+  click:          { type: 'sine',     frequency: 740,  duration: 0.07, gainPeak: 0.11 },
+  ui_hover:       { type: 'sine',     frequency: 520,  duration: 0.045, gainPeak: 0.06 },
+  success:        { type: 'triangle', frequency: 523,  duration: 0.20, gainPeak: 0.18 },
+  failure:        { type: 'sine',     frequency: 180,  duration: 0.28, gainPeak: 0.16 },
+  event_alert:    { type: 'triangle', frequency: 440,  duration: 0.18, gainPeak: 0.14 },
+  day_advance:    { type: 'sine',     frequency: 392,  duration: 0.16, gainPeak: 0.11 },
+  level_complete: { type: 'triangle', frequency: 659,  duration: 0.22, gainPeak: 0.22 },
+  game_over:      { type: 'sine',     frequency: 150,  duration: 0.35, gainPeak: 0.18 },
+}
+
+const SOUND_PATTERNS: Partial<Record<SoundKey, readonly ToneStep[]>> = {
+  success: [
+    { type: 'sine', frequency: 523, duration: 0.16, gainPeak: 0.14, delay: 0 },
+    { type: 'sine', frequency: 659, duration: 0.20, gainPeak: 0.14, delay: 0.1 },
+    { type: 'triangle', frequency: 784, duration: 0.28, gainPeak: 0.12, delay: 0.2 },
+  ],
+  level_complete: [
+    { type: 'sine', frequency: 523, duration: 0.22, gainPeak: 0.14, delay: 0 },
+    { type: 'sine', frequency: 659, duration: 0.22, gainPeak: 0.14, delay: 0.12 },
+    { type: 'triangle', frequency: 784, duration: 0.32, gainPeak: 0.14, delay: 0.24 },
+    { type: 'sine', frequency: 1046, duration: 0.5, gainPeak: 0.12, delay: 0.38 },
+  ],
+  failure: [
+    { type: 'sine', frequency: 220, duration: 0.28, gainPeak: 0.13, delay: 0 },
+    { type: 'sine', frequency: 165, duration: 0.42, gainPeak: 0.12, delay: 0.16 },
+  ],
+  event_alert: [
+    { type: 'triangle', frequency: 440, duration: 0.12, gainPeak: 0.11, delay: 0 },
+    { type: 'triangle', frequency: 554, duration: 0.16, gainPeak: 0.10, delay: 0.14 },
+  ],
 }
 
 // ── AudioManager class ────────────────────────────────────────────────────────
@@ -87,26 +113,24 @@ class AudioManager {
     const ctx = this.getCtx()
     if (!ctx) return
 
-    const params = SOUND_PARAMS[key]
-    const effectiveGain = params.gainPeak * this.volume * this.sfxVolume
+    const pattern = SOUND_PATTERNS[key] ?? [{ ...SOUND_PARAMS[key], delay: 0 }]
 
     try {
-      const oscillator = ctx.createOscillator()
-      const gainNode = ctx.createGain()
-
-      oscillator.type = params.type
-      oscillator.frequency.setValueAtTime(params.frequency, ctx.currentTime)
-
-      // Simple attack-release envelope
-      gainNode.gain.setValueAtTime(0, ctx.currentTime)
-      gainNode.gain.linearRampToValueAtTime(effectiveGain, ctx.currentTime + 0.01)
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + params.duration)
-
-      oscillator.connect(gainNode)
-      gainNode.connect(ctx.destination)
-
-      oscillator.start(ctx.currentTime)
-      oscillator.stop(ctx.currentTime + params.duration)
+      pattern.forEach((params) => {
+        const oscillator = ctx.createOscillator()
+        const gainNode = ctx.createGain()
+        const start = ctx.currentTime + params.delay
+        const effectiveGain = params.gainPeak * this.volume * this.sfxVolume
+        oscillator.type = params.type
+        oscillator.frequency.setValueAtTime(params.frequency, start)
+        gainNode.gain.setValueAtTime(0, start)
+        gainNode.gain.linearRampToValueAtTime(effectiveGain, start + 0.012)
+        gainNode.gain.exponentialRampToValueAtTime(0.001, start + params.duration)
+        oscillator.connect(gainNode)
+        gainNode.connect(ctx.destination)
+        oscillator.start(start)
+        oscillator.stop(start + params.duration)
+      })
     } catch {
       // Silently swallow AudioContext errors (e.g. context suspended)
     }
