@@ -128,6 +128,7 @@ function BuildingPanel({
   const activeChallenges = useChallengeStore((s) => s.activeChallenges)
   const completeChallenge = useChallengeStore((s) => s.completeChallenge)
   const [completedReward, setCompletedReward] = useState<string | null>(null)
+  const [isExecuting, setIsExecuting] = useState(false)
 
   const activeChallenge = activeChallenges.find((ac) => {
     const def = CHALLENGES.find((c) => c.id === ac.challengeId)
@@ -193,8 +194,8 @@ function BuildingPanel({
     >
       <div
         style={{
-          background: 'rgba(10,14,26,0.97)',
-          border: '1px solid rgba(31,200,192,0.3)',
+          background: 'rgba(255,255,255,0.98)',
+          border: '1px solid rgba(86,201,195,0.45)',
           borderRadius: 20,
           padding: '20px 24px',
           width: '100%',
@@ -212,14 +213,14 @@ function BuildingPanel({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 28 }}>{icon}</span>
-            <h2 style={{ color: 'white', fontSize: 16, fontWeight: 900, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
+            <h2 style={{ color: '#405b68', fontSize: 16, fontWeight: 900, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
               {label}
             </h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close panel"
-            style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}
+            style={{ color: '#8ba1a7', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}
           >
             ✕
           </button>
@@ -251,8 +252,8 @@ function BuildingPanel({
             <button
               onClick={handleCompleteChallenge}
               style={{
-                background: '#FFD700',
-                color: '#000',
+                background: '#ef7650',
+                color: '#fff',
                 fontWeight: 900,
                 fontSize: 13,
                 fontFamily: 'Nunito, sans-serif',
@@ -359,7 +360,10 @@ function BuildingPanel({
         )}
 
         {/* Quick actions */}
-        {operation && <button onClick={() => { getAudioManager().playSound('success'); onFacilityAction(operation.id) }} style={{ width: '100%', background: 'linear-gradient(135deg,#1FC8C0,#0D9488)', color: 'white', fontWeight: 900, fontSize: 13, fontFamily: 'Nunito,sans-serif', border: 'none', borderRadius: 10, padding: '12px 0', cursor: 'pointer' }}>⚙️ {operation.label}</button>}
+        {operation && <>
+          {isExecuting && <div className="sh-action-execution" role="status"><span className="sh-action-spinner" /> <strong>Executing repair sequence…</strong><small>Habitat systems are updating</small></div>}
+          <button disabled={isExecuting} onClick={() => { getAudioManager().playSound('success'); setIsExecuting(true); window.setTimeout(() => { onFacilityAction(operation.id); setIsExecuting(false) }, 850) }} style={{ width: '100%', background: isExecuting ? '#9ec9c8' : 'linear-gradient(135deg,#55c7c0,#2aa7ae)', color: 'white', fontWeight: 900, fontSize: 13, fontFamily: 'Nunito,sans-serif', border: 'none', borderRadius: 10, padding: '12px 0', cursor: isExecuting ? 'wait' : 'pointer', transition: 'background .2s' }}>⚙️ {isExecuting ? 'Updating habitat…' : operation.label}</button>
+        </>}
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => { getAudioManager().playSound('day_advance'); onAdvanceDay(); onClose() }}
