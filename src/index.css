@@ -748,7 +748,7 @@ html[data-reduce-motion='true'] *::after {
   font: 900 10px 'Nunito', sans-serif; letter-spacing: .12em;
 }
 .sh-task-corner-title span { color: rgba(255,255,255,.55); font-size: 9px; letter-spacing: .04em; }
-.sh-current-task {
+.sh-current-task { 
   top: 18px !important; width: min(360px, calc(100vw - 560px)) !important;
   background: linear-gradient(135deg, rgba(8,25,49,.97), rgba(4,13,29,.95)) !important;
   box-shadow: 0 14px 40px rgba(0,0,0,.42), 0 0 25px rgba(31,200,192,.08) !important;
@@ -783,6 +783,8 @@ html[data-reduce-motion='true'] *::after {
 .sh-cinematic-objective strong { display: block; margin-top: 5px; font: 700 12px/1.4 'Nunito', sans-serif; }
 .sh-cinematic-crew { margin: 13px 0 0; color: rgba(255,255,255,.48); font: 900 9px 'Nunito', sans-serif; letter-spacing: .08em; }
 .sh-cinematic-crew b { color: white; }
+.sh-mission-clock { position: fixed; top: 88px; right: 16px; z-index: 55; min-width: 154px; padding: 10px 13px; border: 1px solid rgba(242,119,77,.65); border-radius: 12px; background: rgba(10,8,7,.94); box-shadow: 0 8px 24px rgba(0,0,0,.38), 0 0 18px rgba(242,119,77,.12); color: #f5e9e2; font-family: 'Space Mono', monospace; text-align: right; }
+.sh-mission-clock span, .sh-mission-clock small { display: block; color: #d79d88; font-size: 9px; letter-spacing: .08em; }.sh-mission-clock strong { display: block; margin: 2px 0; color: #ff9a70; font: 900 25px/1 'Space Mono', monospace; letter-spacing: .06em; }.sh-mission-clock small { color: rgba(255,255,255,.48); font-size: 8px; letter-spacing: 0; }.sh-mission-clock.critical { border-color: #ef4444; animation: clockPulse .8s ease-in-out infinite; }.sh-mission-clock.critical strong { color: #fca5a5; } @keyframes clockPulse { 50% { box-shadow: 0 0 24px rgba(239,68,68,.55); } }
 @media (max-width: 900px) {
   .sh-current-task { top: 70px !important; width: min(360px, calc(100vw - 250px)) !important; }
   .sh-cinematic-briefing { top: auto; right: 16px; bottom: 18px; width: min(330px, calc(100vw - 32px)); }
@@ -790,6 +792,7 @@ html[data-reduce-motion='true'] *::after {
 @media (max-width: 640px) {
   .sh-task-corner { right: 8px !important; bottom: 148px !important; width: min(210px, calc(100vw - 16px)) !important; }
   .sh-current-task { top: 62px !important; left: 8px !important; transform: none !important; width: calc(100vw - 16px) !important; min-width: 0 !important; }
+  .sh-mission-clock { top: 136px; right: 8px; }
   .sh-cinematic-topbar { top: 14px; left: 14px; right: 14px; }
   .sh-cinematic-brand { font-size: 8px; }
   .sh-cinematic-briefing { bottom: 14px; padding: 14px; }

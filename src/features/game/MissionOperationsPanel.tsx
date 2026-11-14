@@ -13,6 +13,7 @@ const resourceLabels = [
   ['oxygen', 'Oxygen', '#A855F7'], ['water', 'Water', '#3B82F6'], ['food', 'Food', '#22C55E'], ['energy', 'Energy', '#F59E0B'],
 ] as const
 export const ACTION_BUILDINGS: Readonly<Record<string, string>> = {
+  'select-moon': 'command-center', 'select-mars': 'command-center',
   'inspect-oxygen': 'life-support', 'repair-filter': 'life-support', 'generate-oxygen': 'life-support', 'emergency-oxygen': 'life-support',
   'activate-power': 'power-room', 'stabilize-communication': 'communications', 'activate-life-support': 'life-support',
   'inspect-solar': 'solar-panels', 'activate-backup': 'power-room', 'reduce-consumption': 'command-center', 'repair-solar': 'solar-panels', 'restore-power': 'power-room',
@@ -75,7 +76,7 @@ export function MissionOperationsPanel({ levelId, onClose }: MissionOperationsPa
             const done = state.completedObjectiveIds.includes(action.objectiveId)
             const current = state.currentTaskId === action.id
             const disabled = done || !current
-            return <button key={action.id} disabled={disabled} className={done ? 'sh-ops-action done' : current ? 'sh-ops-action current' : 'sh-ops-action locked'} onClick={() => { getAudioManager().playSound('click'); const buildingId = ACTION_BUILDINGS[action.id]; if (buildingId) { EventBus.emit('highlight-building', { buildingId, actionId: action.id }); onClose() } else { if (action.id === 'select-moon' || action.id === 'select-mars') useMissionStore.getState().selectPlanet(action.id === 'select-mars' ? 'mars' : 'moon'); applyAction(action.id); state.tick() } }}><span>{done ? '✓' : current ? '→' : '🔒'} {action.label}</span><small>{done ? 'Completed' : current ? `Go to ${ACTION_BUILDINGS[action.id]?.replace(/-/g, ' ') ?? 'the station'} to perform this task` : 'Complete the previous task first'}</small></button>
+            return <button key={action.id} disabled={disabled} className={done ? 'sh-ops-action done' : current ? 'sh-ops-action current' : 'sh-ops-action locked'} onClick={() => { getAudioManager().playSound('click'); const buildingId = ACTION_BUILDINGS[action.id]; if (buildingId) { EventBus.emit('highlight-building', { buildingId, actionId: action.id }); onClose() } else { applyAction(action.id); state.tick() } }}><span>{done ? '✓' : current ? '→' : '🔒'} {action.label}</span><small>{done ? 'Completed' : current ? `Go to ${ACTION_BUILDINGS[action.id]?.replace(/-/g, ' ') ?? 'the station'} and interact` : 'Complete the previous task first'}</small></button>
           })}
         </div>
         {mission.puzzles.map((puzzle) => <div className="sh-ops-puzzle" key={puzzle.id}><span className="sh-eyebrow">Scientific challenge</span><p>{puzzle.question}</p><div className="sh-ops-options">{puzzle.options.map((option) => <button key={option} disabled={state.completedPuzzleIds.includes(puzzle.id)} onClick={() => { getAudioManager().playSound('click'); answerPuzzle(puzzle.id, option) }}>{option}</button>)}</div></div>)}

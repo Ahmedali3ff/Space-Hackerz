@@ -772,6 +772,14 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         activeFaultStates={[...activeFaultStates]}
       />
 
+      {operationStatus === 'active' && (
+        <div className={`sh-mission-clock ${operationTimeRemaining < 30 ? 'critical' : ''}`} role="timer" aria-label="Mission time remaining">
+          <span>MISSION TIMER</span>
+          <strong>{Math.floor(operationTimeRemaining / 60).toString().padStart(2, '0')}:{(operationTimeRemaining % 60).toString().padStart(2, '0')}</strong>
+          <small>Complete all tasks before zero</small>
+        </div>
+      )}
+
       {operationTask && operationStatus === 'active' && (
         <div className={`sh-current-task ${operationTimeRemaining < 30 ? 'critical' : ''}`} role="status">
           <span className="sh-eyebrow">Your current task</span>
