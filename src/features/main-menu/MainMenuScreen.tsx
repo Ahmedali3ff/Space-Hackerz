@@ -4,7 +4,7 @@ import { useMissionStore } from '@store/mission-store'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 import { HowToPlayModal } from './HowToPlayModal'
 import type { PlanetId } from '@simulation/types'
-import { apiClient, setAuthToken } from '@/services/api-client'
+import { apiClient, ApiClientError, setAuthToken } from '@/services/api-client'
 
 const PLANETS: readonly { id: PlanetId; label: string; code: string }[] = [
   { id: 'mars', label: 'MARS', code: 'M-01' },
@@ -25,6 +25,7 @@ export function MainMenuScreen(): JSX.Element {
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [authBusy, setAuthBusy] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const activePlanet: PlanetId = selectedPlanetId ?? 'mars'
 
   useEffect(() => {
@@ -33,22 +34,28 @@ export function MainMenuScreen(): JSX.Element {
 
   async function beginMission(): Promise<void> {
     const cleanName = name.trim()
-    if (!cleanName && authMode === 'register') return
-    if (!email.trim() || password.length < 6) { setAuthError('Enter a valid email and a password with at least 6 characters.'); return }
-    if (authMode === 'register' && cleanName.length < 2) { setAuthError('Enter your explorer name.'); return }
+    const cleanEmail = email.trim().toLowerCase()
+    if (authMode === 'register' && cleanName.length < 2) { setAuthError('Explorer name must contain at least 2 characters.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { setAuthError('Enter a valid email address.'); return }
+    if (password.length < 6) { setAuthError('Password must contain at least 6 characters.'); return }
     setAuthBusy(true); setAuthError('')
-    const response = authMode === 'register' ? await apiClient.register({ name: cleanName, email: email.trim(), password }) : await apiClient.login({ email: email.trim(), password })
-    if (!response) { setAuthError('Unable to connect or invalid account details.'); setAuthBusy(false); return }
-    setAuthToken(response.token)
-    const player = response.account.player
-    useMissionProgressStore.getState().switchAccount(response.account.id, player)
-    const rows = await apiClient.getMyMissionProgress()
-    if (rows) useMissionProgressStore.getState().hydrateMissions(rows)
-    setCommanderName(player?.name ?? cleanName)
-    if (selectedPlanetId === null) selectPlanet(activePlanet)
-    setCrewSize(4)
-    navigate('/mission-hub')
-    setAuthBusy(false)
+    try {
+      const response = authMode === 'register' ? await apiClient.register({ name: cleanName, email: cleanEmail, password }) : await apiClient.login({ email: cleanEmail, password })
+      setAuthToken(response.token)
+      const player = response.account.player
+      useMissionProgressStore.getState().switchAccount(response.account.id, player)
+      const rows = await apiClient.getMyMissionProgress()
+      if (rows) useMissionProgressStore.getState().hydrateMissions(rows)
+      setCommanderName(player?.name ?? cleanName)
+      if (selectedPlanetId === null) selectPlanet(activePlanet)
+      setCrewSize(4)
+      navigate('/mission-hub')
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 409) setAuthError('This email is already registered. Sign in instead.')
+      else if (error instanceof ApiClientError && error.status === 401) setAuthError('Email or password is incorrect.')
+      else if (error instanceof ApiClientError) setAuthError(error.message)
+      else setAuthError('Could not reach Mission Control. Check your connection and try again.')
+    } finally { setAuthBusy(false) }
   }
 
   return (
@@ -106,12 +113,13 @@ export function MainMenuScreen(): JSX.Element {
         <div className="sh-home-cta">
           <p>TOUCH DOWN ON {activePlanet === 'mars' ? 'MARS' : 'THE MOON'}:<br /><strong>YOUR HABITAT AWAITS YOUR COMMAND.</strong></p>
           <div className="sh-auth-tabs"><button type="button" className={authMode === 'register' ? 'active' : ''} onClick={() => setAuthMode('register')}>CREATE ACCOUNT</button><button type="button" className={authMode === 'login' ? 'active' : ''} onClick={() => setAuthMode('login')}>SIGN IN</button></div>
-          {authMode === 'register' && <label htmlFor="explorer-name">NAME OF EXPLORER</label>}
-          <div className="sh-name-row">
-            {authMode === 'register' && <input id="explorer-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="ENTER YOUR NAME" maxLength={24} autoComplete="name" />}
-            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="EMAIL" autoComplete="email" />
-            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void beginMission() }} placeholder="PASSWORD" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} />
+          <div className="sh-auth-form">
+            {authMode === 'register' && <label htmlFor="explorer-name">NAME OF EXPLORER<input id="explorer-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="ENTER YOUR NAME" maxLength={24} autoComplete="name" /></label>}
+            <label htmlFor="explorer-email">EMAIL<input id="explorer-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="EXPLORER@MISSION.COM" autoComplete="email" /></label>
+            <label htmlFor="explorer-password">PASSWORD<div className="sh-password-field"><input id="explorer-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void beginMission() }} placeholder="MINIMUM 6 CHARACTERS" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} /><button type="button" onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? 'HIDE' : 'SHOW'}</button></div></label>
+            <div className="sh-name-row">
             <button type="button" onClick={() => void beginMission()} disabled={authBusy}>{authBusy ? 'CONNECTING…' : 'LET’S DIVE'} <span>↗</span></button>
+          </div>
           </div>
           {authError && <p className="sh-auth-error" role="alert">{authError}</p>}
         </div>

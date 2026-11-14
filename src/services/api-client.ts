@@ -60,7 +60,12 @@ export interface AuthResponse { token: string; account: { id: string; player: Pl
 
 const BASE =
   (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL ??
-  ((import.meta as { env?: { PROD?: boolean } }).env?.PROD ? '/api' : 'http://localhost:3001')
+  ((import.meta as { env?: { PROD?: boolean } }).env?.PROD ? '' : 'http://localhost:3001')
+
+export class ApiClientError extends Error {
+  readonly status: number
+  constructor(message: string, status: number) { super(message); this.name = 'ApiClientError'; this.status = status }
+}
 
 export function setAuthToken(token: string): void { localStorage.setItem('space-hackerz-auth-token', token) }
 export function clearAuthToken(): void { localStorage.removeItem('space-hackerz-auth-token') }
@@ -81,11 +86,22 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | nul
   }
 }
 
+async function authFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...options?.headers } })
+  let payload: unknown = null
+  try { payload = await res.json() } catch { /* empty response */ }
+  if (!res.ok) {
+    const message = typeof payload === 'object' && payload !== null && 'error' in payload && typeof payload.error === 'string' ? payload.error : 'The account request could not be completed.'
+    throw new ApiClientError(message, res.status)
+  }
+  return payload as T
+}
+
 // ── API client ────────────────────────────────────────────────────────────────
 
 export const apiClient = {
-  register: (data: { name: string; email: string; password: string }): Promise<AuthResponse | null> => apiFetch<AuthResponse>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-  login: (data: { email: string; password: string }): Promise<AuthResponse | null> => apiFetch<AuthResponse>('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  register: (data: { name: string; email: string; password: string }): Promise<AuthResponse> => authFetch<AuthResponse>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: { email: string; password: string }): Promise<AuthResponse> => authFetch<AuthResponse>('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   getPlayer: (): Promise<PlayerRecord | null> =>
     apiFetch<PlayerRecord>('/api/players'),
 

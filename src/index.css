@@ -698,6 +698,20 @@ html[data-reduce-motion='true'] *::after {
 .sh-home-brand, .sh-brand-mark, .sh-home-kicker, .sh-home-status, .sh-home-nav nav button.active, .sh-home-nav nav button:hover, .sh-home-cta label { color: #f0f5f3 !important; }.sh-home-nav { border-bottom-color: rgba(255,255,255,.14) !important; }.sh-home-nav nav button, .sh-home-subtitle, .sh-home-data, .sh-home-cta p { color: #9aa8a5 !important; }.sh-home-status i { background: #42d392 !important; box-shadow: 0 0 9px #42d392 !important; }.sh-home-grid { border-color: rgba(255,255,255,.13) !important; }.sh-name-row input { border-color: rgba(255,255,255,.3) !important; background: rgba(15,19,20,.86) !important; }.sh-name-row button { color: #0e1314 !important; background: #edf4f2 !important; }.sh-name-row button:hover { background: #fff !important; transform: translateY(-2px); }.sh-home-help { border-color: rgba(255,255,255,.3) !important; color: #dfe9e6 !important; }
 @media (max-width: 900px) { .sh-ops-grid { grid-template-columns: 1fr; } .sh-ops-statusline { flex-wrap: wrap; } .sh-ops-statusline button { margin-left: 0; } }
 @media (max-width: 560px) { .sh-system-cards { grid-template-columns: 1fr; }.sh-detail-actions { flex-direction: column; }.sh-ops-statusline small { width: 100%; } }
+
+/* Account form: one clear field per row, predictable validation, and mobile-safe controls. */
+.sh-auth-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; text-align: left; }
+.sh-auth-form > label { display: flex; flex-direction: column; gap: 5px; color: #aebbb8; font: 800 9px 'Space Mono', monospace; letter-spacing: .08em; }
+.sh-auth-form input { width: 100%; box-sizing: border-box; min-height: 42px; border: 1px solid rgba(255,255,255,.22) !important; border-radius: 6px; padding: 0 12px; color: #f2f5f4 !important; background: rgba(255,255,255,.06) !important; font: 11px 'Space Mono', monospace; outline: none; transition: border-color .2s, box-shadow .2s; }
+.sh-auth-form input:focus { border-color: #42d392 !important; box-shadow: 0 0 0 3px rgba(66,211,146,.12); }
+.sh-password-field { position: relative; display: flex; align-items: center; }
+.sh-password-field input { padding-right: 62px; }
+.sh-password-field button { position: absolute; right: 8px; border: 0; color: #aebbb8; background: transparent; font: 800 8px 'Space Mono', monospace; cursor: pointer; }
+.sh-name-row { display: block !important; margin-top: 3px; }
+.sh-name-row > button { width: 100%; min-height: 44px; border: 0; border-radius: 6px; color: #101516 !important; background: #edf4f2 !important; font: 900 10px 'Space Mono', monospace; cursor: pointer; transition: background .2s, transform .2s; }
+.sh-name-row > button:hover { background: #fff !important; transform: translateY(-1px); }
+.sh-name-row > button:disabled { opacity: .55; cursor: wait; transform: none; }
+.sh-auth-error { margin: 9px 0 0 !important; padding: 9px 10px; border: 1px solid rgba(240,93,114,.28); border-radius: 6px; color: #ff9aa9 !important; background: rgba(240,93,114,.1); line-height: 1.5; }
 .sh-account-chip { position: absolute; top: 20px; left: 20px; z-index: 12; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid rgba(31,200,192,.35); border-radius: 999px; background: rgba(13,27,62,.9); color: white; font: 700 12px 'Nunito', sans-serif; }
 .sh-account-chip button { border: 0; background: transparent; color: #1FC8C0; cursor: pointer; font: inherit; }
 .sh-auth-backdrop { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 16px; background: rgba(2,6,20,.78); backdrop-filter: blur(10px); }
