@@ -647,6 +647,50 @@ html[data-reduce-motion='true'] *::after {
   .sh-pause-btn { top: 8px !important; right: 8px !important; width: 44px !important; height: 44px !important; }
 }
 
+/* Gameplay layout v2: one source of truth per HUD region. */
+.sh-game-brandbar { top: 14px !important; left: 18px !important; z-index: 60 !important; }
+.sh-resource-hud { top: 14px !important; left: 290px !important; width: min(620px, calc(100vw - 650px)) !important; z-index: 58 !important; }
+.sh-current-task { top: 116px !important; left: 50% !important; width: min(380px, calc(100vw - 720px)) !important; min-width: 300px !important; z-index: 58 !important; }
+.sh-mission-clock { top: 16px !important; right: 84px !important; z-index: 61 !important; border-color: rgba(86,220,255,.55) !important; background: rgba(3,18,36,.94) !important; color: #dffcff !important; }
+.sh-mission-clock span, .sh-mission-clock small { color: #79b8c5 !important; }
+.sh-mission-clock strong { color: #66e7f4 !important; }
+.sh-game-alert { top: 116px !important; right: 18px !important; z-index: 58 !important; }
+.sh-game-map-card { left: 18px !important; bottom: 118px !important; z-index: 56 !important; }
+.sh-game-crew-card { right: 18px !important; bottom: 118px !important; z-index: 56 !important; }
+.sh-game-actionbar { bottom: 14px !important; z-index: 70 !important; pointer-events: auto !important; }
+.sh-game-actionbar button { position: relative; z-index: 71; pointer-events: auto !important; }
+.sh-proximity-prompt { bottom: 112px !important; z-index: 62 !important; }
+.sh-game-hints { display: none !important; }
+.sh-world-label { max-width: 150px; padding: 3px 7px !important; font-size: 9px !important; line-height: 1.1 !important; opacity: .9; }
+
+/* The old duplicate challenge/telemetry cards are intentionally removed from the DOM.
+   Keep this guard for cached/older chunks during a Vercel rollout. */
+.sh-challenge-widget, .sh-mission-alert-banner, .sh-task-corner { display: none !important; }
+
+@media (max-width: 1100px) {
+  .sh-resource-hud { left: 270px !important; width: min(500px, calc(100vw - 570px)) !important; }
+  .sh-current-task { width: min(360px, calc(100vw - 620px)) !important; }
+}
+@media (max-width: 820px) {
+  .sh-resource-hud { top: 78px !important; left: 12px !important; width: calc(100vw - 24px) !important; }
+  .sh-current-task { top: 185px !important; left: 12px !important; transform: none !important; width: min(390px, calc(100vw - 24px)) !important; min-width: 0 !important; }
+  .sh-game-alert { top: 185px !important; right: 12px !important; max-width: 210px !important; }
+  .sh-mission-clock { top: 14px !important; right: 12px !important; }
+  .sh-game-actionbar { max-width: calc(100vw - 16px); overflow-x: auto; }
+  .sh-game-actionbar button { min-width: 84px !important; }
+}
+@media (max-width: 560px) {
+  .sh-game-brandbar { left: 8px !important; top: 8px !important; }
+  .sh-game-brandbar img { width: 42px !important; height: 42px !important; }
+  .sh-game-brandbar span { display: none; }
+  .sh-resource-hud { top: 62px !important; }
+  .sh-current-task { top: 204px !important; }
+  .sh-game-alert { top: auto !important; bottom: 205px !important; right: 8px !important; }
+  .sh-game-map-card { left: 8px !important; bottom: 96px !important; width: 130px !important; }
+  .sh-game-crew-card { right: 8px !important; bottom: 96px !important; width: 150px !important; }
+  .sh-game-actionbar { bottom: 8px !important; }
+}
+
 /* Operations simulator visual system: graphite, white, and restrained status colors. */
 .sh-ops-dashboard { background: #0b0f10 !important; color: #f2f5f4; font-family: 'Space Grotesk', sans-serif; }
 .sh-ops-dashboard .sh-control-topbar { background: rgba(11,15,16,.94); border-bottom-color: rgba(255,255,255,.1); }
@@ -908,4 +952,43 @@ html[data-reduce-motion='true'] *::after {
   .sh-cinematic-brand { font-size: 8px; }
   .sh-cinematic-briefing { bottom: 14px; padding: 14px; }
   .sh-cinematic-briefing h2 { font-size: 20px; }
+}
+
+/* Final cascade guard: gameplay HUD geometry must win over legacy responsive rules. */
+.sh-game-brandbar { top: 14px !important; left: 18px !important; z-index: 60 !important; }
+.sh-resource-hud { top: 14px !important; left: 290px !important; width: min(620px, calc(100vw - 650px)) !important; z-index: 58 !important; }
+.sh-current-task { top: 116px !important; left: 50% !important; width: min(380px, calc(100vw - 720px)) !important; min-width: 300px !important; z-index: 58 !important; }
+.sh-mission-clock { top: 16px !important; right: 84px !important; z-index: 61 !important; border-color: rgba(86,220,255,.55) !important; background: rgba(3,18,36,.94) !important; color: #dffcff !important; }
+.sh-mission-clock span, .sh-mission-clock small { color: #79b8c5 !important; }
+.sh-mission-clock strong { color: #66e7f4 !important; }
+.sh-game-alert { top: 116px !important; right: 18px !important; z-index: 58 !important; }
+.sh-game-map-card { left: 18px !important; bottom: 118px !important; z-index: 56 !important; }
+.sh-game-crew-card { right: 18px !important; bottom: 118px !important; z-index: 56 !important; }
+.sh-game-actionbar { bottom: 14px !important; z-index: 70 !important; pointer-events: auto !important; }
+.sh-game-actionbar button { position: relative; z-index: 71; pointer-events: auto !important; }
+.sh-proximity-prompt { bottom: 112px !important; z-index: 62 !important; }
+.sh-game-hints { display: none !important; }
+
+@media (max-width: 1100px) {
+  .sh-resource-hud { left: 270px !important; width: min(500px, calc(100vw - 570px)) !important; }
+  .sh-current-task { width: min(360px, calc(100vw - 620px)) !important; }
+}
+@media (max-width: 820px) {
+  .sh-resource-hud { top: 78px !important; left: 12px !important; width: calc(100vw - 24px) !important; }
+  .sh-current-task { top: 185px !important; left: 12px !important; transform: none !important; width: min(390px, calc(100vw - 24px)) !important; min-width: 0 !important; }
+  .sh-game-alert { top: 185px !important; right: 12px !important; max-width: 210px !important; }
+  .sh-mission-clock { top: 14px !important; right: 12px !important; }
+  .sh-game-actionbar { max-width: calc(100vw - 16px); overflow-x: auto; }
+  .sh-game-actionbar button { min-width: 84px !important; }
+}
+@media (max-width: 560px) {
+  .sh-game-brandbar { left: 8px !important; top: 8px !important; }
+  .sh-game-brandbar img { width: 42px !important; height: 42px !important; }
+  .sh-game-brandbar span { display: none; }
+  .sh-resource-hud { top: 62px !important; }
+  .sh-current-task { top: 204px !important; }
+  .sh-game-alert { top: auto !important; bottom: 205px !important; right: 8px !important; }
+  .sh-game-map-card { left: 8px !important; bottom: 96px !important; width: 130px !important; }
+  .sh-game-crew-card { right: 8px !important; bottom: 96px !important; width: 150px !important; }
+  .sh-game-actionbar { bottom: 8px !important; }
 }

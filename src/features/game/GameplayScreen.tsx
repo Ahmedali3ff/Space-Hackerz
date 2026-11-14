@@ -16,9 +16,6 @@ import { CHALLENGES } from '@/game3d/challenges/challenge-definitions'
 import { HabitatWorld } from '@/game3d/components/HabitatWorld'
 import { CinematicIntro } from '@/game3d/components/CinematicIntro'
 import { ResourceHUD } from './ResourceHUD'
-import { TaskCorner } from './TaskCorner'
-import { MissionAlertBanner } from './MissionAlertBanner'
-import { ChallengeWidget } from './ChallengeWidget'
 import { EventBus } from '@/game/EventBus'
 import { CriticalFailureScreen } from './CriticalFailureScreen'
 import { PauseMenuOverlay } from './PauseMenuOverlay'
@@ -421,7 +418,8 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const [nearBuilding, setNearBuilding] = useState<string | null>(null)
   // Show the mission operations brief as soon as a level starts. The player
   // should never have to discover the actual objectives behind a utility icon.
-  const [showOperations, setShowOperations] = useState(true)
+  // Keep the world interactive on entry; open the operations console only from an action.
+  const [showOperations, setShowOperations] = useState(false)
   const [showAstro, setShowAstro] = useState(false)
   const joystickActiveRef = useRef(false)
   const joystickStartRef = useRef<{ x: number; y: number } | null>(null)
@@ -433,7 +431,6 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
     activeEventIds,
     activeFaultStates,
     missionOutcome,
-    missionDurationDays,
     commanderName,
     initializeMission,
     advanceDay,
@@ -771,10 +768,6 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         <span>SPACE<br /><b>HACKERZ</b></span>
       </div>
 
-      <div className="sh-game-ai-card" role="button" tabIndex={0} onClick={() => setShowAstro(true)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setShowAstro(true) }}>
-        <div className="sh-game-ai-avatar">✦</div><div><strong>Astro-AI</strong><p>{lowestResource < 35 ? `Resource levels are unstable. Check the ${liveOxygen === lowestResource ? 'life support' : 'habitat'} systems.` : 'Habitat systems are stable. Continue the active mission task.'}</p></div>
-      </div>
-
       {lowestResource < 35 || firstEventId !== null ? <div className="sh-game-alert"><b>!</b><span>{firstEventId !== null ? 'ENVIRONMENTAL ALERT' : 'OXYGEN / SYSTEMS LOW'}<small>Review habitat systems immediately</small></span></div> : null}
 
       <div className="sh-game-crew-card"><div className="sh-crew-portrait">◉</div><div><strong>CREW STATUS</strong><span>Health <b>{crewStatus === 'happy' ? '100' : crewStatus === 'worried' ? '70' : '45'}%</b></span><span>Morale <b>{crewStatus === 'happy' ? '90' : '65'}%</b></span><span>Energy <b>{liveEnergy}%</b></span></div></div>
@@ -787,6 +780,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         <button type="button" onClick={() => { if (nearBuilding) handleBuildingClick(nearBuilding); else setShowOperations(true) }}><span>⬆</span><b>Upgrade</b></button>
         <button type="button" onClick={() => setShowOperations(false)}><span>⌁</span><b>Explore</b></button>
         <button type="button" onClick={() => setOpenBuildingId(nearBuilding ?? 'command-center')}><span>♟</span><b>Manage</b></button>
+        <button type="button" onClick={() => setShowAstro(true)}><span>✦</span><b>Astro-AI</b></button>
         <button className="end-turn" type="button" onClick={handleAdvanceDay}><span>»</span><b>End Turn</b></button>
       </div>
 
@@ -798,22 +792,6 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         water={operationLevelId !== null ? operationResources.water : waterPct}
         food={operationLevelId !== null ? operationResources.food : foodPct}
         energy={operationLevelId !== null ? operationResources.energy : energyPct}
-      />
-
-      {/* Challenge Widget — fixed below ResourceHUD */}
-      <ChallengeWidget onOpenBuilding={setOpenBuildingId} />
-
-      {/* Mission alert banner — fixed top-right, offset from pause button */}
-      <MissionAlertBanner eventId={firstEventId} day={currentMissionDay} />
-
-      {/* Task corner — fixed bottom-right above action bar */}
-      <TaskCorner
-        currentResources={res}
-        initialResources={init}
-        currentDay={currentMissionDay}
-        totalDays={missionDurationDays}
-        activeEventIds={activeEventIds}
-        activeFaultStates={[...activeFaultStates]}
       />
 
       {operationStatus === 'active' && (
@@ -851,7 +829,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
       {/* ── Proximity prompt — appears when near a building ───────────────── */}
       {nearBuilding && gamePhase === 'playing' && (
-        <div style={{
+        <div className="sh-proximity-prompt" style={{
           position: 'fixed',
           bottom: 130,
           left: '50%',
@@ -963,34 +941,6 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
         🔧
       </button>
 
-      {/* Advance Day button — fixed bottom-center */}
-      <button
-        onClick={handleAdvanceDay}
-        aria-label="Advance one day"
-        style={{
-          position: 'fixed',
-          bottom: '16px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          background: '#1FC8C0',
-          color: 'black',
-          fontWeight: 900,
-          fontSize: 13,
-          fontFamily: 'Nunito, sans-serif',
-          border: 'none',
-          borderRadius: 12,
-          padding: '10px 18px',
-          cursor: 'pointer',
-          boxShadow: '0 0 14px rgba(31,200,192,0.4)',
-        }}
-      >
-        ⏭️ Day {currentMissionDay}/{missionDurationDays} → Next
-      </button>
-
       {/* Emergency ration — fixed above tools button */}
       <button
         onClick={handleEmergencyRation}
@@ -1018,6 +968,7 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
       {/* ── Keyboard hint ──────────────────────────────────────────────────── */}
       <div
+        className="sh-game-hints"
         aria-hidden="true"
         style={{
           position: 'fixed',
