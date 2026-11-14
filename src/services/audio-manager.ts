@@ -50,6 +50,8 @@ class AudioManager {
   private volume: number = 0.8
   private sfxVolume: number = 0.8
   private audioCtx: AudioContext | null = null
+  private musicNodes: OscillatorNode[] = []
+  private musicGain: GainNode | null = null
 
   /** Lazily initialises AudioContext on first user interaction. */
   private getCtx(): AudioContext | null {
@@ -115,13 +117,46 @@ class AudioManager {
    * The signature is present so callers can reference it without errors.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  playMusic(_key: MusicKey): void {
-    // No-op stub — music requires audio assets which are out of scope for V1.
+  playMusic(key: MusicKey): void {
+    if (this.muted || this.musicNodes.length > 0) return
+    const ctx = this.getCtx()
+    if (!ctx) return
+
+    const root = key === 'gameplay_mars' ? 110 : key === 'gameplay_moon' ? 146.83 : key === 'cinematic' ? 123.47 : 98
+    const gain = ctx.createGain()
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.035 * this.volume, ctx.currentTime + 1.2)
+    gain.connect(ctx.destination)
+
+    const notes = [root, root * 1.5]
+    this.musicNodes = notes.map((frequency, index) => {
+      const oscillator = ctx.createOscillator()
+      oscillator.type = index === 0 ? 'sine' : 'triangle'
+      oscillator.frequency.setValueAtTime(frequency, ctx.currentTime)
+      oscillator.detune.setValueAtTime(index === 0 ? 0 : 7, ctx.currentTime)
+      oscillator.connect(gain)
+      oscillator.start()
+      return oscillator
+    })
+    this.musicGain = gain
   }
 
-  /** Stops any currently playing music track (no-op stub). */
+  /** Stops any currently playing ambient mission bed. */
   stopMusic(): void {
-    // No-op stub
+    const ctx = this.audioCtx
+    if (!ctx || this.musicNodes.length === 0) return
+    const nodes = this.musicNodes
+    const gain = this.musicGain
+    if (gain) {
+      gain.gain.cancelScheduledValues(ctx.currentTime)
+      gain.gain.setValueAtTime(Math.max(0.001, gain.gain.value), ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
+    }
+    nodes.forEach((node) => {
+      try { node.stop(ctx.currentTime + 0.28) } catch { /* already stopped */ }
+    })
+    this.musicNodes = []
+    this.musicGain = null
   }
 
   /** Mutes or unmutes all audio output. */

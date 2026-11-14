@@ -416,8 +416,6 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const [pendingFacilityActionId, setPendingFacilityActionId] = useState<string | null>(null)
   const [joystickDir, setJoystickDir] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [nearBuilding, setNearBuilding] = useState<string | null>(null)
-  // Show the mission operations brief as soon as a level starts. The player
-  // should never have to discover the actual objectives behind a utility icon.
   // Keep the world interactive on entry; open the operations console only from an action.
   const [showOperations, setShowOperations] = useState(false)
   const [showAstro, setShowAstro] = useState(false)
@@ -457,6 +455,17 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
   const operationTask = operationMission?.actions.find((action) => action.id === operationTaskId)
 
   const planetId: 'moon' | 'mars' = selectedPlanetId === 'mars' ? 'mars' : 'moon'
+
+  useEffect(() => {
+    const startMissionAudio = (): void => {
+      getAudioManager().playMusic(planetId === 'mars' ? 'gameplay_mars' : 'gameplay_moon')
+    }
+    window.addEventListener('pointerdown', startMissionAudio, { once: true })
+    return () => {
+      window.removeEventListener('pointerdown', startMissionAudio)
+      getAudioManager().stopMusic()
+    }
+  }, [planetId])
 
   // ── Fallback resource snapshots ────────────────────────────────────────────
 

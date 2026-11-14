@@ -135,12 +135,12 @@ export function CampaignMapScreen(_props: CampaignMapScreenProps): JSX.Element {
       {/* Top bar */}
       <header className="relative z-10 flex items-center justify-between px-4 pt-4 pb-2">
         <button
-          onClick={() => navigate('/missions')}
+          onClick={() => navigate('/')}
           className="flex items-center gap-2 text-[#C4B5FD] hover:text-white transition-colors"
-          aria-label="Back to missions"
+          aria-label="Back to home"
         >
           <ArrowLeft size={20} />
-          <span className="text-sm font-bold">Missions</span>
+          <span className="text-sm font-bold">Home</span>
         </button>
 
         <h1 className="text-lg font-black text-white">Campaign</h1>

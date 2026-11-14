@@ -49,7 +49,8 @@ export function MainMenuScreen(): JSX.Element {
       setCommanderName(player?.name ?? cleanName)
       if (selectedPlanetId === null) selectPlanet(activePlanet)
       setCrewSize(4)
-      navigate('/mission-hub')
+      // The campaign map is the single mission entry point after identity setup.
+      navigate('/campaign-map', { replace: true })
     } catch (error) {
       if (error instanceof ApiClientError && error.status === 409) setAuthError('This email is already registered. Sign in instead.')
       else if (error instanceof ApiClientError && error.status === 401) setAuthError('Email or password is incorrect.')
