@@ -104,8 +104,8 @@ export function SatelliteDish({ position, highlighted = false, onClick }: Satell
         />
       </mesh>
 
-      <Html position={[0, 5, 0]} center distanceFactor={14}>
-        <div
+      <Html position={[0, 5, 0]} center distanceFactor={16} zIndexRange={[10, 0]}>
+        <div className="sh-world-label"
           style={{
             background: 'rgba(10,14,26,0.88)',
             border: '1px solid #1FC8C0',

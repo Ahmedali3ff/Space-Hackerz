@@ -22,6 +22,6 @@ export function FacilityUnit({ position, kind, highlighted = false, onClick }: F
       <mesh position={[0, 2.05, 0]}><boxGeometry args={[3, .08, 2.4]} /><meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={.55} transparent opacity={.7} /></mesh>
     </>}
     <mesh position={[0, .05, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[1.35, .08, 8, 32]} /><meshStandardMaterial color={highlighted ? '#FFD700' : accent} emissive={highlighted ? '#FFD700' : accent} emissiveIntensity={highlighted ? 2 : 1} /></mesh>
-    <Html position={[0, 2.8, 0]} center distanceFactor={14}><div style={{ background: 'rgba(10,14,26,.9)', border: `1px solid ${accent}`, borderRadius: 8, padding: '4px 10px', color: 'white', fontSize: 11, fontFamily: 'Nunito,sans-serif', fontWeight: 800, whiteSpace: 'nowrap', pointerEvents: 'none' }}>{water ? '💧 Water Recycling' : '🌱 Hydroponics Greenhouse'}</div></Html>
+    <Html position={[0, 2.8, 0]} center distanceFactor={16} zIndexRange={[10, 0]}><div className="sh-world-label" style={{ borderColor: accent }}>{water ? '💧 Water Recycling' : '🌱 Hydroponics Greenhouse'}</div></Html>
   </group>
 }

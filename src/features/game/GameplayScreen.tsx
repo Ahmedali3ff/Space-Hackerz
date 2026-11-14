@@ -26,6 +26,7 @@ import { MissionOperationsPanel } from './MissionOperationsPanel'
 import { ACTION_BUILDINGS } from './MissionOperationsPanel'
 import { useMissionOperationsStore } from '@store/mission-operations-store'
 import { getMissionOperation } from '@data/missions/mission-operations'
+import { getDefaultBaseConfig } from '@/utils/default-config'
 
 // ── Building info ─────────────────────────────────────────────────────────────
 
@@ -489,6 +490,10 @@ export function GameplayScreen(_props: GameplayScreenProps): JSX.Element {
 
   useEffect(() => {
     if (!missionStarted) {
+      const setup = useMissionStore.getState()
+      if (setup.baseConfig === null) {
+        setup.setBaseConfig(getDefaultBaseConfig(Math.max(1, setup.crewSize || 4)))
+      }
       initializeMission()
     }
     // Clear challenges whenever game (re)initializes

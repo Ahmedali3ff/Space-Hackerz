@@ -112,8 +112,8 @@ export function PowerGenerator({
         />
       </mesh>
 
-      <Html position={[0, 2.0, 0]} center distanceFactor={14}>
-        <div
+      <Html position={[0, 2.0, 0]} center distanceFactor={16} zIndexRange={[10, 0]}>
+        <div className="sh-world-label"
           style={{
             background: 'rgba(10,14,26,0.88)',
             border: `1px solid ${statusColor}`,

@@ -115,8 +115,8 @@ export function SolarArray({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      <Html position={[1, 3.5, 0]} center distanceFactor={14}>
-        <div
+      <Html position={[1, 3.5, 0]} center distanceFactor={16} zIndexRange={[10, 0]}>
+        <div className="sh-world-label"
           style={{
             background: 'rgba(10,14,26,0.88)',
             border: `1px solid ${statusColor}`,

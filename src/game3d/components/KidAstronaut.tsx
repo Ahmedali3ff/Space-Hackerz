@@ -167,7 +167,7 @@ export function KidAstronaut({
       </mesh>
 
       {/* Face emoji inside visor */}
-      <Html position={[0, 1.68, 0.42]} center distanceFactor={6}>
+      <Html position={[0, 1.68, 0.42]} center distanceFactor={8} zIndexRange={[10, 0]}>
         <div
           style={{
             fontSize: 17,
@@ -181,7 +181,7 @@ export function KidAstronaut({
       </Html>
 
       {/* Name tag above helmet */}
-      <Html position={[0, 2.45, 0]} center distanceFactor={12}>
+      <Html position={[0, 2.45, 0]} center distanceFactor={14} zIndexRange={[10, 0]}>
         <div
           style={{
             background: isPlayer ? '#1FC8C0' : 'rgba(10,14,26,0.82)',
