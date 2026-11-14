@@ -77,8 +77,12 @@ type LeaderboardState = 'loading' | 'loaded' | 'offline'
 interface ExplorersScreenProps {}
 
 export function ExplorersScreen(_props: ExplorersScreenProps): JSX.Element {
-  const [leaderboardState, setLeaderboardState] = useState<LeaderboardState>('loading')
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [leaderboardState, setLeaderboardState] = useState<LeaderboardState>('loaded')
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([
+    { player_id: 'virtual-1', name: 'Luna Walker', total_stars: 420, current_level: 8, commander_title: 'Mars Pioneer' },
+    { player_id: 'virtual-2', name: 'Nova Ray', total_stars: 360, current_level: 6, commander_title: 'Orbital Captain' },
+    { player_id: 'virtual-3', name: 'Orbit Finch', total_stars: 290, current_level: 5, commander_title: 'Habitat Builder' },
+  ])
 
   const commanderName = useMissionProgressStore((s) => s.commanderName)
   const currentLevel = useMissionProgressStore((s) => s.currentLevel)
