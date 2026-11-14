@@ -1,6 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import type { Request, Response } from 'express'
-import { db } from '../../../server/db.js'
+import { db } from '../../server/db.js'
 
 function verifyPassword(password: string, stored: string): boolean {
   const [salt, hash] = stored.split(':')

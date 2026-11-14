@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID, scryptSync } from 'node:crypto'
 import type { Request, Response } from 'express'
-import { db } from '../../../server/db.js'
+import { db } from '../../server/db.js'
 
 const hashPassword = (password: string): string => {
   const salt = randomBytes(16).toString('hex')
