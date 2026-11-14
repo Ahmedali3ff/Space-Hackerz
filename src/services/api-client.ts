@@ -100,8 +100,8 @@ async function authFetch<T>(path: string, options?: RequestInit): Promise<T> {
 // ── API client ────────────────────────────────────────────────────────────────
 
 export const apiClient = {
-  register: (data: { name: string; email: string; password: string }): Promise<AuthResponse> => authFetch<AuthResponse>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-  login: (data: { email: string; password: string }): Promise<AuthResponse> => authFetch<AuthResponse>('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  register: (data: { name: string; email: string; password: string }): Promise<AuthResponse> => authFetch<AuthResponse>((import.meta as { env?: { PROD?: boolean } }).env?.PROD ? '/api/auth?mode=register' : '/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: { email: string; password: string }): Promise<AuthResponse> => authFetch<AuthResponse>((import.meta as { env?: { PROD?: boolean } }).env?.PROD ? '/api/auth?mode=login' : '/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   getPlayer: (): Promise<PlayerRecord | null> =>
     apiFetch<PlayerRecord>('/api/players'),
 
