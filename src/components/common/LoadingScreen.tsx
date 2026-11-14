@@ -1,6 +1,5 @@
 // src/components/common/LoadingScreen.tsx
 // Branded Suspense fallback — shown while lazy-loaded routes are loading.
-// Migrated to Space+ light theme: #F4F7FA background, teal #1FC8C0.
 // Respects prefers-reduced-motion: spinner is static when reduced motion is on.
 
 import { useEffect, useState } from 'react'
@@ -28,23 +27,26 @@ export function LoadingScreen(): JSX.Element {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center bg-[#F4F7FA]"
+      className="sh-loading-screen fixed inset-0 flex flex-col items-center justify-center"
       role="status"
     >
-      {/* Space+ wordmark */}
-      <span
-        className="font-display2 text-5xl font-bold tracking-widest text-spaceplus-accent-teal"
+      <img
+        src="/assets/icons/space-hackerz-mark.svg"
+        alt=""
+        width="96"
+        height="96"
+        className="sh-loading-mark"
         aria-hidden="true"
-      >
-        Space<span className="text-[#1FC8C0]">+</span>
-      </span>
+      />
+      <span className="sh-loading-brand" aria-hidden="true">SPACE HACKERZ</span>
+      <span className="sh-loading-subtitle" aria-hidden="true">MISSION CONTROL ONLINE</span>
 
       {/* Animated ring — static when reducedMotion */}
       <div className="mt-8" aria-hidden="true">
         {reducedMotion ? (
-          <div className="h-10 w-10 rounded-full border-2 border-spaceplus-accent-teal opacity-60" />
+          <div className="sh-loading-spinner static" />
         ) : (
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-spaceplus-border-light border-t-spaceplus-accent-teal" />
+          <div className="sh-loading-spinner animate-spin" />
         )}
       </div>
 
