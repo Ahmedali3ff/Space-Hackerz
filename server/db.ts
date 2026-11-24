@@ -3,7 +3,10 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DB_PATH = path.join(__dirname, '..', 'space-plus.db')
+// Vercel's filesystem is read-only except /tmp (ephemeral). DB_PATH can override for any host.
+const DB_PATH =
+  process.env['DB_PATH'] ??
+  (process.env['VERCEL'] === '1' ? '/tmp/space-plus.db' : path.join(__dirname, '..', 'space-plus.db'))
 export const db = new Database(DB_PATH)
 
 db.exec(`
