@@ -9,3 +9,6 @@ space-plus.db
 
 .vercel
 .env*
+
+space-plus.db-wal
+space-plus.db-shm
