@@ -6,7 +6,9 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 
 export const missionsRouter = Router()
 
-// ── GET /:playerId — return all mission progress rows for that player ────────────
+const VALID_STATUSES: readonly string[] = ['locked', 'active', 'completed']
+
+// ── GET /me — return all mission progress rows for the authenticated player ──────
 
 missionsRouter.get('/me', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const playerId = `player-${req.userId as string}`
@@ -25,12 +27,17 @@ missionsRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response)
   const playerId = `player-${req.userId as string}`
 
   if (
-    typeof playerId !== 'string' ||
     typeof missionId !== 'string' ||
+    missionId.length === 0 ||
+    missionId.length > 100 ||
     typeof status !== 'string' ||
-    typeof starsEarned !== 'number'
+    !VALID_STATUSES.includes(status) ||
+    typeof starsEarned !== 'number' ||
+    !Number.isInteger(starsEarned) ||
+    starsEarned < 0 ||
+    starsEarned > 3
   ) {
-    res.status(400).json({ error: 'playerId, missionId, status, starsEarned are required' })
+    res.status(400).json({ error: 'missionId, a valid status and starsEarned (0-3) are required' })
     return
   }
 
