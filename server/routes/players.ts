@@ -80,8 +80,9 @@ playersRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response):
 
 playersRouter.patch('/xp', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const amount = (req.body as { amount?: unknown }).amount
-  if (typeof amount !== 'number' || !isFinite(amount)) {
-    res.status(400).json({ error: 'amount must be a finite number' })
+  // Largest legitimate award is 140 XP (3 stars on mission 8); cap prevents self-granting arbitrary XP.
+  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 0 || amount > 200) {
+    res.status(400).json({ error: 'amount must be an integer between 0 and 200' })
     return
   }
 
