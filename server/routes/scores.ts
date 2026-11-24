@@ -13,7 +13,6 @@ scoresRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): 
 
   const {
     id,
-    playerId,
     missionId,
     planetId,
     crewSize,
@@ -28,7 +27,6 @@ scoresRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): 
 
   if (
     typeof id !== 'string' ||
-    typeof playerId !== 'string' ||
     typeof missionId !== 'string' ||
     typeof planetId !== 'string' ||
     typeof crewSize !== 'number' ||
@@ -36,14 +34,21 @@ scoresRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): 
     typeof daysSurvived !== 'number' ||
     typeof finalScore !== 'number' ||
     typeof starsEarned !== 'number' ||
-    typeof outcome !== 'string'
+    typeof outcome !== 'string' ||
+    !Number.isInteger(starsEarned) || starsEarned < 0 || starsEarned > 3 ||
+    !Number.isInteger(crewSize) || crewSize < 1 || crewSize > 100 ||
+    !Number.isInteger(missionDurationDays) || missionDurationDays < 1 || missionDurationDays > 365 ||
+    !Number.isInteger(daysSurvived) || daysSurvived < 0 || daysSurvived > 1000 ||
+    !Number.isFinite(finalScore) || Math.abs(finalScore) > 100000 ||
+    id.length > 100 || outcome.length > 50
   ) {
     res.status(400).json({ error: 'Missing or invalid required fields' })
     return
   }
 
+  try {
   db.prepare(`
-    INSERT OR REPLACE INTO mission_runs
+    INSERT INTO mission_runs
       (id, player_id, mission_id, planet_id, crew_size, mission_duration_days,
        days_survived, final_score, stars_earned, outcome, events_resolved)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -60,6 +65,10 @@ scoresRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): 
     outcome,
     eventsResolved ?? 0,
   )
+  } catch {
+    res.status(409).json({ error: 'Run already recorded' })
+    return
+  }
 
   res.json({ ok: true })
 })
