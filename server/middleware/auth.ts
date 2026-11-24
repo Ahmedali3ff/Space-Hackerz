@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 import { db } from '../db.js'
+import { verifyToken } from '../lib/token.js'
 
 export interface AuthenticatedRequest extends Request { userId?: string }
 
@@ -7,6 +8,8 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   const header = req.headers.authorization
   const token = header?.startsWith('Bearer ') ? header.slice(7) : ''
   if (!token) { res.status(401).json({ error: 'Authentication required' }); return }
+  const signedId = verifyToken(token)
+  if (signedId !== null) { req.userId = signedId; next(); return }
   const session = db.prepare("SELECT account_id FROM sessions WHERE token = ? AND expires_at > datetime('now')").get(token) as { account_id: string } | undefined
   if (!session) { res.status(401).json({ error: 'Session expired' }); return }
   req.userId = session.account_id

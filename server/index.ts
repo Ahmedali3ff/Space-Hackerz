@@ -4,6 +4,7 @@ import playersRouter from './routes/players.js'
 import missionsRouter from './routes/missions.js'
 import scoresRouter from './routes/scores.js'
 import { authRouter } from './routes/auth.js'
+import { aiRouter } from './routes/ai.js'
 
 const app = express()
 const PORT = process.env['PORT'] ?? 3001
@@ -19,6 +20,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/players', playersRouter)
 app.use('/api/missions', missionsRouter)
 app.use('/api/scores', scoresRouter)
+app.use('/api/ai', aiRouter)
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'Space+ API' }))
 

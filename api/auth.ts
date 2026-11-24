@@ -1,18 +1,23 @@
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto'
 import type { Request, Response } from 'express'
+import { signToken } from '../server/lib/token.js'
+import { createLimiter } from '../server/lib/rate-limit.js'
+
+const isLimited = createLimiter(20, 15 * 60 * 1000)
 
 interface Account { id: string; email: string; passwordHash: string; player: Record<string, unknown> }
-interface AuthState { accounts: Map<string, Account>; sessions: Map<string, string> }
+interface AuthState { accounts: Map<string, Account> }
 const globalState = globalThis as typeof globalThis & { __spaceHackerzAuth?: AuthState }
-const state: AuthState = globalState.__spaceHackerzAuth ?? { accounts: new Map(), sessions: new Map() }
+const state: AuthState = globalState.__spaceHackerzAuth ?? { accounts: new Map() }
 globalState.__spaceHackerzAuth = state
 
 function hashPassword(password: string, salt = randomBytes(16).toString('hex')): string { return `${salt}:${scryptSync(password, salt, 64).toString('hex')}` }
 function verifyPassword(password: string, stored: string): boolean { const [salt, hash] = stored.split(':'); if (!salt || !hash) return false; try { return timingSafeEqual(scryptSync(password, salt, 64), Buffer.from(hash, 'hex')) } catch { return false } }
-function responseFor(account: Account): { token: string; account: { id: string; player: Record<string, unknown> } } { const token = randomBytes(32).toString('hex'); state.sessions.set(token, account.id); return { token, account: { id: account.id, player: account.player } } }
+function responseFor(account: Account): { token: string; account: { id: string; player: Record<string, unknown> } } { const token = signToken(account.id); return { token, account: { id: account.id, player: account.player } } }
 
 export default function handler(req: Request, res: Response): void {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return }
+  if (isLimited(req.ip ?? 'unknown')) { res.status(429).json({ error: 'Too many attempts. Please try again later.' }); return }
   const mode = typeof req.query.mode === 'string' ? req.query.mode : ''
   const body = (req.body ?? {}) as { email?: unknown; password?: unknown; name?: unknown }
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''

@@ -26,7 +26,7 @@ export interface MissionProgressRecord {
 }
 
 export interface MissionProgressPayload {
-  playerId: string
+  playerId?: string
   missionId: string
   status: string
   tasksComplete: string[]
@@ -36,7 +36,7 @@ export interface MissionProgressPayload {
 
 export interface MissionRunPayload {
   id: string
-  playerId: string
+  playerId?: string
   missionId: string
   planetId: string
   crewSize: number

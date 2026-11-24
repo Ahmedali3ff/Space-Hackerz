@@ -52,9 +52,9 @@ npm run preview
 npm run dev:full   # frontend (5173) + API (3001)
 ```
 
-Copy `.env.example` to `.env`. Optional server variables: `PORT`, `DB_PATH` (SQLite file), `CORS_ORIGINS` (comma-separated).
+Copy `.env.example` to `.env`. Optional server variables: `AI_API_KEY`, `AI_API_ENDPOINT`, `AI_MODEL`, `AUTH_SECRET`, `PORT`, `DB_PATH` (SQLite file), `CORS_ORIGINS` (comma-separated).
 
-> Security note: any `VITE_*` variable is bundled into the browser. Do not put a production AI key in `VITE_AI_API_KEY`; proxy AI calls through your own server.
+> Security: any `VITE_*` variable is bundled into the browser, so the AI key lives server-side (`AI_API_KEY`) and the app calls the `/api/ai` proxy when `VITE_AI_PROXY=true`. Set `AUTH_SECRET` to a long random string in production so session tokens are valid across instances.
 
 ### Run Tests
 

@@ -30,7 +30,7 @@ import { SectionLabel } from '@/components/common/SectionLabel'
 import { StarScore } from '@/components/common/StarScore'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
 import { getMissionById } from '@data/missions/mission-definitions'
-import { apiClient } from '@/services/api-client'
+import { apiClient, AI_PROXY_URL } from '@/services/api-client'
 import {
   CHART_COLORS,
   CHART_AXIS_COLOR,
@@ -241,9 +241,7 @@ export function MissionDebriefScreen(): JSX.Element {
   const assistantRef = useRef<AstroAssistant | null>(null)
   if (assistantRef.current === null) {
     assistantRef.current = new AstroAssistant({
-      apiKey: import.meta.env.VITE_AI_API_KEY as string | undefined,
-      apiEndpoint: import.meta.env.VITE_AI_API_ENDPOINT as string | undefined,
-      model: import.meta.env.VITE_AI_MODEL as string | undefined,
+      proxyUrl: AI_PROXY_URL,
     })
   }
 
@@ -265,7 +263,6 @@ export function MissionDebriefScreen(): JSX.Element {
     apiClient
       .saveMissionRun({
         id: crypto.randomUUID(),
-        playerId: 'player-1',
         missionId: currentMissionIdFromControl ?? currentMissionId ?? 'unknown',
         planetId: selectedPlanetId ?? 'unknown',
         crewSize: crewSize ?? 1,

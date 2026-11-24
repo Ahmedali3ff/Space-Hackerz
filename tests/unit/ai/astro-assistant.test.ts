@@ -2,7 +2,7 @@
 // Behavioural tests for AstroAssistant.
 // All tests use an unavailable assistant (no apiKey) — no fetch calls are made.
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { AstroAssistant } from '@ai/astro-assistant'
 import { AstroResponseSchema } from '@ai/schemas/astro-response.schema'
 import type { SimulationContext } from '@ai/simulation-context'
@@ -96,5 +96,21 @@ describe('AstroAssistant', () => {
       const parsed = AstroResponseSchema.safeParse(result)
       expect(parsed.success).toBe(true)
     })
+  })
+})
+
+describe('AstroAssistant proxy mode', () => {
+  it('isAvailable() is true when a proxyUrl is provided', () => {
+    expect(new AstroAssistant({ proxyUrl: '/api/ai' }).isAvailable()).toBe(true)
+  })
+
+  it('falls back to the knowledge base when the proxy errors', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) })
+    vi.stubGlobal('fetch', fetchMock)
+    const assistant = new AstroAssistant({ proxyUrl: '/api/ai' })
+    const result = await assistant.getMissionSummary(testContext)
+    expect(fetchMock).toHaveBeenCalledWith('/api/ai', expect.objectContaining({ method: 'POST' }))
+    expect(result.isGrounded).toBe(false)
+    vi.unstubAllGlobals()
   })
 })

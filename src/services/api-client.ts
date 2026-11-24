@@ -25,7 +25,7 @@ export interface XPResult {
 }
 
 export interface MissionProgressPayload {
-  playerId: string
+  playerId?: string
   missionId: string
   status: string
   tasksComplete: string[]
@@ -35,7 +35,7 @@ export interface MissionProgressPayload {
 
 export interface MissionRunPayload {
   id: string
-  playerId: string
+  playerId?: string
   missionId: string
   planetId: string
   crewSize: number
@@ -61,6 +61,10 @@ export interface AuthResponse { token: string; account: { id: string; player: Pl
 const BASE =
   (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL ??
   ((import.meta as { env?: { PROD?: boolean } }).env?.PROD ? '' : 'http://localhost:3001')
+
+/** Same-origin/dev URL of the server-side AI proxy, or undefined when VITE_AI_PROXY is not 'true'. */
+export const AI_PROXY_URL: string | undefined =
+  (import.meta as { env?: { VITE_AI_PROXY?: string } }).env?.VITE_AI_PROXY === 'true' ? `${BASE}/api/ai` : undefined
 
 export class ApiClientError extends Error {
   readonly status: number

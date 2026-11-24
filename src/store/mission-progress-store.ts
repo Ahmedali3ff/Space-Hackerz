@@ -203,7 +203,6 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
 
         apiClient
           .saveMissionProgress({
-            playerId: `player-${get().accountId ?? 'legacy'}`,
             missionId,
             status: 'completed',
             tasksComplete: [],

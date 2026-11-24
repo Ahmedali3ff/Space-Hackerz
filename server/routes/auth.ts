@@ -2,6 +2,8 @@ import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto'
 import { db } from '../db.js'
+import { signToken } from '../lib/token.js'
+import { createLimiter } from '../lib/rate-limit.js'
 
 export const authRouter = Router()
 const hashPassword = (password: string, salt = randomBytes(16).toString('hex')) => `${salt}:${scryptSync(password, salt, 64).toString('hex')}`
@@ -17,20 +19,14 @@ const verifyPassword = (password: string, stored: string): boolean => {
 }
 const EMAIL_RE = /^\S+@\S+\.\S+$/
 
-// Minimal in-memory rate limiter: scrypt is CPU heavy, so cap attempts per IP to blunt brute force / DoS.
-const WINDOW_MS = 15 * 60 * 1000
-const MAX_ATTEMPTS = 20
-const attempts = new Map<string, { count: number; resetAt: number }>()
+// scrypt is CPU heavy: cap attempts per IP to blunt brute force / DoS.
+const isLimited = createLimiter(20, 15 * 60 * 1000)
 function rateLimited(req: Request, res: Response): boolean {
-  const key = req.ip ?? 'unknown'
-  const now = Date.now()
-  const entry = attempts.get(key)
-  if (!entry || entry.resetAt < now) { attempts.set(key, { count: 1, resetAt: now + WINDOW_MS }); return false }
-  entry.count += 1
-  if (entry.count > MAX_ATTEMPTS) { res.status(429).json({ error: 'Too many attempts. Please try again later.' }); return true }
-  return false
+  if (!isLimited(req.ip ?? 'unknown')) return false
+  res.status(429).json({ error: 'Too many attempts. Please try again later.' })
+  return true
 }
-function createSession(accountId: string): string { const token = randomBytes(32).toString('hex'); db.prepare("INSERT INTO sessions (token, account_id, expires_at) VALUES (?, ?, datetime('now', '+30 days'))").run(token, accountId); return token }
+function createSession(accountId: string): string { return signToken(accountId) }
 function accountPayload(id: string): object { const player = db.prepare('SELECT * FROM players WHERE account_id = ?').get(id); return { id, player } }
 
 authRouter.post('/register', (req: Request, res: Response): void => {

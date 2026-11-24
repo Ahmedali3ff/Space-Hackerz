@@ -15,6 +15,8 @@ export interface AstroAssistantConfig {
   readonly apiKey?: string
   readonly apiEndpoint?: string
   readonly model?: string
+  /** URL of a server-side proxy (POST {prompt} -> {content}). Preferred: keeps the API key off the client. */
+  readonly proxyUrl?: string
 }
 
 const DEFAULT_ENDPOINT = 'https://api.openai.com/v1/chat/completions'
@@ -45,7 +47,9 @@ export class AstroAssistant {
 
   /** Returns true only when a non-empty API key is configured. */
   isAvailable(): boolean {
-    return typeof this.config.apiKey === 'string' && this.config.apiKey.length > 0
+    const hasKey = typeof this.config.apiKey === 'string' && this.config.apiKey.length > 0
+    const hasProxy = typeof this.config.proxyUrl === 'string' && this.config.proxyUrl.length > 0
+    return hasKey || hasProxy
   }
 
   /**
@@ -128,36 +132,53 @@ export class AstroAssistant {
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
     try {
-      const endpoint = this.config.apiEndpoint ?? DEFAULT_ENDPOINT
-      const model = this.config.model ?? DEFAULT_MODEL
+      let content: unknown
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.config.apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-        }),
-      })
+      if (typeof this.config.proxyUrl === 'string' && this.config.proxyUrl.length > 0) {
+        // Proxy mode: the server holds the provider key.
+        const response = await fetch(this.config.proxyUrl, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        })
+        clearTimeout(timer)
+        if (!response.ok) return this.getFallback(fallbackTrigger)
+        const data: unknown = await response.json()
+        content = typeof data === 'object' && data !== null ? (data as Record<string, unknown>).content : undefined
+      } else {
+        const endpoint = this.config.apiEndpoint ?? DEFAULT_ENDPOINT
+        const model = this.config.model ?? DEFAULT_MODEL
 
-      clearTimeout(timer)
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.config.apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+          }),
+        })
 
-      if (!response.ok) {
-        return this.getFallback(fallbackTrigger)
+        clearTimeout(timer)
+
+        if (!response.ok) {
+          return this.getFallback(fallbackTrigger)
+        }
+
+        const data: unknown = await response.json()
+
+        if (!isChatCompletionResponse(data)) {
+          return this.getFallback(fallbackTrigger)
+        }
+
+        content = data.choices[0]?.message?.content
       }
 
-      const data: unknown = await response.json()
-
-      if (!isChatCompletionResponse(data)) {
-        return this.getFallback(fallbackTrigger)
-      }
-
-      const content = data.choices[0]?.message?.content
       if (typeof content !== 'string') {
         return this.getFallback(fallbackTrigger)
       }
