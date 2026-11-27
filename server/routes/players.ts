@@ -1,59 +1,32 @@
 import { Router } from 'express'
-import type { Request, Response } from 'express'
-import { db } from '../db.js'
-import type { PlayerRecord, XPResult } from '../types/api.types.js'
+import type { Response } from 'express'
+import { one, run } from '../db.js'
+import type { PlayerRecord } from '../types/api.types.js'
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
-import { getLevelForXP, MAX_XP_PER_AWARD } from '../lib/levels.js'
 
 export const playersRouter = Router()
 
-// ── Level thresholds (mirrors src/data/levels/level-definitions.ts) ────────────
-
-
-
-// ── Ensure default player row exists ────────────────────────────────────────────
-
-function ensurePlayer(accountId = 'legacy'): PlayerRecord {
-  const existing = db
-    .prepare('SELECT * FROM players WHERE id = ?')
-    .get(accountId === 'legacy' ? 'player-1' : `player-${accountId}`) as PlayerRecord | undefined
-
-  if (existing !== undefined) return existing
-
-  db.prepare(`
-    INSERT OR IGNORE INTO players (id, name, total_xp, current_level, commander_title, total_stars)
-    VALUES (?, 'Commander', 0, 1, 'Space Cadet', 0)
-  `).run(accountId === 'legacy' ? 'player-1' : `player-${accountId}`)
-
-  return db
-    .prepare('SELECT * FROM players WHERE id = ?')
-    .get(accountId === 'legacy' ? 'player-1' : `player-${accountId}`) as PlayerRecord
+async function ensurePlayer(accountId: string): Promise<PlayerRecord> {
+  const id = `player-${accountId}`
+  await run("INSERT OR IGNORE INTO players (id, account_id, name) VALUES (?, ?, 'Commander')", [id, accountId])
+  return (await one<PlayerRecord>('SELECT * FROM players WHERE id = ?', [id])) as PlayerRecord
 }
 
-// ── GET / — return single player ────────────────────────────────────────────────
-
-playersRouter.get('/', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
-  const player = ensurePlayer(req.userId ?? 'legacy')
-  res.json(player)
+// GET / — the authenticated player
+playersRouter.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  res.json(await ensurePlayer(req.userId as string))
 })
 
-// ── POST / — upsert player name ──────────────────────────────────────────────────
-
-playersRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
-  const name = (req.body as { name?: unknown }).name
-  if (typeof name !== 'string' || name.trim().length === 0) {
-    res.status(400).json({ error: 'name is required' })
+// POST / — change the player's name
+playersRouter.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const name = (req.body as { name?: unknown } | undefined)?.name
+  if (typeof name !== 'string' || name.trim().length === 0 || name.length > 60) {
+    res.status(400).json({ error: 'name is required (max 60 characters)' })
     return
   }
-
-  const playerId = `player-${req.userId as string}`
-  db.prepare('UPDATE players SET name = ?, updated_at = datetime(\'now\') WHERE id = ?').run(name.trim(), playerId)
-
-  const updated = db
-    .prepare('SELECT * FROM players WHERE id = ?')
-    .get(playerId) as PlayerRecord
-
-  res.json(updated)
+  const player = await ensurePlayer(req.userId as string)
+  await run("UPDATE players SET name = ?, updated_at = datetime('now') WHERE id = ?", [name.trim(), player.id])
+  res.json(await one<PlayerRecord>('SELECT * FROM players WHERE id = ?', [player.id]))
 })
 
 export default playersRouter

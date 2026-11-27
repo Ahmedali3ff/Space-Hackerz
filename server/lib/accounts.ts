@@ -1,7 +1,7 @@
 // server/lib/accounts.ts
-// The single account store for both the Express routes and the /api/auth serverless function.
+// The single account store for both the Express routes and the /api/auth function.
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto'
-import { db } from '../db.js'
+import { batch, one } from '../db.js'
 import { signToken } from './token.js'
 
 export const EMAIL_RE = /^\S+@\S+\.\S+$/
@@ -30,11 +30,11 @@ export function verifyPassword(password: string, stored: string): boolean {
   } catch { return false }
 }
 
-function accountPayload(id: string): { id: string; player: unknown } {
-  return { id, player: db.prepare('SELECT * FROM players WHERE account_id = ?').get(id) }
+async function accountPayload(id: string): Promise<{ id: string; player: unknown }> {
+  return { id, player: await one('SELECT * FROM players WHERE account_id = ?', [id]) }
 }
 
-export function registerAccount(input: { email?: unknown; password?: unknown; name?: unknown }): AuthResult {
+export async function registerAccount(input: { email?: unknown; password?: unknown; name?: unknown }): Promise<AuthResult> {
   const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
   const password = typeof input.password === 'string' ? input.password : ''
   const name = typeof input.name === 'string' ? input.name.trim() : ''
@@ -46,24 +46,22 @@ export function registerAccount(input: { email?: unknown; password?: unknown; na
 
   const id = randomUUID()
   try {
-    db.transaction(() => {
-      db.prepare('INSERT INTO accounts (id, email, password_hash) VALUES (?, ?, ?)').run(id, email, hashPassword(password))
-      db.prepare('INSERT INTO players (id, account_id, name) VALUES (?, ?, ?)').run(`player-${id}`, id, name)
-    })()
+    await batch([
+      { sql: 'INSERT INTO accounts (id, email, password_hash) VALUES (?, ?, ?)', args: [id, email, hashPassword(password)] },
+      { sql: 'INSERT INTO players (id, account_id, name) VALUES (?, ?, ?)', args: [`player-${id}`, id, name] },
+    ])
   } catch {
     return { status: 409, body: { error: 'An account with this email already exists' } }
   }
-  return { status: 201, body: { token: signToken(id), account: accountPayload(id) } }
+  return { status: 201, body: { token: signToken(id), account: await accountPayload(id) } }
 }
 
-export function loginAccount(input: { email?: unknown; password?: unknown }): AuthResult {
+export async function loginAccount(input: { email?: unknown; password?: unknown }): Promise<AuthResult> {
   const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
   const password = typeof input.password === 'string' ? input.password : ''
-  const account = email
-    ? (db.prepare('SELECT id, password_hash FROM accounts WHERE email = ?').get(email) as { id: string; password_hash: string } | undefined)
-    : undefined
+  const account = email ? await one<{ id: string; password_hash: string }>('SELECT id, password_hash FROM accounts WHERE email = ?', [email]) : undefined
   if (!account || !verifyPassword(password, account.password_hash)) {
     return { status: 401, body: { error: 'Invalid email or password' } }
   }
-  return { status: 200, body: { token: signToken(account.id), account: accountPayload(account.id) } }
+  return { status: 200, body: { token: signToken(account.id), account: await accountPayload(account.id) } }
 }

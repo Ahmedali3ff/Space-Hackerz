@@ -13,14 +13,14 @@ function rateLimited(req: Request, res: Response): boolean {
   return true
 }
 
-authRouter.post('/register', (req: Request, res: Response): void => {
+authRouter.post('/register', async (req: Request, res: Response): Promise<void> => {
   if (rateLimited(req, res)) return
-  const result = registerAccount((req.body ?? {}) as Record<string, unknown>)
+  const result = await registerAccount((req.body ?? {}) as Record<string, unknown>)
   res.status(result.status).json(result.body)
 })
 
-authRouter.post('/login', (req: Request, res: Response): void => {
+authRouter.post('/login', async (req: Request, res: Response): Promise<void> => {
   if (rateLimited(req, res)) return
-  const result = loginAccount((req.body ?? {}) as Record<string, unknown>)
+  const result = await loginAccount((req.body ?? {}) as Record<string, unknown>)
   res.status(result.status).json(result.body)
 })
