@@ -27,14 +27,19 @@ interface Waypoint {
   readonly emoji: string
 }
 
+const STEP_X = 92
+const MAP_WIDTH = 120 + MISSIONS.length * STEP_X
+
+// One waypoint per campaign mission, with a gentle wave so the path reads as a journey.
 const WAYPOINTS: readonly Waypoint[] = [
-  { id: 'earth', label: 'Earth',  x: 60,  y: 130, emoji: '🌍' },
-  { id: 'm01',   label: 'M1',     x: 160, y: 90,  emoji: '🌕' },
-  { id: 'm02',   label: 'M2',     x: 270, y: 60,  emoji: '🌕' },
-  { id: 'm03',   label: 'M3',     x: 380, y: 80,  emoji: '🌕' },
-  { id: 'm04',   label: 'M4',     x: 500, y: 110, emoji: '🔴' },
-  { id: 'm05',   label: 'M5',     x: 620, y: 80,  emoji: '🔴' },
-  { id: 'm06',   label: 'M6',     x: 740, y: 100, emoji: '🔴' },
+  { id: 'earth', label: 'Earth', x: 60, y: 130, emoji: '🌍' },
+  ...MISSIONS.map((mission, index) => ({
+    id: mission.id,
+    label: `M${mission.number}`,
+    x: 60 + (index + 1) * STEP_X,
+    y: 130 + Math.round(Math.sin((index + 1) * 0.9) * 52),
+    emoji: mission.planet === 'moon' ? '🌕' : '🔴',
+  })),
 ]
 
 // ── Star rating ───────────────────────────────────────────────────────────────
@@ -210,8 +215,9 @@ export function StarMapScreen(_props: StarMapScreenProps): JSX.Element {
           {/* SVG Star Map */}
           <div className="w-full overflow-x-auto">
             <svg
-              viewBox="0 0 800 260"
-              className="w-full max-w-3xl mx-auto"
+              viewBox={`0 0 ${MAP_WIDTH} 260`}
+              style={{ minWidth: Math.min(MAP_WIDTH, 1200) }}
+              className="mx-auto"
               role="img"
               aria-label="Mission path from Earth through Moon and Mars missions"
             >

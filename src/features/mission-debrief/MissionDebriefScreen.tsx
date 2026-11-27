@@ -29,7 +29,7 @@ import { Card } from '@/components/common/Card'
 import { SectionLabel } from '@/components/common/SectionLabel'
 import { StarScore } from '@/components/common/StarScore'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
-import { getMissionById } from '@data/missions/mission-definitions'
+import { getNextMission } from '@data/missions/chapters'
 import { apiClient, AI_PROXY_URL } from '@/services/api-client'
 import {
   CHART_COLORS,
@@ -308,7 +308,7 @@ export function MissionDebriefScreen(): JSX.Element {
 
   // Find next mission
   const nextMission = currentMissionId
-    ? getMissionById(MISSIONS_AFTER[currentMissionId] ?? '')
+    ? getNextMission(currentMissionId ?? '')
     : undefined
 
   function handlePlayAgain(): void {
@@ -518,12 +518,3 @@ export function MissionDebriefScreen(): JSX.Element {
   )
 }
 
-// ── Mission unlock chain lookup ────────────────────────────────────────────────
-// Maps mission ID → next mission ID in the chain.
-const MISSIONS_AFTER: Readonly<Record<string, string>> = {
-  m01: 'm02',
-  m02: 'm03',
-  m03: 'm04',
-  m04: 'm05',
-  m05: 'm06',
-}

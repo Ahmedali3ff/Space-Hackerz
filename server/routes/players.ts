@@ -3,33 +3,13 @@ import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import type { PlayerRecord, XPResult } from '../types/api.types.js'
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
+import { getLevelForXP, MAX_XP_PER_AWARD } from '../lib/levels.js'
 
 export const playersRouter = Router()
 
 // ── Level thresholds (mirrors src/data/levels/level-definitions.ts) ────────────
-interface LevelDef {
-  level: number
-  title: string
-  minXP: number
-}
 
-const LEVEL_DEFS: readonly LevelDef[] = [
-  { level: 1, title: 'Space Cadet',    minXP: 0    },
-  { level: 2, title: 'Explorer',       minXP: 100  },
-  { level: 3, title: 'Star Explorer',  minXP: 300  },
-  { level: 4, title: 'Mission Expert', minXP: 600  },
-  { level: 5, title: 'Commander',      minXP: 1000 },
-  { level: 6, title: 'Admiral',        minXP: 1500 },
-]
 
-function getLevelForXP(xp: number): LevelDef {
-  // Walk backwards to find highest threshold not exceeding xp
-  for (let i = LEVEL_DEFS.length - 1; i >= 0; i--) {
-    const def = LEVEL_DEFS[i]
-    if (def !== undefined && xp >= def.minXP) return def
-  }
-  return LEVEL_DEFS[0] as LevelDef
-}
 
 // ── Ensure default player row exists ────────────────────────────────────────────
 
@@ -81,8 +61,8 @@ playersRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response):
 playersRouter.patch('/xp', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
   const amount = (req.body as { amount?: unknown }).amount
   // Largest legitimate award is 140 XP (3 stars on mission 8); cap prevents self-granting arbitrary XP.
-  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 0 || amount > 200) {
-    res.status(400).json({ error: 'amount must be an integer between 0 and 200' })
+  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 0 || amount > MAX_XP_PER_AWARD) {
+    res.status(400).json({ error: `amount must be an integer between 0 and ${MAX_XP_PER_AWARD}` })
     return
   }
 

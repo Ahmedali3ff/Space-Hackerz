@@ -41,7 +41,7 @@ export const useMissionOperationsStore = create<OperationState>()(persist((set, 
   applyAction: (actionId) => {
     const state = get(); const mission = state.activeLevelId ? getMissionOperation(state.activeLevelId) : undefined
     const action = mission?.actions.find((candidate) => candidate.id === actionId)
-    if (!mission || !action) return
+    if (!mission || !action || state.status !== 'active') return
     const sequence = mission.requiredSequence
     if (sequence) {
       const nextRequired = sequence[state.actionHistory.filter((id) => sequence.includes(id)).length]
@@ -62,13 +62,21 @@ export const useMissionOperationsStore = create<OperationState>()(persist((set, 
   },
   answerPuzzle: (puzzleId, option) => {
     const state = get(); const mission = state.activeLevelId ? getMissionOperation(state.activeLevelId) : undefined; const puzzle = mission?.puzzles.find((candidate) => candidate.id === puzzleId)
-    if (!puzzle || state.completedPuzzleIds.includes(puzzleId)) return
+    if (!puzzle || state.status !== 'active' || state.completedPuzzleIds.includes(puzzleId)) return
     const correct = option === puzzle.correctOption
     set({ completedPuzzleIds: [...state.completedPuzzleIds, puzzleId], failedPuzzleIds: correct ? state.failedPuzzleIds : [...state.failedPuzzleIds, puzzleId], score: Math.max(0, state.score + (correct ? puzzle.correctPoints : puzzle.wrongPoints)), decisionsMade: state.decisionsMade + 1, feedback: { message: correct ? puzzle.correctFeedback : `${puzzle.wrongFeedback} Restart the mission to try again.`, tone: correct ? 'positive' : 'negative' } })
   },
-  tick: (seconds = 1) => set((state) => { const remaining = Math.max(0, state.timeRemainingSeconds - seconds); const timedOut = remaining === 0 && state.status === 'active'; return { missionTimeSeconds: state.missionTimeSeconds + seconds, timeRemainingSeconds: remaining, status: timedOut ? 'lost' : state.status, lossCause: timedOut ? 'Mission timer expired' : state.lossCause, feedback: timedOut ? { message: 'MISSION FAILED — the 3 minute timer expired.', tone: 'negative' } : null } }),
+  tick: (seconds = 1) => set((state) => { if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 180 || state.status !== 'active') return {}; const remaining = Math.max(0, state.timeRemainingSeconds - seconds); const timedOut = remaining === 0 && state.status === 'active'; return { missionTimeSeconds: state.missionTimeSeconds + seconds, timeRemainingSeconds: remaining, status: timedOut ? 'lost' : state.status, lossCause: timedOut ? 'Mission timer expired' : state.lossCause, feedback: timedOut ? { message: 'MISSION FAILED — the 3 minute timer expired.', tone: 'negative' } : null } }),
   clearFeedback: () => set({ feedback: null }),
-  markWon: () => set({ status: 'won', feedback: { message: 'Mission complete — all objectives secured.', tone: 'positive' } }),
+  markWon: () => {
+    const state = get()
+    // Only an active mission whose objectives, puzzles and resources all pass can be won.
+    if (state.status !== 'active' || !state.activeLevelId || !operationCanComplete(state.activeLevelId, state)) {
+      set({ feedback: { message: 'Mission not complete yet — finish every objective and puzzle first.', tone: 'warning' } })
+      return
+    }
+    set({ status: 'won', feedback: { message: 'Mission complete — all objectives secured.', tone: 'positive' } })
+  },
   reset: () => set(emptyState),
 }), { name: 'space-hackerz-mission-operations-v2' }))
 

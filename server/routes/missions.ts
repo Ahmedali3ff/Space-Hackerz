@@ -6,6 +6,8 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 
 export const missionsRouter = Router()
 
+const MISSION_ID_RE = /^m(0[1-9]|1[0-9]|20)$/
+
 const VALID_STATUSES: readonly string[] = ['locked', 'active', 'completed']
 
 // ── GET /me — return all mission progress rows for the authenticated player ──────
@@ -28,8 +30,7 @@ missionsRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response)
 
   if (
     typeof missionId !== 'string' ||
-    missionId.length === 0 ||
-    missionId.length > 100 ||
+    !MISSION_ID_RE.test(missionId) ||
     typeof status !== 'string' ||
     !VALID_STATUSES.includes(status) ||
     typeof starsEarned !== 'number' ||

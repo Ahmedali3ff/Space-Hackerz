@@ -7,8 +7,8 @@ import { describe, it, expect } from 'vitest'
 import { MISSIONS, getMissionById } from '@data/missions/mission-definitions'
 
 describe('MISSIONS array', () => {
-  it('has 8 entries', () => {
-    expect(MISSIONS).toHaveLength(8)
+  it('has 20 entries', () => {
+    expect(MISSIONS).toHaveLength(20)
   })
 
   it('mission m01 has planet moon', () => {

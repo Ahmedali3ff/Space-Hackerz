@@ -27,7 +27,7 @@ scoresRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response): 
 
   if (
     typeof id !== 'string' ||
-    typeof missionId !== 'string' ||
+    typeof missionId !== 'string' || !/^m(0[1-9]|1[0-9]|20)$/.test(missionId) ||
     typeof planetId !== 'string' ||
     typeof crewSize !== 'number' ||
     typeof missionDurationDays !== 'number' ||

@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { LumiChat } from '@/components/lumi/LumiChat'
 import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
 import { LoadingScreen } from '@/components/common/LoadingScreen'
@@ -98,6 +99,7 @@ function RequireMissionStarted({ children }: { readonly children: ReactNode }): 
 
 export function AppRouter(): JSX.Element {
   return (
+    <>
     <Routes>
       <Route
         path="/"
@@ -257,5 +259,7 @@ export function AppRouter(): JSX.Element {
         }
       />
     </Routes>
+    <LumiChat />
+    </>
   )
 }

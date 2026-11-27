@@ -75,14 +75,14 @@ function renderScreen(): ReturnType<typeof render> {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('CampaignMapScreen', () => {
-  it('renders 8 mission nodes', () => {
+  it('renders 20 mission nodes', () => {
     renderScreen()
     // Each mission node has an aria-label of the form '{title} — {status}'
     // We can check by counting buttons with an aria-label pattern
     const missionButtons = screen.getAllByRole('button', {
       name: /—\s*(active|locked|completed)/i,
     })
-    expect(missionButtons).toHaveLength(8)
+    expect(missionButtons).toHaveLength(20)
   })
 
   it('active mission node is not disabled', () => {
