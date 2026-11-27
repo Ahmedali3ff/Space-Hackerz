@@ -22,6 +22,7 @@ import { useMissionControl } from '@/hooks/useMissionControl'
 import { useMissionStore } from '@store/mission-store'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 import { useAstroContext } from '@/hooks/useAstroContext'
+import { AiDebriefSection } from './AiDebriefSection'
 import { AstroAssistant } from '@ai/astro-assistant'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScreenTransition } from '@/components/layout/ScreenTransition'
@@ -368,6 +369,7 @@ export function MissionDebriefScreen(): JSX.Element {
             </div>
 
             {/* ── Section 2: Score Breakdown ─────────────────────────────── */}
+            <AiDebriefSection decisionLog={decisionLog} context={astroContext} />
             <section>
               <h2 className="text-xl font-semibold mb-4 text-spaceplus-text-heading">Score Breakdown</h2>
               <Card>

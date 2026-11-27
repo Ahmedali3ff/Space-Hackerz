@@ -11,6 +11,7 @@ import { Card } from '@/components/common/Card'
 import { AI_PROXY_URL } from '@/services/api-client'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
 import { MissionAnalysisSummary } from './MissionAnalysisSummary'
+import { AstroToolsSection } from './AstroToolsSection'
 
 interface AstroAIPanelProps {}
 
@@ -132,6 +133,8 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
       </div>
 
       <MissionAnalysisSummary context={context} />
+
+      <AstroToolsSection />
     </Card>
   )
 }
