@@ -143,9 +143,15 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
       },
 
       completeMission: (missionId: string, earnedStars: number): void => {
+        // XP actually granted by this call (0 for a replay that does not beat the best result).
+        let awardedXP = 0
+        let bestStars = earnedStars
         set((state) => {
           const existing = state.missions[missionId]
           if (!existing) return state
+          const alreadyCompleted = existing.status === 'completed'
+          // A replay can only improve the result, never lower it.
+          bestStars = alreadyCompleted ? Math.max(existing.earnedStars, earnedStars) : earnedStars
 
           // Mark this mission completed
           const updated: Record<string, MissionProgress> = {
@@ -153,8 +159,8 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
             [missionId]: {
               ...existing,
               status: 'completed' as MissionStatus,
-              earnedStars,
-              completedAt: new Date().toISOString(),
+              earnedStars: bestStars,
+              completedAt: alreadyCompleted ? existing.completedAt ?? new Date().toISOString() : new Date().toISOString(),
             },
           }
 
@@ -181,8 +187,10 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
           // Award XP for this mission
           const missionDef = MISSIONS.find((m) => m.id === missionId)
           const missionNumber = missionDef?.number ?? 1
-          const xpEarned = getXPForMission(earnedStars, missionNumber)
-          const newTotalXP = state.totalXP + xpEarned
+          // First clear grants full XP; a replay only grants the XP for newly gained stars (no XP farming).
+          const previousXP = alreadyCompleted ? getXPForMission(existing.earnedStars, missionNumber) : 0
+          awardedXP = Math.max(0, getXPForMission(bestStars, missionNumber) - previousXP)
+          const newTotalXP = state.totalXP + awardedXP
           const levelDef = getLevelForXP(newTotalXP)
 
           return {
@@ -195,25 +203,9 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
           }
         })
 
-        // Fire-and-forget: sync progress and XP to backend (app works without server)
-        const completedAt = new Date().toISOString()
-        const missionDef = MISSIONS.find((m) => m.id === missionId)
-        const missionNumber = missionDef?.number ?? 1
-        const xpEarned = getXPForMission(earnedStars, missionNumber)
-
-        apiClient
-          .saveMissionProgress({
-            playerId: `player-${get().accountId ?? 'legacy'}`,
-            missionId,
-            status: 'completed',
-            tasksComplete: [],
-            starsEarned: earnedStars,
-            completedAt,
-          })
-          .then(() => {})
-          .catch(() => {})
-
-        apiClient.addXP(xpEarned).then(() => {}).catch(() => {})
+        // Fire-and-forget: the server records the result and calculates the XP (the app still works offline)
+        // The server records the result and calculates the XP itself. The local XP above is only for instant feedback.
+        apiClient.completeMission(missionId, bestStars).then(() => {}).catch(() => {})
       },
 
       awardXP: (amount: number): void => {

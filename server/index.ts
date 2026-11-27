@@ -4,17 +4,23 @@ import playersRouter from './routes/players.js'
 import missionsRouter from './routes/missions.js'
 import scoresRouter from './routes/scores.js'
 import { authRouter } from './routes/auth.js'
+import { aiRouter } from './routes/ai.js'
 
 const app = express()
 const PORT = process.env['PORT'] ?? 3001
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:4173'] }))
-app.use(express.json())
+const ALLOWED_ORIGINS = (process.env['CORS_ORIGINS'] ?? 'http://localhost:5173,http://localhost:4173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean)
+app.use(cors({ origin: ALLOWED_ORIGINS }))
+app.use(express.json({ limit: '100kb' }))
 
 app.use('/api/auth', authRouter)
 app.use('/api/players', playersRouter)
 app.use('/api/missions', missionsRouter)
 app.use('/api/scores', scoresRouter)
+app.use('/api/ai', aiRouter)
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'Space+ API' }))
 

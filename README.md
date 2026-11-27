@@ -46,6 +46,16 @@ npm run build
 npm run preview
 ```
 
+### Optional backend (accounts, XP sync, leaderboard)
+
+```bash
+npm run dev:full   # frontend (5173) + API (3001)
+```
+
+Copy `.env.example` to `.env`. Optional server variables: `AI_API_KEY`, `AI_API_ENDPOINT`, `AI_MODEL`, `AUTH_SECRET`, `PORT`, `DB_PATH` (SQLite file), `CORS_ORIGINS` (comma-separated).
+
+> Security: any `VITE_*` variable is bundled into the browser, so the AI key lives server-side (`AI_API_KEY`) and the app calls the `/api/ai` proxy when `VITE_AI_PROXY=true`. Set `AUTH_SECRET` to a long random string in production so session tokens are valid across instances.
+
 ### Run Tests
 
 ```bash
@@ -120,7 +130,7 @@ See [docs/architecture.md](docs/architecture.md) for the full technical architec
 
 Key principles:
 - **Simulation engine is independent from React** — fully testable in Node.js
-- **No backend required** — local-first, all state in-browser
+- **Local-first** — the game works fully offline; the optional Express/SQLite backend (accounts, XP sync, leaderboard) adds cloud progress
 - **Scientific honesty** — no invented "NASA data", all assumptions documented
 - **Graceful AI degradation** — app works without an AI API key
 
@@ -128,7 +138,7 @@ Key principles:
 
 ## Known Limitations
 
-- **Local-only** — No multiplayer or collaborative missions (V1)
+- **Mostly local** — No multiplayer or collaborative missions (V1). On Vercel the API uses an ephemeral store, so accounts/leaderboard data may reset; use a hosted database for persistence
 - **2 planets** — Moon and Mars only (Earth and other destinations are out of scope for V1)
 - **No custom scripting** — Educators cannot create custom missions in V1
 - **WebGL required** — The Phaser 3 gameplay layer requires WebGL support (2D fallback is not yet implemented)

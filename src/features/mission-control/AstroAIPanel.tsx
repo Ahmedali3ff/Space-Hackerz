@@ -8,7 +8,10 @@ import { AstroAssistant } from '@ai/astro-assistant'
 import type { AstroResponse } from '@ai/schemas/astro-response.schema'
 import { useAstroContext } from '@/hooks/useAstroContext'
 import { Card } from '@/components/common/Card'
+import { AI_PROXY_URL } from '@/services/api-client'
 import { PrimaryButton } from '@/components/common/PrimaryButton'
+import { MissionAnalysisSummary } from './MissionAnalysisSummary'
+import { AstroToolsSection } from './AstroToolsSection'
 
 interface AstroAIPanelProps {}
 
@@ -17,9 +20,7 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
   const assistant = useMemo(
     () =>
       new AstroAssistant({
-        apiKey: import.meta.env.VITE_AI_API_KEY as string | undefined,
-        apiEndpoint: import.meta.env.VITE_AI_API_ENDPOINT as string | undefined,
-        model: import.meta.env.VITE_AI_MODEL as string | undefined,
+        proxyUrl: AI_PROXY_URL,
       }),
     [],
   )
@@ -130,6 +131,10 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
           </p>
         ) : null}
       </div>
+
+      <MissionAnalysisSummary context={context} />
+
+      <AstroToolsSection />
     </Card>
   )
 }

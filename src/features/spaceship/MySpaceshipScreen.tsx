@@ -161,7 +161,7 @@ export function MySpaceshipScreen(_props: MySpaceshipScreenProps): JSX.Element {
                 <h2 className="font-extrabold text-2xl text-[#1A1D2E] truncate">{displayName}</h2>
                 <div className="inline-flex items-center gap-2 mt-1">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E8FAF9] text-[#1FC8C0] text-xs font-bold">
-                    Level {currentLevel} · {commanderTitle}
+                    Level {currentLevel} / {LEVELS.length} · {commanderTitle}
                   </span>
                 </div>
                 <p className="text-xs text-[#6B7280] mt-1">{totalXP} XP total</p>
