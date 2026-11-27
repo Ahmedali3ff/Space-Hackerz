@@ -3,6 +3,7 @@ import type { Request, Response } from 'express'
 import { db } from '../db.js'
 import type { MissionProgressRecord, MissionProgressPayload } from '../types/api.types.js'
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
+import { completeMission } from '../lib/rewards.js'
 
 export const missionsRouter = Router()
 
@@ -64,6 +65,13 @@ missionsRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response)
   `).run(starResult.total, playerId)
 
   res.json({ ok: true, totalStars: starResult.total })
+})
+
+
+// POST /complete — the server calculates the XP reward; the client only reports the mission and stars
+missionsRouter.post('/complete', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
+  const result = completeMission(req.userId as string, (req.body ?? {}) as Record<string, unknown>)
+  res.status(result.status).json(result.body)
 })
 
 export default missionsRouter

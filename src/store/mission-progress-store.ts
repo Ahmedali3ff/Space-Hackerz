@@ -203,20 +203,9 @@ export const useMissionProgressStore = create<MissionProgressStore>()(
           }
         })
 
-        // Fire-and-forget: sync progress and XP to backend (app works without server)
-        const completedAt = new Date().toISOString()
-        apiClient
-          .saveMissionProgress({
-            missionId,
-            status: 'completed',
-            tasksComplete: [],
-            starsEarned: bestStars,
-            completedAt,
-          })
-          .then(() => {})
-          .catch(() => {})
-
-        if (awardedXP > 0) apiClient.addXP(awardedXP).then(() => {}).catch(() => {})
+        // Fire-and-forget: the server records the result and calculates the XP (the app still works offline)
+        // The server records the result and calculates the XP itself. The local XP above is only for instant feedback.
+        apiClient.completeMission(missionId, bestStars).then(() => {}).catch(() => {})
       },
 
       awardXP: (amount: number): void => {

@@ -56,34 +56,4 @@ playersRouter.post('/', requireAuth, (req: AuthenticatedRequest, res: Response):
   res.json(updated)
 })
 
-// ── PATCH /xp — add XP and recompute level ───────────────────────────────────────
-
-playersRouter.patch('/xp', requireAuth, (req: AuthenticatedRequest, res: Response): void => {
-  const amount = (req.body as { amount?: unknown }).amount
-  // Largest legitimate award is 140 XP (3 stars on mission 8); cap prevents self-granting arbitrary XP.
-  if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 0 || amount > MAX_XP_PER_AWARD) {
-    res.status(400).json({ error: `amount must be an integer between 0 and ${MAX_XP_PER_AWARD}` })
-    return
-  }
-
-  const player = ensurePlayer(req.userId ?? 'legacy')
-  const prevLevel = player.current_level
-  const newXP = player.total_xp + amount
-  const levelDef = getLevelForXP(newXP)
-
-  db.prepare(`
-    UPDATE players
-    SET total_xp = ?, current_level = ?, commander_title = ?, updated_at = datetime('now')
-    WHERE id = ?
-  `).run(newXP, levelDef.level, levelDef.title, player.id)
-
-  const result: XPResult = {
-    newXP,
-    newLevel: levelDef.level,
-    leveledUp: levelDef.level > prevLevel,
-    newTitle: levelDef.title,
-  }
-  res.json(result)
-})
-
 export default playersRouter

@@ -16,3 +16,14 @@ describe('server rank table', () => {
     expect(Math.max(...MISSIONS.map((m) => getXPForMission(3, m.number)))).toBeLessThanOrEqual(MAX_XP_PER_AWARD)
   })
 })
+
+import { xpForMission } from '../../../server/lib/rewards'
+import { getXPForMission as clientXP } from '@data/levels/level-definitions'
+
+describe('server reward formula', () => {
+  it('matches the client XP formula for every star count and mission', () => {
+    for (let stars = 0; stars <= 3; stars++) {
+      for (let n = 1; n <= 20; n++) expect(xpForMission(stars, n)).toBe(clientXP(stars, n))
+    }
+  })
+})

@@ -115,11 +115,9 @@ export const apiClient = {
       body: JSON.stringify({ name }),
     }),
 
-  addXP: (amount: number): Promise<XPResult | null> =>
-    apiFetch<XPResult>('/api/players/xp', {
-      method: 'PATCH',
-      body: JSON.stringify({ amount }),
-    }),
+  /** The server calculates the XP for the mission; the client only reports the mission and stars. */
+  completeMission: (missionId: string, starsEarned: number): Promise<{ awardedXP: number; totalXP: number; level: number; title: string; starsEarned: number } | null> =>
+    apiFetch('/api/missions/complete', { method: 'POST', body: JSON.stringify({ missionId, starsEarned }) }),
 
   saveMissionProgress: (data: MissionProgressPayload): Promise<unknown> =>
     apiFetch('/api/missions', {
