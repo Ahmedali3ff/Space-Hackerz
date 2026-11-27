@@ -1,5 +1,5 @@
 // src/data/missions/mission-definitions.ts
-// Defines the 8-mission progression arc for ASTRA — Mission Control Academy.
+// Defines the 20-mission progression arc for ASTRA — Mission Control Academy.
 // Moon missions (m01–m03, m07) and Mars missions (m04–m06, m08) form one
 // continuous story: Level → Learn → Play → Decision → Consequence → Next Level.
 // NO React, Zustand, or Phaser imports in this file.
@@ -238,7 +238,7 @@ const MISSION_04: MissionDefinition = {
       rule: 'resolve_1_event',
     },
   ],
-  unlockRequirement: 'm02',
+  unlockRequirement: 'm03',
 }
 
 const MISSION_05: MissionDefinition = {
@@ -421,6 +421,133 @@ const MISSION_08: MissionDefinition = {
   unlockRequirement: 'm07',
 }
 
+
+// ── Levels 9–20 ──────────────────────────────────────────────────────────────
+
+type TaskSpec = readonly [label: string, description: string, rule: MissionTaskRule]
+
+interface MissionSpec {
+  readonly n: number
+  readonly title: string
+  readonly kind: string
+  readonly planet: 'moon' | 'mars'
+  readonly duration: 30 | 60 | 90
+  readonly difficulty: 'intermediate' | 'advanced'
+  readonly label: string
+  readonly concept: string
+  readonly intro: string
+  readonly outro: string
+  readonly description: string
+  readonly objectives: readonly string[]
+  readonly badge: string
+  readonly stars: number
+  readonly tasks: readonly TaskSpec[]
+}
+
+function buildMission(spec: MissionSpec): MissionDefinition {
+  const num = String(spec.n).padStart(2, '0')
+  return {
+    id: `m${num}`,
+    number: spec.n,
+    title: spec.title,
+    subtitle: `${spec.kind} — ${spec.label}`,
+    planet: spec.planet,
+    duration: spec.duration,
+    difficulty: spec.difficulty,
+    levelId: `level-${spec.n}`,
+    bgTheme: spec.planet,
+    conceptTaught: spec.concept,
+    difficultyLabel: spec.label,
+    storyIntro: spec.intro,
+    storyOutro: spec.outro,
+    description: spec.description,
+    objectives: spec.objectives,
+    rewards: { stars: spec.stars, badge: spec.badge },
+    tasks: spec.tasks.map(([label, description, rule], i) => ({
+      id: `m${num}-t${String(i + 1).padStart(2, '0')}`,
+      label,
+      description,
+      rule,
+    })),
+    unlockRequirement: `m${String(spec.n - 1).padStart(2, '0')}`,
+  }
+}
+
+const S30: TaskSpec = ['Survive 30 Days', 'Keep the crew alive for 30 days.', 'survive_30_days']
+const S60: TaskSpec = ['Survive 60 Days', 'Keep the crew alive for 60 days.', 'survive_60_days']
+const S90: TaskSpec = ['Survive 90 Days', 'Keep the crew alive for 90 days.', 'survive_90_days']
+const OXY: TaskSpec = ['Protect Oxygen Reserves', 'Keep oxygen above 50% of starting levels.', 'keep_oxygen_50pct']
+const CRIT: TaskSpec = ['Stay Above Critical', 'Keep all resources out of the critical zone.', 'keep_resources_above_critical']
+const SC500: TaskSpec = ['Score 500+', 'Earn a final score of 500 or higher.', 'score_500']
+const E1: TaskSpec = ['Resolve 1 Event', 'Handle one unexpected event.', 'resolve_1_event']
+const E2: TaskSpec = ['Resolve 2 Events', 'Handle two unexpected events.', 'resolve_2_events']
+const E3: TaskSpec = ['Resolve 3 Events', 'Handle three unexpected events.', 'resolve_3_events']
+
+const EXTENDED_MISSION_SPECS: readonly MissionSpec[] = [
+  { n: 9, title: 'Polar Ice Prospecting', kind: 'Lunar Resources', planet: 'moon', duration: 60, difficulty: 'intermediate', label: 'Specialist', concept: 'Water Ice and In-Situ Resources',
+    intro: 'Permanently shadowed craters near the lunar south pole hold water ice. Your crew must mine it and turn it into drinking water and oxygen.',
+    outro: 'Ice from the crater is now drinking water and breathable air. Every litre made on the Moon is one that never has to be launched from Earth.',
+    description: 'Survey a shadowed crater, extract ice and purify it while keeping the habitat running.',
+    objectives: ['Keep oxygen above 50% while you mine', 'Survive 30 days', 'Resolve two events during extraction'], badge: 'Ice Prospector', stars: 3, tasks: [OXY, S30, E2] },
+  { n: 10, title: 'Martian Greenhouse', kind: 'Mars Agriculture', planet: 'mars', duration: 60, difficulty: 'intermediate', label: 'Specialist', concept: 'Closed-Loop Food Production',
+    intro: 'Resupply from Earth takes months. The crew must grow its own food under glass while Mars keeps trying to freeze the plants.',
+    outro: 'Green leaves under a red sky. The greenhouse is feeding the crew and recycling their air at the same time.',
+    description: 'Run a pressurised greenhouse: balance light, water and CO2 so crops survive the Martian cold.',
+    objectives: ['Survive 30 sols', 'Keep every resource above its alarm level', 'Resolve one greenhouse event'], badge: 'Greenhouse Keeper', stars: 3, tasks: [S30, CRIT, E1] },
+  { n: 11, title: 'Solar Storm Shelter', kind: 'Space Weather', planet: 'moon', duration: 30, difficulty: 'intermediate', label: 'Specialist', concept: 'Radiation Shielding',
+    intro: 'A solar particle event is heading for the Moon. With no atmosphere or magnetic field, the crew has hours to reach shelter.',
+    outro: 'The storm passed and the dose stayed low. Shelter, shielding and time are the three tools of radiation safety.',
+    description: 'Get the crew into the storm shelter, reconfigure the habitat and ride out a radiation spike.',
+    objectives: ['Survive 30 days', 'Resolve the radiation event', 'Keep resources above critical levels'], badge: 'Storm Warden', stars: 3, tasks: [S30, E1, CRIT] },
+  { n: 12, title: 'Rover Expedition', kind: 'Surface Exploration', planet: 'mars', duration: 60, difficulty: 'intermediate', label: 'Specialist', concept: 'EVA Planning and Margins',
+    intro: 'Scientists want rock samples from a canyon 40 km away. Plan the route, check the suits, and be back before the oxygen runs out.',
+    outro: 'Samples secured and the whole crew back inside. Good EVA planning is mostly about margins.',
+    description: 'Plan and run a long rover excursion with strict oxygen and power margins.',
+    objectives: ['Survive 30 sols', 'Keep oxygen above 50%', 'Resolve two events on the road'], badge: 'Trailblazer', stars: 3, tasks: [S30, E2, OXY] },
+  { n: 13, title: 'Far Side Blackout', kind: 'Communications', planet: 'moon', duration: 60, difficulty: 'advanced', label: 'Expert', concept: 'Communication Relays',
+    intro: 'On the far side of the Moon, radio waves cannot reach Earth. When the relay fails, the crew is on its own.',
+    outro: 'The link is back. Without a relay in orbit the far side is silent, so redundancy is not optional.',
+    description: 'Restore the relay link while managing the habitat without help from Mission Control.',
+    objectives: ['Survive 60 days', 'Resolve two events without Earth support', 'Reach a score of 500'], badge: 'Signal Keeper', stars: 4, tasks: [S60, E2, SC500] },
+  { n: 14, title: 'Regolith Processing', kind: 'Mars Chemistry', planet: 'mars', duration: 60, difficulty: 'advanced', label: 'Expert', concept: 'Toxic Soil and Perchlorates',
+    intro: 'Martian soil contains perchlorates that are toxic to humans and plants. Before it becomes farmland, it has to be washed.',
+    outro: 'The soil is clean and the beds are planted. Chemistry turned a hazard into a harvest.',
+    description: 'Process toxic regolith safely and feed the greenhouse without contaminating the habitat.',
+    objectives: ['Survive 60 sols', 'Keep resources above critical levels', 'Resolve two contamination events'], badge: 'Soil Chemist', stars: 4, tasks: [S60, CRIT, E2] },
+  { n: 15, title: 'Hull Breach', kind: 'Habitat Emergency', planet: 'moon', duration: 30, difficulty: 'advanced', label: 'Expert', concept: 'Pressure Loss Response',
+    intro: 'A micrometeoroid has punched through the hull. Air is leaking and the crew has minutes, not hours.',
+    outro: 'Sealed, repressurised and verified. In a breach, isolating the damaged module comes before everything else.',
+    description: 'Isolate the leaking module, patch the hull and bring the habitat back to full pressure.',
+    objectives: ['Keep oxygen above 50%', 'Resolve the breach event', 'Survive 30 days'], badge: 'Breach Responder', stars: 4, tasks: [OXY, E1, S30] },
+  { n: 16, title: 'Propellant Depot', kind: 'Mars Industry', planet: 'mars', duration: 90, difficulty: 'advanced', label: 'Expert', concept: 'Making Fuel from Martian CO2',
+    intro: 'The ride home needs fuel, and Mars has the ingredients: carbon dioxide in the air and water in the ground.',
+    outro: 'The tanks are filling. Making methane on Mars turns a one-way trip into a round trip.',
+    description: 'Build a propellant depot using the Sabatier reaction while keeping the crew supplied.',
+    objectives: ['Survive 60 sols', 'Reach a score of 500', 'Resolve three events'], badge: 'Fuel Maker', stars: 4, tasks: [S60, SC500, E3] },
+  { n: 17, title: 'Global Dust Storm', kind: 'Mars Survival', planet: 'mars', duration: 90, difficulty: 'advanced', label: 'Master', concept: 'Power Budgeting Under Blackout',
+    intro: 'A planet-wide dust storm has blotted out the Sun. Solar panels are producing almost nothing and the storm could last for weeks.',
+    outro: 'The sky is clearing. You rationed power like a commander and the crew never lost life support.',
+    description: 'Survive weeks of near-zero solar power by cutting loads and protecting life support first.',
+    objectives: ['Survive 90 sols', 'Use an emergency ration if needed', 'Keep resources above critical levels'], badge: 'Storm Survivor', stars: 5,
+    tasks: [S90, ['Use Emergency Rations', 'Use an emergency ration to stretch supplies.', 'use_emergency_ration'], CRIT] },
+  { n: 18, title: 'The Long Lunar Night', kind: 'Lunar Survival', planet: 'moon', duration: 90, difficulty: 'advanced', label: 'Master', concept: 'Surviving 14 Days of Darkness',
+    intro: 'For two weeks the Sun will not rise. Temperatures plunge, solar power is gone and batteries are all you have.',
+    outro: 'Dawn breaks over the ridge. You carried the crew through the longest night in the Solar System.',
+    description: 'Endure a full lunar night on stored energy, heaters and careful power discipline.',
+    objectives: ['Survive the lunar night', 'Keep oxygen above 50%', 'Reach a score of 500'], badge: 'Night Walker', stars: 5,
+    tasks: [['Survive the Lunar Night', 'Make it through the full lunar night.', 'survive_lunar_night'], OXY, SC500] },
+  { n: 19, title: 'Medical Emergency', kind: 'Crew Health', planet: 'mars', duration: 90, difficulty: 'advanced', label: 'Master', concept: 'Remote Medicine',
+    intro: 'A crew member is injured and Earth is twenty light-minutes away. Help will not come from Mission Control. You are the help.',
+    outro: 'Your crewmate is stable and recovering. Autonomy is the real test of a deep-space mission.',
+    description: 'Treat an injured astronaut with limited supplies while the base keeps running.',
+    objectives: ['Survive 90 sols', 'Resolve three events', 'Keep resources above critical levels'], badge: 'Crew Guardian', stars: 5, tasks: [S90, E3, CRIT] },
+  { n: 20, title: "Commander's Final Trial", kind: 'Legend Challenge', planet: 'mars', duration: 90, difficulty: 'advanced', label: 'Legend', concept: 'Everything, All at Once',
+    intro: 'Dust storm, failing power, a sick crewmate and a closing launch window. This is the mission every commander is measured against.',
+    outro: 'ASTRA has never seen anything like it. You are a Legend of Mission Control.',
+    description: 'The ultimate test: a cascade of failures that needs every skill you have learned across 19 missions.',
+    objectives: ['Survive 90 sols', 'Reach a score of 500', 'Resolve three events', 'Keep resources above critical levels'], badge: 'ASTRA Legend', stars: 5, tasks: [S90, SC500, E3, CRIT] },
+]
+
 // ── Public exports ────────────────────────────────────────────────────────────
 
 export const MISSIONS: readonly MissionDefinition[] = [
@@ -432,6 +559,7 @@ export const MISSIONS: readonly MissionDefinition[] = [
   MISSION_06,
   MISSION_07,
   MISSION_08,
+  ...EXTENDED_MISSION_SPECS.map(buildMission),
 ]
 
 export function getMissionById(id: string): MissionDefinition | undefined {

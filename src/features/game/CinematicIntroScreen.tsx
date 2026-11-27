@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getMissionById } from '@data/missions/mission-definitions'
+import { getMissionById, MISSIONS } from '@data/missions/mission-definitions'
 import { useMissionStore } from '@store/mission-store'
 import { useMissionProgressStore } from '@store/mission-progress-store'
 
@@ -108,7 +108,7 @@ export function CinematicIntroScreen(_props: CinematicIntroScreenProps): JSX.Ele
       {/* Mission number badge */}
       <div className="relative z-10 mb-3">
         <span className="text-xs uppercase tracking-widest text-[#F5A623] font-bold">
-          Mission {mission.number} of 8
+          Mission {mission.number} of {MISSIONS.length}
         </span>
       </div>
 
