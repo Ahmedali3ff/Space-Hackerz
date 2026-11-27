@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { LumiChat } from '@/components/lumi/LumiChat'
+// Lumi loads on demand, so it adds nothing to the first screen of the game.
+const LumiChat = React.lazy(() => import('@/components/lumi/LumiChat').then((m) => ({ default: m.LumiChat })))
 import type { ReactNode } from 'react'
 import { useMissionStore } from '@store/mission-store'
 import { LoadingScreen } from '@/components/common/LoadingScreen'
@@ -259,7 +260,9 @@ export function AppRouter(): JSX.Element {
         }
       />
     </Routes>
-    <LumiChat />
+    <Suspense fallback={null}>
+      <LumiChat />
+    </Suspense>
     </>
   )
 }
