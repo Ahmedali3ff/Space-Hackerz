@@ -55,11 +55,11 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display2 text-lg font-semibold text-[#1A1D2E]">Astro-AI</h2>
-          <p className="text-xs text-[#9CA3AF]">Your mission co-pilot</p>
+          <h2 className="font-display2 text-lg font-semibold astro-text">Astro-AI</h2>
+          <p className="text-xs astro-muted">Your mission co-pilot</p>
         </div>
         {isOffline ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#FEF3C7] px-2.5 py-1 text-[10px] font-semibold text-[#F59E0B]">
+          <span className="inline-flex items-center gap-1 rounded-full astro-warn-chip px-2.5 py-1 text-[10px] font-semibold">
             📡 Offline mode — using knowledge base
           </span>
         ) : null}
@@ -73,27 +73,27 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
         className="flex flex-col gap-3 max-h-64 overflow-y-auto"
       >
         {messages.length === 0 && !isLoading ? (
-          <p className="text-sm text-[#9CA3AF]">Ask me anything about your mission!</p>
+          <p className="text-sm astro-muted">Ask me anything about your mission!</p>
         ) : null}
 
         {messages.map((msg, i) => (
           <div
             key={i}
-            className="flex flex-col gap-2 rounded-xl bg-[#E8FAF9] border border-[#1FC8C0]/20 p-3"
+            className="flex flex-col gap-2 rounded-xl astro-tint astro-border border p-3"
           >
             {/* Explanation — dark body text */}
-            <p className="text-sm leading-relaxed text-[#1A1D2E]">{msg.explanation}</p>
+            <p className="text-sm leading-relaxed astro-text">{msg.explanation}</p>
 
             {/* Science fact — italic gray with prefix */}
             {msg.scienceFact !== undefined ? (
-              <p className="text-xs italic text-[#6B7280]">
+              <p className="text-xs italic astro-muted">
                 🔬 Science fact: {msg.scienceFact}
               </p>
             ) : null}
 
             {/* Suggestion — teal text with arrow prefix */}
             {msg.suggestion !== undefined ? (
-              <p className="text-xs font-semibold text-[#1FC8C0]">
+              <p className="text-xs font-semibold astro-accent-text">
                 → Try this: {msg.suggestion}
               </p>
             ) : null}
@@ -103,11 +103,11 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
         {/* Loading state — teal pulsing dot + text */}
         {isLoading ? (
           <div
-            className="flex items-center gap-2 text-sm text-[#1FC8C0]"
+            className="flex items-center gap-2 text-sm astro-accent-text"
             aria-label="Astro is thinking"
           >
             <span
-              className="inline-block w-2 h-2 rounded-full bg-[#1FC8C0] animate-pulse"
+              className="inline-block w-2 h-2 rounded-full astro-accent-bg animate-pulse"
               aria-hidden="true"
             />
             <span>Astro is thinking...</span>
@@ -127,13 +127,13 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
           {buttonLabel}
         </PrimaryButton>
         {context === null ? (
-          <p className="mt-1 text-xs text-[#9CA3AF] text-center">
+          <p className="mt-1 text-xs astro-muted text-center">
             Start your mission to consult Astro-AI.
           </p>
         ) : null}
       </div>
 
-      <Link to="/astro" className="text-sm font-semibold text-[#0E7490] underline underline-offset-2">Open the Astro-AI command centre</Link>
+      <Link to="/astro" className="text-sm font-semibold astro-link underline underline-offset-2">Open the Astro-AI command centre</Link>
 
       <MissionAnalysisSummary context={context} />
 

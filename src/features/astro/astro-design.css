@@ -1,0 +1,77 @@
+/* Astro-AI design system.
+   Colours live in one place as CSS variables. Components use the semantic classes below,
+   never raw colour values. The default theme is light, which is how Astro-AI appears inside
+   the game panels; the command centre opts into the dark theme with `astro-theme astro-dark`. */
+
+:root,
+.astro-theme {
+  --astro-page: #f4f7fb;
+  --astro-surface: #ffffff;
+  --astro-text: #1a1d2e;
+  --astro-text-2: #374151;
+  --astro-muted: #606776;
+  --astro-border: #e5e7eb;
+  --astro-track: #e5e7eb;
+  --astro-hover: #e8fafa;
+  --astro-accent: #1fc8c0;
+  --astro-on-accent: #0b1224;
+  --astro-link: #0e7490;
+  --astro-focus: #1fc8c0;
+  --astro-ok: #15803d;
+  --astro-warn: #b45309;
+  --astro-critical: #b91c1c;
+}
+
+.astro-theme.astro-dark {
+  --astro-page: #0b1224;
+  --astro-surface: #121c33;
+  --astro-text: #e8eef7;
+  --astro-text-2: #c9d6e6;
+  --astro-muted: #9fb3c8;
+  --astro-border: rgba(125, 231, 242, 0.18);
+  --astro-track: rgba(159, 179, 200, 0.22);
+  --astro-hover: rgba(34, 229, 221, 0.08);
+  --astro-accent: #22e5dd;
+  --astro-on-accent: #0b1224;
+  --astro-link: #7de7f2;
+  --astro-focus: #22e5dd;
+  --astro-ok: #4ade80;
+  --astro-warn: #fbbf24;
+  --astro-critical: #f87171;
+}
+
+.astro-page { background-color: var(--astro-page); color: var(--astro-text); }
+.astro-surface { background-color: var(--astro-surface); }
+.astro-text { color: var(--astro-text); }
+.astro-text-2 { color: var(--astro-text-2); }
+.astro-muted { color: var(--astro-muted); }
+.astro-border { border-color: var(--astro-border); }
+.astro-track { background-color: var(--astro-track); }
+.astro-hover:hover { background-color: var(--astro-hover); }
+.astro-accent-bg { background-color: var(--astro-accent); color: var(--astro-on-accent); }
+.astro-link { color: var(--astro-link); }
+.astro-ok { color: var(--astro-ok); }
+.astro-warn { color: var(--astro-warn); }
+.astro-critical { color: var(--astro-critical); }
+.astro-accent-text { color: var(--astro-accent); }
+.astro-accent-input { accent-color: var(--astro-accent); }
+.astro-tint { background-color: var(--astro-hover); }
+.astro-warn-chip {
+  background-color: color-mix(in srgb, var(--astro-warn) 18%, transparent);
+  color: var(--astro-warn);
+}
+
+.astro-focus:focus-visible,
+.astro-theme :focus-visible {
+  outline: 2px solid var(--astro-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astro-theme *,
+  .astro-theme *::before,
+  .astro-theme *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
