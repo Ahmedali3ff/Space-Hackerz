@@ -4,6 +4,7 @@
 // Single "A little hint, Astro?" button — becomes "Ask another hint" after first response.
 
 import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { AstroAssistant } from '@ai/astro-assistant'
 import type { AstroResponse } from '@ai/schemas/astro-response.schema'
 import { useAstroContext } from '@/hooks/useAstroContext'
@@ -131,6 +132,8 @@ export function AstroAIPanel(_props: AstroAIPanelProps): JSX.Element {
           </p>
         ) : null}
       </div>
+
+      <Link to="/astro" className="text-sm font-semibold text-[#0E7490] underline underline-offset-2">Open the Astro-AI command centre</Link>
 
       <MissionAnalysisSummary context={context} />
 

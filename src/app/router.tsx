@@ -1,5 +1,7 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+// Astro-AI command centre
+const AstroDashboardScreen = React.lazy(() => import('@/features/astro/AstroDashboardScreen').then((m) => ({ default: m.AstroDashboardScreen })))
 // Lumi loads on demand, so it adds nothing to the first screen of the game.
 const LumiChat = React.lazy(() => import('@/components/lumi/LumiChat').then((m) => ({ default: m.LumiChat })))
 import type { ReactNode } from 'react'
@@ -176,6 +178,14 @@ export function AppRouter(): JSX.Element {
               </Suspense>
             </RequireMission>
           </RequireSetup>
+        }
+      />
+      <Route
+        path="/astro"
+        element={
+          <Suspense fallback={<LoadingScreen />}>
+            <AstroDashboardScreen />
+          </Suspense>
         }
       />
       <Route
