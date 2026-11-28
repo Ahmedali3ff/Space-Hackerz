@@ -2,14 +2,9 @@
 // Shows the deterministic mission analysis inside Astro-AI. Read-only: it never changes the mission.
 import { useMemo } from 'react'
 import { analyzeMission } from '@/ai/analysis'
-import type { RiskLevel } from '@/ai/analysis'
 import type { SimulationContext } from '@/ai/simulation-context'
+import { RISK_STYLE } from '@/features/astro/shared'
 
-const RISK_TEXT: Readonly<Record<RiskLevel, { label: string; icon: string; tone: string }>> = {
-  stable: { label: 'Stable', icon: '✓', tone: 'text-[#16A34A]' },
-  low: { label: 'Low — needs attention', icon: '!', tone: 'text-[#F59E0B]' },
-  critical: { label: 'Critical', icon: '✕', tone: 'text-[#DC2626]' },
-}
 
 interface Props {
   readonly context: SimulationContext | null
@@ -20,7 +15,7 @@ export function MissionAnalysisSummary({ context }: Props): JSX.Element | null {
   if (analysis === null) {
     return <p className="text-xs text-[#9CA3AF]">Mission analysis appears once a mission is running.</p>
   }
-  const risk = RISK_TEXT[analysis.overallRisk]
+  const risk = RISK_STYLE[analysis.overallRisk]
 
   return (
     <section aria-label="Mission analysis" className="flex flex-col gap-3 border-t border-[#1FC8C0]/20 pt-3">

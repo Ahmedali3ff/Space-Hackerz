@@ -7,6 +7,7 @@ import { authRouter } from './routes/auth.js'
 import { aiRouter } from './routes/ai.js'
 
 const app = express()
+app.disable('x-powered-by')
 const PORT = process.env['PORT'] ?? 3001
 
 const ALLOWED_ORIGINS = (process.env['CORS_ORIGINS'] ?? 'http://localhost:5173,http://localhost:4173')
