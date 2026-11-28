@@ -18,33 +18,33 @@ export function LearningSection(): JSX.Element {
 
   return (
     <section aria-label="Personalised learning" className="flex flex-col gap-4">
-      <div className="rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-[#1A1D2E]">Your progress</h2>
+      <div className="rounded-2xl astro-surface p-4 shadow-sm">
+        <h2 className="text-base font-semibold astro-text">Your progress</h2>
         {rate === null ? (
-          <p className="mt-2 text-sm text-[#6B7280]">Finish a mission to start tracking your decisions.</p>
+          <p className="mt-2 text-sm astro-muted">Finish a mission to start tracking your decisions.</p>
         ) : (
           <>
-            <p className="mt-2 text-sm text-[#1A1D2E]">Optimal decisions: <span className="font-bold tabular-nums">{rate}%</span> across {profile.decisions} decisions.</p>
-            <div role="progressbar" aria-label="Optimal decision rate" aria-valuemin={0} aria-valuemax={100} aria-valuenow={rate} className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
-              <div className="h-full rounded-full bg-[#1FC8C0]" style={{ width: `${rate}%` }} />
+            <p className="mt-2 text-sm astro-text">Optimal decisions: <span className="font-bold tabular-nums">{rate}%</span> across {profile.decisions} decisions.</p>
+            <div role="progressbar" aria-label="Optimal decision rate" aria-valuemin={0} aria-valuemax={100} aria-valuenow={rate} className="mt-2 h-2 w-full overflow-hidden rounded-full astro-track">
+              <div className="h-full rounded-full astro-accent-bg" style={{ width: `${rate}%` }} />
             </div>
           </>
         )}
       </div>
 
-      <div className="rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-[#1A1D2E]">Repeated mistakes</h2>
+      <div className="rounded-2xl astro-surface p-4 shadow-sm">
+        <h2 className="text-base font-semibold astro-text">Repeated mistakes</h2>
         {weak.length === 0 ? (
-          <p className="mt-2 text-sm text-[#16A34A]">No repeated mistakes yet.</p>
+          <p className="mt-2 text-sm astro-ok">No repeated mistakes yet.</p>
         ) : (
-          <ul className="mt-2 flex flex-col gap-1 text-sm text-[#1A1D2E]">
+          <ul className="mt-2 flex flex-col gap-1 text-sm astro-text">
             {weak.map((r) => <li key={r}>{LABEL[r]}: {profile.mistakes[r]} similar mistakes</li>)}
           </ul>
         )}
       </div>
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-[#1A1D2E]">Practice</h2>
+        <h2 className="text-base font-semibold astro-text">Practice</h2>
         {practice.map((q) => <PracticeCard key={q.question} question={q} />)}
       </div>
     </section>
@@ -57,18 +57,18 @@ function PracticeCard({ question }: { readonly question: PracticeItem }): JSX.El
   const correct = choice === question.correctIndex
 
   return (
-    <fieldset className="rounded-2xl bg-white p-4 shadow-sm">
-      <legend className="px-1 text-sm font-semibold text-[#1A1D2E]">{LABEL[question.resource]}: {question.question}</legend>
+    <fieldset className="rounded-2xl astro-surface p-4 shadow-sm">
+      <legend className="px-1 text-sm font-semibold astro-text">{LABEL[question.resource]}: {question.question}</legend>
       <div className="mt-2 flex flex-col gap-2">
         {question.options.map((opt, i) => (
-          <label key={opt} className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A1D2E]">
-            <input type="radio" name={question.question} checked={choice === i} onChange={() => setChoice(i)} className="accent-[#1FC8C0]" />
+          <label key={opt} className="flex cursor-pointer items-center gap-2 rounded-lg border astro-border px-3 py-2 text-sm astro-text">
+            <input type="radio" name={question.question} checked={choice === i} onChange={() => setChoice(i)} className="astro-accent-input" />
             {opt}
           </label>
         ))}
       </div>
       {answered ? (
-        <p role="status" className={`mt-3 text-sm ${correct ? 'text-[#16A34A]' : 'text-[#B45309]'}`}>
+        <p role="status" className={`mt-3 text-sm ${correct ? 'astro-ok' : 'astro-warn'}`}>
           <span className="font-semibold">{correct ? '✓ Correct. ' : '! Not quite. '}</span>{question.explanation}
         </p>
       ) : null}
