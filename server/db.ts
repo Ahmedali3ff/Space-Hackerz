@@ -8,13 +8,13 @@ import { fileURLToPath } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const localFile =
-  process.env['DB_PATH'] ?? (process.env['VERCEL'] === '1' ? '/tmp/space-plus.db' : path.join(here, '..', 'space-plus.db'))
+  process.env['DB_PATH'] ?? (process.env['VERCEL'] === '1' ? ':memory:' : path.join(here, '..', 'space-plus.db'))
 
 /** True when data goes to Turso, so it survives serverless restarts. */
 export const isPersistentStorage = Boolean(process.env['TURSO_DATABASE_URL'])
 
 export const client = createClient({
-  url: process.env['TURSO_DATABASE_URL'] ?? `file:${localFile}`,
+  url: process.env['TURSO_DATABASE_URL'] ?? (localFile === ':memory:' ? ':memory:' : `file:${localFile}`),
   authToken: process.env['TURSO_AUTH_TOKEN'],
 })
 

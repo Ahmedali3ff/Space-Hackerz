@@ -16,4 +16,3 @@ space-plus.db-shm
 # local AI-tool working notes
 .agents/
 .kiro/
-pnpm-lock.yaml

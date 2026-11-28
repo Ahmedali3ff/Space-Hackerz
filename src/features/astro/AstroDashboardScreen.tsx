@@ -11,12 +11,9 @@ import { buildErrorItems, summarizeErrors, filterErrors } from '@/ai/errors/erro
 import type { ErrorItem, ErrorResource, ErrorSeverity } from '@/ai/errors/error-center'
 import { AstroToolsSection } from '@/features/mission-control/AstroToolsSection'
 import { LearningSection } from './LearningSection'
+import { RISK_STYLE, StatCard, DetailRow } from './shared'
 
-const RISK: Readonly<Record<RiskLevel, { label: string; icon: string; tone: string }>> = {
-  stable: { label: 'Stable', icon: '✓', tone: 'text-[#16A34A]' },
-  low: { label: 'Needs attention', icon: '!', tone: 'text-[#B45309]' },
-  critical: { label: 'Critical', icon: '✕', tone: 'text-[#B91C1C]' },
-}
+const RISK = RISK_STYLE
 
 const STATUS_TEXT: Readonly<Record<RiskLevel, string>> = { stable: 'Stable', low: 'Low', critical: 'Critical' }
 
@@ -154,10 +151,10 @@ function ErrorCenter({ items }: { readonly items: readonly ErrorItem[] }): JSX.E
   return (
     <section aria-label="Error detection center" className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Total" value={summary.total} />
-        <Stat label="Critical" value={summary.critical} />
-        <Stat label="Warnings" value={summary.warnings} />
-        <Stat label="Optimisations" value={summary.optimizations} />
+        <StatCard label="Total" value={summary.total} />
+        <StatCard label="Critical" value={summary.critical} />
+        <StatCard label="Warnings" value={summary.warnings} />
+        <StatCard label="Optimisations" value={summary.optimizations} />
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -201,13 +198,13 @@ function ErrorCenter({ items }: { readonly items: readonly ErrorItem[] }): JSX.E
                 </button>
                 {open ? (
                   <dl className="mt-3 grid grid-cols-1 gap-2 text-sm text-[#1A1D2E]">
-                    <Detail term="Decision" value={item.decision} />
-                    <Detail term="What happened" value={item.happened} />
-                    <Detail term="Rule" value={item.ruleNote} />
-                    <Detail term="Impact" value={item.impact} />
-                    <Detail term="How to avoid it" value={item.avoid} />
-                    <Detail term="Better choice" value={item.betterChoice} />
-                    <Detail term="Lesson" value={item.lesson} />
+                    <DetailRow term="Decision" value={item.decision} />
+                    <DetailRow term="What happened" value={item.happened} />
+                    <DetailRow term="Rule" value={item.ruleNote} />
+                    <DetailRow term="Impact" value={item.impact} />
+                    <DetailRow term="How to avoid it" value={item.avoid} />
+                    <DetailRow term="Better choice" value={item.betterChoice} />
+                    <DetailRow term="Lesson" value={item.lesson} />
                   </dl>
                 ) : null}
               </li>
@@ -219,20 +216,4 @@ function ErrorCenter({ items }: { readonly items: readonly ErrorItem[] }): JSX.E
   )
 }
 
-function Stat({ label, value }: { readonly label: string; readonly value: number }): JSX.Element {
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-xs text-[#6B7280]">{label}</p>
-      <p className="text-2xl font-bold tabular-nums text-[#1A1D2E]">{value}</p>
-    </div>
-  )
-}
 
-function Detail({ term, value }: { readonly term: string; readonly value: string }): JSX.Element {
-  return (
-    <div>
-      <dt className="font-semibold">{term}</dt>
-      <dd className="text-[#374151]">{value}</dd>
-    </div>
-  )
-}
