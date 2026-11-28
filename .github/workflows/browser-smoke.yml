@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Build the app
@@ -29,7 +28,12 @@ jobs:
       - name: Serve the build
         run: pnpm exec vite preview --port 4173 --strictPort &
       - name: Wait for the server
-        run: npx wait-on http://localhost:4173 || sleep 10
+        run: |
+          for i in $(seq 1 60); do
+            if curl -s -o /dev/null http://localhost:4173; then echo "server is up"; exit 0; fi
+            sleep 1
+          done
+          echo "server did not start" && exit 1
       - name: Run browser checks
         run: pnpm exec playwright test
       - name: Upload report on failure
