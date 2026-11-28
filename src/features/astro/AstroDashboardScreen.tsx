@@ -10,6 +10,7 @@ import type { RiskLevel } from '@/ai/analysis'
 import { buildErrorItems, summarizeErrors, filterErrors } from '@/ai/errors/error-center'
 import type { ErrorItem, ErrorResource, ErrorSeverity } from '@/ai/errors/error-center'
 import { AstroToolsSection } from '@/features/mission-control/AstroToolsSection'
+import { LearningSection } from './LearningSection'
 
 const RISK: Readonly<Record<RiskLevel, { label: string; icon: string; tone: string }>> = {
   stable: { label: 'Stable', icon: '✓', tone: 'text-[#16A34A]' },
@@ -19,7 +20,7 @@ const RISK: Readonly<Record<RiskLevel, { label: string; icon: string; tone: stri
 
 const STATUS_TEXT: Readonly<Record<RiskLevel, string>> = { stable: 'Stable', low: 'Low', critical: 'Critical' }
 
-type Tab = 'overview' | 'errors'
+type Tab = 'overview' | 'errors' | 'learning'
 
 export function AstroDashboardScreen(): JSX.Element {
   const [tab, setTab] = useState<Tab>('overview')
@@ -64,7 +65,7 @@ export function AstroDashboardScreen(): JSX.Element {
           </section>
 
           <nav aria-label="Astro-AI sections" className="flex gap-2">
-            {(['overview', 'errors'] as const).map((t) => (
+            {(['overview', 'errors', 'learning'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -72,7 +73,7 @@ export function AstroDashboardScreen(): JSX.Element {
                 onClick={() => setTab(t)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1FC8C0] ${tab === t ? 'bg-[#1FC8C0] text-white' : 'bg-white text-[#1A1D2E] shadow-sm'}`}
               >
-                {t === 'overview' ? 'Overview' : `Error center (${errors.length})`}
+                {t === 'overview' ? 'Overview' : t === 'errors' ? `Error center (${errors.length})` : 'Learning'}
               </button>
             ))}
           </nav>
@@ -128,8 +129,10 @@ export function AstroDashboardScreen(): JSX.Element {
                 <AstroToolsSection />
               </section>
             </>
-          ) : (
+          ) : tab === 'errors' ? (
             <ErrorCenter items={errors} />
+          ) : (
+            <LearningSection />
           )}
         </>
       )}

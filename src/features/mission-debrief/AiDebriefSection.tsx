@@ -1,6 +1,8 @@
 // src/features/mission-debrief/AiDebriefSection.tsx
 // The automatic debrief: mistakes, good decisions, remaining faults and lessons, all from the recorded decisions.
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+import { buildErrorItems } from '@/ai/errors/error-center'
+import { useLearningProfile } from '@/hooks/useLearningProfile'
 import { buildMissionDebrief } from '@/ai/debrief/mission-debrief'
 import type { SimulationContext } from '@/ai/simulation-context'
 import type { DecisionLogEntry } from '@simulation/types'
@@ -12,6 +14,16 @@ interface Props {
 
 export function AiDebriefSection({ decisionLog, context }: Props): JSX.Element | null {
   const debrief = useMemo(() => (context ? buildMissionDebrief(decisionLog, context) : null), [decisionLog, context])
+  const { recordFinishedMission } = useLearningProfile()
+
+  // Record this mission once, so the learning profile reflects real results.
+  useEffect(() => {
+    if (context === null) return
+    const key = `${context.outcome}:${context.missionDay}:${decisionLog.length}`
+    const items = buildErrorItems(decisionLog, context)
+    const optimal = decisionLog.filter((d) => d.wasOptimal).length
+    recordFinishedMission(key, items, decisionLog.length, optimal)
+  }, [context, decisionLog, recordFinishedMission])
   if (debrief === null) {
     return <p className="text-sm text-[#9CA3AF]">The debrief appears once the mission state is available.</p>
   }
